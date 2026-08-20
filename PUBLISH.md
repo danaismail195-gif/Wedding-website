@@ -1,16 +1,14 @@
 # Putting the site on GitHub
 
 Everything on this side is done. The folder is already a git repository with
-your first commit made, and the remote is already pointed at:
+your commits made and ready to publish.
 
-```
-https://github.com/danaismail195-gif/wedding-website
-```
+Creating the repository on GitHub needs your GitHub login, which isn't on this
+computer (no GitHub CLI, no saved credentials, no SSH key), so the last two
+steps are yours. Pick whichever route suits you — about five minutes either way.
 
-That repository doesn't exist yet — creating it needs your GitHub login, which
-isn't on this computer (no GitHub CLI, no saved credentials, no SSH key). So
-the last two steps are yours. Pick whichever route suits you. Both take about
-five minutes.
+No remote is configured, deliberately: that's what lets GitHub Desktop offer you
+its **Publish repository** button, which creates the repository for you.
 
 Once it's live the address will be:
 
@@ -78,6 +76,10 @@ in the long run.
 ## Route C — Terminal, if you're comfortable with it
 
 Create the empty repository first (Route B step 1), then:
+
+```bash
+git remote add origin https://github.com/danaismail195-gif/wedding-website.git
+```
 
 ```bash
 git push -u origin main
