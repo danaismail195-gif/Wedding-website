@@ -1,0 +1,3 @@
+# A wedding site is for the people who were invited.
+User-agent: *
+Disallow: /
