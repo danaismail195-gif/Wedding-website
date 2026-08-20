@@ -38,6 +38,12 @@
   var dragging = false, dragStartX = 0, dragStartPan = 0, dragMoved = 0;
   var revealTimer = null;
 
+  /* history.pushState throws inside sandboxed frames and on some file://
+     setups. The deep-link niceties are optional; the site is not. */
+  function safeHistory(method, state, url) {
+    try { history[method](state, '', url); } catch (err) {}
+  }
+
   /* ====================================================================
      BOOT
      ==================================================================== */
@@ -344,7 +350,7 @@
         el.beacon.classList.toggle('is-hidden', true);
         el.pathmap.classList.add('is-hidden');
         el.hint.classList.add('is-gone');
-        if (location.hash !== '#' + id) history.pushState({ room: id }, '', '#' + id);
+        if (location.hash !== '#' + id) safeHistory('pushState', { room: id }, '#' + id);
         tween({
           from: 1, to: 0, duration: reduced ? 0 : 760, delay: 60, ease: 'power2Out',
           onUpdate: function (v) { el.veil.style.opacity = v; },
@@ -386,7 +392,7 @@
         currentRoom = null;
         el.beacon.classList.remove('is-hidden');
         el.pathmap.classList.remove('is-hidden');
-        if (location.hash) history.pushState({ room: null }, '', location.pathname + location.search);
+        if (location.hash) safeHistory('pushState', { room: null }, location.pathname + location.search);
 
         camState.tx = target.tx; camState.ty = target.ty; camState.z = reduced ? 1 : Z;
         applyCamera();
@@ -536,7 +542,7 @@
         renderRoom(id);
         currentRoom = id;
         panTo(SPOTS[roomIndex(id)].x, true);
-        history.replaceState({ room: id }, '', '#' + id);
+        safeHistory('replaceState', { room: id }, '#' + id);
         tween({
           from: 1, to: 0, duration: reduced ? 0 : 640, delay: 60, ease: 'power2Out',
           onUpdate: function (v) { el.veil.style.opacity = v; },
