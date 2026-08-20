@@ -19,12 +19,14 @@
 
     /* ---- The couple -------------------------------------------------- */
     couple: {
-      names: 'Mira & Sam',              // shown on the loading screen + header
+      names: 'Dana & Nadeem',           // shown on the loading screen + header
       dateLine: '11 – 13 June 2027',
       place: 'Bay of Kotor, Montenegro',
-      hashtag: '#MiraAndSamGoAdriatic',
+      hashtag: '#DanaAndNadeemGoAdriatic',
       // The little note on the loading screen
-      invitation: 'We are getting married on the Adriatic, and we would very much like you there.'
+      invitation: 'We are getting married on the Adriatic, and we would very much like you there.',
+      // Where guests should write with questions. Used in several places.
+      email: 'hello@danaandnadeem.example'
     },
 
     /* ---- Where to send RSVP submissions ------------------------------ *
@@ -174,7 +176,7 @@
         sublabel: 'Beds on the bay',
         kicker: 'Somewhere to sleep',
         title: 'Where to Stay',
-        intro: 'We have held rooms at the first three until 1 March 2027. Mention "Mira & Sam" when booking.',
+        intro: 'We have held rooms at the first three until 1 March 2027. Mention "Dana &amp; Nadeem" when booking.',
         blocks: [
           { type: 'cards', filterable: false, items: [
             { group: 'stay', name: 'Hotel Conte, Perast',
@@ -233,7 +235,7 @@
               meta: 'DBV → Kotor · 2 – 3 hrs' }
           ]},
           { type: 'note', title: 'Stuck? Ask.',
-            text: 'Flights, borders, car hire, anything at all — email us at hello@miraandsam.example and we will actually reply. If several of you are landing at the same time we will try to put you in the same car.' }
+            text: 'Flights, borders, car hire, anything at all — email us at hello@danaandnadeem.example and we will actually reply. If several of you are landing at the same time we will try to put you in the same car.' }
         ]
       },
 
@@ -251,7 +253,7 @@
             { label: 'Deadline',  value: '1 March 2027' },
             { label: 'Plus ones', value: 'If your invitation named two people, you have one. If you would like to bring someone and it did not, ask us — we will do our best.' },
             { label: 'Children',  value: 'Very welcome at the welcome dinner and the wedding. There is a supervised room with beds from 9pm on the Friday.' },
-            { label: 'Questions',  value: 'hello@miraandsam.example' }
+            { label: 'Questions',  value: 'hello@danaandnadeem.example' }
           ]},
           { type: 'form' }
         ]

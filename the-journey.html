@@ -1,4 +1,14 @@
-<title>Mira &amp; Sam</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#6FB2BF">
+<title>The Journey — a wedding on the Adriatic</title>
+<meta name="description" content="Wedding details, travel, places to stay and RSVP — walk the path and choose a doorway.">
+<!-- Keeps the site out of Google. Delete this line if you want it findable. -->
+<meta name="robots" content="noindex, nofollow">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Karla:wght@300;400;500&display=swap" rel="stylesheet">
@@ -28,6 +38,11 @@
   --gold:       #E4A853;
   --gold-light: #F5D08A;
   --night:      #1E2A3A;
+  --sea-pale:   #EAF6F5;
+  --sea-light:  #B6DEE2;
+  --sea-mid:    #6FB2BF;
+  --sea-deep:   #2F7186;
+  --sea-ink:    #14434F;
 
   --panel-bg:   rgba(251, 244, 232, 0.94);
   --panel-line: rgba(59, 42, 34, 0.14);
@@ -72,34 +87,37 @@ svg { display: block; }
   position: fixed; inset: 0; z-index: 200;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 1.1rem; text-align: center; padding: 2rem;
-  background: linear-gradient(170deg, #F6E3C6 0%, #E9C9A6 45%, #C98A6E 100%);
+  background:
+    radial-gradient(120% 80% at 50% 8%, rgba(255,255,255,.55), rgba(255,255,255,0) 60%),
+    linear-gradient(168deg, var(--sea-pale) 0%, var(--sea-light) 34%, var(--sea-mid) 70%, var(--sea-deep) 100%);
   transition: opacity .9s var(--ease), visibility .9s;
 }
 #loader.is-gone { opacity: 0; visibility: hidden; pointer-events: none; }
 .loader-names {
   font-family: var(--display); font-weight: 300; letter-spacing: .06em;
-  font-size: clamp(2.6rem, 8vw, 5.2rem); line-height: 1; color: var(--espresso); margin: 0;
+  font-size: clamp(2.6rem, 8vw, 5.2rem); line-height: 1; color: #17323A; margin: 0;
+  text-shadow: 0 2px 30px rgba(255,255,255,.55);
 }
 .loader-sub {
   font-size: clamp(.78rem, 2.2vw, .95rem); letter-spacing: .34em; text-transform: uppercase;
-  color: var(--terra-deep); margin: 0;
+  color: var(--sea-ink); margin: 0;
 }
 .loader-note {
-  max-width: 34ch; font-size: .96rem; line-height: 1.65; color: var(--esp-soft);
+  max-width: 34ch; font-size: .96rem; line-height: 1.65; color: #2B5A66;
   font-family: var(--display); font-size: 1.22rem; font-style: italic;
 }
-.loader-bar { width: min(240px, 60vw); height: 2px; background: rgba(59,42,34,.18); overflow: hidden; border-radius: 2px; }
-.loader-bar i { display: block; height: 100%; width: 0; background: var(--terra-deep); transition: width .4s var(--ease); }
+.loader-bar { width: min(240px, 60vw); height: 2px; background: rgba(20,67,79,.20); overflow: hidden; border-radius: 2px; }
+.loader-bar i { display: block; height: 100%; width: 0; background: var(--sea-ink); transition: width .4s var(--ease); }
 .enter-btn {
   margin-top: .6rem; padding: .95rem 2.4rem; min-height: 48px;
-  border: 1px solid var(--terra-deep); border-radius: 999px;
-  font-size: .78rem; letter-spacing: .26em; text-transform: uppercase; color: var(--terra-deep);
-  background: rgba(255,255,255,.28); backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.9); border-radius: 999px;
+  font-size: .78rem; letter-spacing: .26em; text-transform: uppercase; color: var(--sea-ink);
+  background: rgba(255,255,255,.46);
   transition: background .4s var(--ease), color .4s var(--ease), transform .4s var(--ease);
   opacity: 0; transform: translateY(10px); pointer-events: none;
 }
 .enter-btn.is-ready { opacity: 1; transform: none; pointer-events: auto; }
-.enter-btn:hover { background: var(--terra-deep); color: var(--cream-2); transform: translateY(-2px); }
+.enter-btn:hover { background: var(--sea-ink); color: var(--sea-pale); border-color: var(--sea-ink); transform: translateY(-2px); }
 
 /* --- 4 · the hub --------------------------------------------------------- */
 #hub {
@@ -135,8 +153,35 @@ svg { display: block; }
 }
 .entrance-svg { width: 100%; height: 100%; overflow: visible; }
 .entrance .ww-door-open { transition: filter .5s var(--ease); }
-.entrance:hover, .entrance.is-near { transform: translateY(-6px) scale(1.03); filter: brightness(1.07); }
-.entrance:hover .entrance-label, .entrance.is-near .entrance-label { opacity: 1; transform: translate(-50%, 0); }
+/* Grows from its own base, so the doorway can never slide out from under
+   the cursor and start a hover/unhover flicker. No filter: it forces a
+   repaint of the whole layer on a machine that can least afford it. */
+.entrance:hover, .entrance:focus-visible, .entrance.is-near { transform: scale(1.035); }
+.entrance:hover .entrance-label, .entrance:focus-visible .entrance-label,
+.entrance.is-near .entrance-label { opacity: 1; transform: translate(-50%, 0); }
+
+/* the small permanent "this is a door you can walk through" cue */
+.entrance-cta {
+  position: absolute; left: 50%; bottom: 1.5%;
+  transform: translate(-50%, 0);
+  display: inline-flex; align-items: center; gap: .5em;
+  padding: .42em .95em .46em; border-radius: 999px;
+  font-size: .56em; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--terra-deep); background: rgba(251,244,232,.92);
+  border: 1px solid rgba(155,74,42,.3);
+  box-shadow: 0 6px 18px -9px rgba(59,42,34,.6);
+  white-space: nowrap; pointer-events: none;
+  transition: background .35s var(--ease), color .35s var(--ease), transform .35s var(--ease);
+}
+.entrance-cta::before {
+  content: ""; width: .5em; height: .5em; border-radius: 50%;
+  background: var(--gold); box-shadow: 0 0 0 .16em rgba(228,168,83,.35);
+}
+.entrance:hover .entrance-cta, .entrance:focus-visible .entrance-cta,
+.entrance.is-near .entrance-cta {
+  background: var(--terracotta); color: var(--cream-2); border-color: var(--terracotta);
+  transform: translate(-50%, -3px);
+}
 /* labels sit above the archway, clear of the path map at the bottom */
 .entrance-label {
   position: absolute; left: 50%; top: -5.6em; bottom: auto;
@@ -147,7 +192,7 @@ svg { display: block; }
 .entrance-label > span { display: block; }
 .entrance-label .inner {
   padding: .6em 1.4em .7em; border-radius: 14px;
-  background: rgba(251,244,232,.74); backdrop-filter: blur(7px);
+  background: rgba(251,244,232,.93);
   border: 1px solid rgba(59,42,34,.08);
   box-shadow: 0 10px 30px -14px rgba(59,42,34,.5);
 }
@@ -192,6 +237,7 @@ svg { display: block; }
   box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
+.panel-grip { display: none; }
 .panel-scroll {
   overflow-y: auto; overscroll-behavior: contain;
   outline-offset: -6px;
@@ -338,7 +384,10 @@ svg { display: block; }
   padding: 1.4rem clamp(1.1rem, 3vw, 2.4rem);
   pointer-events: none;
 }
-.brand { pointer-events: auto; text-align: left; }
+.brand { pointer-events: auto; text-align: left; transition: opacity .5s var(--ease); }
+/* inside a room the way back owns the top of the screen, so the names step
+   aside — the room has its own title, and nobody is lost */
+#room.is-open ~ .top-bar .brand { opacity: 0; pointer-events: none; }
 .brand .n {
   display: block; font-family: var(--display); font-size: clamp(1.15rem, 2vw, 1.5rem);
   color: var(--espresso); letter-spacing: .04em;
@@ -353,7 +402,7 @@ svg { display: block; }
 .icon-btn {
   width: 46px; height: 46px; border-radius: 50%;
   display: grid; place-items: center;
-  background: rgba(251,244,232,.72); backdrop-filter: blur(8px);
+  background: rgba(251,244,232,.88);
   border: 1px solid rgba(59,42,34,.12);
   box-shadow: var(--shadow-md);
   transition: transform .3s var(--ease), background .3s var(--ease);
@@ -402,7 +451,7 @@ svg { display: block; }
   transform: translateX(-50%);
   display: flex; align-items: center; gap: .2rem;
   padding: .5rem .8rem; border-radius: 999px;
-  background: rgba(251,244,232,.68); backdrop-filter: blur(8px);
+  background: rgba(251,244,232,.9);
   border: 1px solid rgba(59,42,34,.1); box-shadow: var(--shadow-md);
   transition: opacity .5s var(--ease);
   max-width: calc(100vw - 2rem);
@@ -472,7 +521,7 @@ svg { display: block; }
   transition: opacity .8s var(--ease);
   white-space: nowrap; pointer-events: none;
   padding: .55rem 1.1rem; border-radius: 999px;
-  background: rgba(251,244,232,.66); backdrop-filter: blur(6px);
+  background: rgba(251,244,232,.88);
   border: 1px solid rgba(59,42,34,.08);
 }
 .hint.is-gone { opacity: 0; }
@@ -492,7 +541,23 @@ svg { display: block; }
   100% { transform: translate3d(var(--dx, 40px), -108vh, 0) scale(1.15); opacity: 0; }
 }
 
-/* --- 10 · ambient motion ------------------------------------------------- */
+/* --- 10 · ambient motion -------------------------------------------------
+   Every idle animation in the world carries one of these classes. While the
+   camera is actually moving they are all paused: nobody can see a lantern
+   flicker during a 1.4s dolly, and pausing them stops the browser repainting
+   several very large SVG layers on every single frame. This is the single
+   biggest thing keeping the pan smooth on a laptop or an Android phone. */
+#hub.is-moving .ww-sway, #hub.is-moving .ww-sway-slow, #hub.is-moving .ww-swing,
+#hub.is-moving .ww-flicker, #hub.is-moving .ww-twinkle, #hub.is-moving .ww-shimmer,
+#hub.is-moving .ww-drift, #hub.is-moving .ww-bob, #hub.is-moving .ww-hover-bob,
+#hub.is-moving .ww-pulse, #hub.is-moving .ww-glow-soft, #hub.is-moving .ww-dance,
+#hub.is-moving .ww-fly, #hub.is-moving .ww-flap, #hub.is-moving .ww-spin-slow,
+#hub.is-moving .ww-plane, #hub.is-moving .ww-plane-door, #hub.is-moving .ww-idle,
+#hub.is-moving .ww-talk, #hub.is-moving .ww-laugh, #hub.is-moving .ww-stroll {
+  animation-play-state: paused;
+}
+#stage.is-moving .mote { animation-play-state: paused; }
+
 .ww-sway      { animation: ww-sway 6.5s ease-in-out infinite; transform-box: fill-box; }
 .ww-sway-slow { animation: ww-sway 13s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-sway {
@@ -544,6 +609,24 @@ svg { display: block; }
 @keyframes ww-flap { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.4); } }
 .ww-spin-slow { animation: ww-spin 22s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-spin { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+.ww-idle { animation: ww-idle 5.6s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.6px); } }
+.ww-talk { animation: ww-talk 3.6s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-talk { 0%, 100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
+.ww-laugh { animation: ww-laugh 2.9s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-laugh {
+  0%, 100% { transform: rotate(-1.6deg) translateY(0); }
+  50%      { transform: rotate(2.2deg) translateY(-2.5px); }
+}
+.ww-stroll { animation: ww-stroll 19s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-stroll { 0%, 100% { transform: translateX(-26px); } 50% { transform: translateX(34px); } }
+.ww-plane-door { animation: ww-plane-door 15s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-plane-door {
+  0%   { transform: translate(-26px, 16px); opacity: 0; }
+  14%  { opacity: 1; }
+  82%  { opacity: 1; }
+  100% { transform: translate(40px, -18px); opacity: 0; }
+}
 .ww-plane { animation: ww-plane 34s linear infinite; }
 @keyframes ww-plane {
   from { transform: translate(-320px, 150px); }
@@ -552,26 +635,50 @@ svg { display: block; }
 
 /* --- 11 · mobile & tablet ------------------------------------------------ */
 @media (max-width: 900px) {
-  :root { --panel-w: 100%; }
-  /* On a phone the illustration becomes a band above the content sheet,
-     so the whole scene is visible rather than a sliver of sky. */
-  #room { background: var(--cream-2); }
-  .room-art { inset: 0 0 auto 0; height: 34vh; height: 34dvh; }
+  :root { --panel-w: 100%; --sheet-min: 34dvh; --sheet-max: 88dvh; }
+  /* On a phone the illustration keeps two thirds of the screen and the copy
+     arrives as a bottom sheet you can pull up. The artwork is drawn to the
+     full width and anchored to the foot of its band, with the room's own sky
+     colour continuing above it — so nothing is cropped away sideways. */
+  #room { background: var(--room-sky, var(--night)); }
+  .room-art {
+    inset: 0 0 auto 0; height: 66vh; height: 66dvh;
+    background: var(--room-sky, var(--night));
+  }
+  .room-layer > svg {
+    position: absolute; left: -20%; right: -20%; bottom: 0;
+    width: 140%; height: auto;
+  }
   .room-scrim {
-    inset: 0 0 auto 0; height: 34vh; height: 34dvh;
-    background: linear-gradient(180deg, rgba(59,42,34,.34) 0%, rgba(59,42,34,0) 42%);
+    inset: 0 0 auto 0; height: 66vh; height: 66dvh;
+    background: linear-gradient(180deg, rgba(59,42,34,.30) 0%, rgba(59,42,34,0) 34%);
   }
   .panel {
-    top: auto; height: 74vh; height: 74dvh; border-radius: 22px 22px 0 0;
+    top: auto; bottom: 0;
+    height: var(--sheet-h, 34dvh);
+    border-radius: 22px 22px 0 0;
     box-shadow: 0 -18px 60px -20px rgba(59,42,34,.6);
+    transition: transform .95s var(--ease), opacity .7s var(--ease), height .42s var(--ease);
   }
-  .panel::before {
-    content: ""; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-    width: 46px; height: 4px; border-radius: 999px; background: rgba(59,42,34,.22);
+  .panel.is-dragging { transition: none; }
+  /* the pull tab — a proper 44px target, not just a decorative line */
+  .panel-grip {
+    position: absolute; top: 0; left: 0; right: 0; height: 30px; z-index: 2;
+    display: grid; place-items: center; cursor: grab;
+    touch-action: none;
   }
-  .panel-scroll { padding: 2.4rem 1.5rem 8rem; }
+  .panel-grip::before {
+    content: ""; width: 46px; height: 4px; border-radius: 999px;
+    background: rgba(59,42,34,.26);
+    transition: width .3s var(--ease), background .3s var(--ease);
+  }
+  .panel-grip:active::before { background: var(--terracotta); width: 62px; }
+  .panel-scroll { padding: 2.1rem 1.5rem 7rem; }
+  /* collapsed, the whole sheet is a handle: drag anywhere on it to open */
+  .panel:not(.is-expanded) .panel-scroll { overflow-y: hidden; touch-action: none; }
   .back-btn { bottom: auto; top: 1.1rem; left: 1.1rem; padding: .7rem 1.2rem .7rem .9rem; min-height: 46px; }
   .beacon { bottom: 4.9rem; padding: .6rem .6rem .6rem 1.1rem; min-height: 52px; }
+  .entrance-cta { font-size: .68em; letter-spacing: .14em; }
   .beacon .t { font-size: .64rem; letter-spacing: .18em; }
   .facts li { grid-template-columns: 1fr; gap: .25rem; }
   .top-bar { padding: 1rem 1.1rem; }
@@ -589,6 +696,24 @@ svg { display: block; }
 }
 @media (min-width: 901px) {
   .panel { border-left: 1px solid rgba(59,42,34,.1); }
+
+  /* The names used to sit in the top-left corner, where the foreground
+     olive branch hangs into the frame and ate them. Centre them, and give
+     them a plaque so they never have to compete with the artwork. */
+  .brand {
+    position: absolute; left: 50%; top: 0;
+    transform: translateX(-50%); text-align: center;
+    padding: .85rem 2.2rem .95rem; border-radius: 0 0 18px 18px;
+    background: linear-gradient(180deg, rgba(251,244,232,.94), rgba(251,244,232,.6));
+    border: 1px solid rgba(59,42,34,.09); border-top: 0;
+    box-shadow: 0 14px 34px -22px rgba(59,42,34,.65);
+    transition: transform .8s var(--ease);
+  }
+  .brand .n { font-size: clamp(1.3rem, 2.1vw, 1.7rem); text-shadow: none; }
+  .brand .d { font-size: .62rem; text-shadow: none; letter-spacing: .3em; }
+
+  /* one clear way back, top left, where a back control belongs */
+  .back-btn { top: 1.25rem; bottom: auto; }
   /* keep the sound toggle clear of the panel while a room is open */
   #room.is-open ~ .top-bar .top-actions {
     transform: translateX(calc(-1 * var(--panel-w) - .6rem));
@@ -635,6 +760,11 @@ svg { display: block; }
 }
 
 </style>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23C4643C'/><path d='M16 24c-5-4-8-6.4-8-10a4.6 4.6 0 0 1 8-3 4.6 4.6 0 0 1 8 3c0 3.6-3 6-8 10z' fill='%23F4E7D3'/></svg>">
+</head>
+<body>
+
+
 <div id="stage">
 
   <!-- ============ THE MAIN PATHWAY ============ -->
@@ -655,6 +785,8 @@ svg { display: block; }
     <div class="room-scrim" aria-hidden="true"></div>
 
     <div class="panel" id="panel">
+      <button class="panel-grip" id="panel-grip" type="button"
+              aria-label="Expand or collapse the details"></button>
       <div class="panel-scroll" id="panel-scroll" tabindex="0"></div>
     </div>
 
@@ -716,6 +848,7 @@ svg { display: block; }
     If you cannot use it, please email us and we will send you all the details by return.</p>
   </noscript>
 </div>
+
 <script>
 /* ==========================================================================
    tween.js — a tiny animation engine (no dependencies)
@@ -850,12 +983,14 @@ svg { display: block; }
 
     /* ---- The couple -------------------------------------------------- */
     couple: {
-      names: 'Mira & Sam',              // shown on the loading screen + header
+      names: 'Dana & Nadeem',           // shown on the loading screen + header
       dateLine: '11 – 13 June 2027',
       place: 'Bay of Kotor, Montenegro',
-      hashtag: '#MiraAndSamGoAdriatic',
+      hashtag: '#DanaAndNadeemGoAdriatic',
       // The little note on the loading screen
-      invitation: 'We are getting married on the Adriatic, and we would very much like you there.'
+      invitation: 'We are getting married on the Adriatic, and we would very much like you there.',
+      // Where guests should write with questions. Used in several places.
+      email: 'hello@danaandnadeem.example'
     },
 
     /* ---- Where to send RSVP submissions ------------------------------ *
@@ -1005,7 +1140,7 @@ svg { display: block; }
         sublabel: 'Beds on the bay',
         kicker: 'Somewhere to sleep',
         title: 'Where to Stay',
-        intro: 'We have held rooms at the first three until 1 March 2027. Mention "Mira & Sam" when booking.',
+        intro: 'We have held rooms at the first three until 1 March 2027. Mention "Dana &amp; Nadeem" when booking.',
         blocks: [
           { type: 'cards', filterable: false, items: [
             { group: 'stay', name: 'Hotel Conte, Perast',
@@ -1064,7 +1199,7 @@ svg { display: block; }
               meta: 'DBV → Kotor · 2 – 3 hrs' }
           ]},
           { type: 'note', title: 'Stuck? Ask.',
-            text: 'Flights, borders, car hire, anything at all — email us at hello@miraandsam.example and we will actually reply. If several of you are landing at the same time we will try to put you in the same car.' }
+            text: 'Flights, borders, car hire, anything at all — email us at hello@danaandnadeem.example and we will actually reply. If several of you are landing at the same time we will try to put you in the same car.' }
         ]
       },
 
@@ -1082,7 +1217,7 @@ svg { display: block; }
             { label: 'Deadline',  value: '1 March 2027' },
             { label: 'Plus ones', value: 'If your invitation named two people, you have one. If you would like to bring someone and it did not, ask us — we will do our best.' },
             { label: 'Children',  value: 'Very welcome at the welcome dinner and the wedding. There is a supervised room with beds from 9pm on the Friday.' },
-            { label: 'Questions',  value: 'hello@miraandsam.example' }
+            { label: 'Questions',  value: 'hello@danaandnadeem.example' }
           ]},
           { type: 'form' }
         ]
@@ -1264,13 +1399,16 @@ svg { display: block; }
       '<stop offset="0" stop-color="' + top + '"/><stop offset="1" stop-color="' + bottom + '"/></linearGradient></defs>';
     g += '<rect x="' + f(x) + '" y="' + f(y) + '" width="' + f(w) + '" height="' + f(h) + '" fill="url(#' + id + ')"/>';
     var r = rand(glintSeed || 11), gl = '';
-    for (var i = 0; i < Math.round(w / 26); i++) {
+    var n = Math.round(w / 40);
+    for (var i = 0; i < n; i++) {
       var gx = x + r() * w;
       var gy = y + Math.pow(r(), 1.7) * h;
       var gw = 10 + r() * 46;
-      gl += '<rect class="ww-shimmer" x="' + f(gx) + '" y="' + f(gy) + '" width="' + f(gw) + '" height="' + f(1.6 + r() * 1.8) +
+      var lively = i % 3 !== 0;                 // most of them just sit there
+      gl += '<rect' + (lively ? ' class="ww-shimmer"' : '') +
+            ' x="' + f(gx) + '" y="' + f(gy) + '" width="' + f(gw) + '" height="' + f(1.6 + r() * 1.8) +
             '" rx="1" fill="' + (glintColor || '#FFFFFF') + '" opacity="' + (0.06 + r() * 0.22).toFixed(2) +
-            '" style="animation-delay:' + (-r() * 7).toFixed(1) + 's"/>';
+            '"' + (lively ? ' style="animation-delay:' + (-r() * 9).toFixed(1) + 's"' : '') + '/>';
     }
     return g + gl;
   }
@@ -1367,7 +1505,10 @@ svg { display: block; }
     var r = rand(seed || 23), g = '';
     for (var i = 0; i < n; i++) {
       var gx = x + r() * w, hgt = 8 + r() * 16;
-      g += '<path class="ww-sway" style="transform-origin:' + f(gx) + 'px ' + f(y) + 'px;animation-delay:' + (-r() * 5).toFixed(1) + 's" d="M ' + f(gx) + ' ' + f(y) +
+      /* only some of the grass moves — nobody counts, and the layer repaints
+         a third as often */
+      var sway = i % 3 === 0;
+      g += '<path' + (sway ? ' class="ww-sway"' : '') + ' style="transform-origin:' + f(gx) + 'px ' + f(y) + 'px;animation-delay:' + (-r() * 5).toFixed(1) + 's" d="M ' + f(gx) + ' ' + f(y) +
            ' q ' + f((r() - 0.5) * 10) + ' -' + f(hgt * 0.6) + ' ' + f((r() - 0.5) * 14) + ' -' + f(hgt) + '" fill="none" stroke="' + (color || P.oliveDeep) + '" stroke-width="1.7" stroke-linecap="round"/>';
     }
     return g;
@@ -1392,17 +1533,315 @@ svg { display: block; }
     return '<g class="ww-sway-slow" style="transform-origin:' + f(x) + 'px ' + f(y) + 'px">' + g + '</g>';
   }
 
-  /* Dancing silhouettes, for the after-party. */
+  /* ======================================================================
+     PEOPLE — flat, hand-made, deliberately a bit wonky, but properly built.
+     Every limb is a round-capped polyline that STARTS at the shoulder or
+     hip it belongs to, so an arm can never float free of its body. Poses
+     are described in fractions of the figure's height, which keeps the
+     proportions honest at any scale.
+     ====================================================================== */
+
+  var SKINS   = ['#EFC49F', '#E2AC81', '#C98A5E', '#A06A43', '#7A4E32', '#5B3826'];
+  var CLOTHES = ['#C4643C', '#7A97A8', '#7C8B5E', '#E4A853', '#9B4A2A', '#5A4260',
+                 '#4E6E80', '#D98A5E', '#F4E7D3', '#3B2A22'];
+  var HAIRS   = ['#3B2A22', '#5C4436', '#241A16', '#6B5744', '#2A2430', '#8A6A46', '#B08A55'];
+
+  /* round-capped, round-joined polyline — the only way limbs are drawn */
+  function limbPath(pts, w, color, extra) {
+    var d = 'M ' + f(pts[0][0]) + ' ' + f(pts[0][1]);
+    for (var i = 1; i < pts.length; i++) d += ' L ' + f(pts[i][0]) + ' ' + f(pts[i][1]);
+    return '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="' + f(w) +
+      '" stroke-linecap="round" stroke-linejoin="round"' + (extra || '') + '/>';
+  }
+
+  /* Pose tables. Every offset is a fraction of the figure's height, measured
+     from the shoulder (arms) or the hip (legs). [elbow, hand] / [knee, foot].
+     dir = +1 facing right. */
+  var POSES = {
+    stand:  { armNear: [[.045, .125], [.070, .255]], armFar: [[-.040, .125], [-.062, .250]],
+              legNear: [[.022, .215], [.014, .455]], legFar: [[-.020, .215], [-.030, .455]] },
+    chat:   { armNear: [[.080, .095], [.170, .020]], armFar: [[-.045, .120], [-.055, .245]],
+              legNear: [[.030, .215], [.045, .455]], legFar: [[-.022, .215], [-.048, .455]] },
+    listen: { armNear: [[.055, .130], [.115, .195]], armFar: [[-.050, .125], [-.070, .240]],
+              legNear: [[.018, .215], [.010, .455]], legFar: [[-.024, .218], [-.044, .455]] },
+    toast:  { armNear: [[.090, .050], [.135, -.090]], armFar: [[-.045, .125], [-.058, .248]],
+              legNear: [[.024, .215], [.018, .455]], legFar: [[-.022, .215], [-.036, .455]] },
+    laugh:  { armNear: [[.075, .105], [.055, .010]], armFar: [[-.075, .105], [-.140, .150]],
+              legNear: [[.030, .215], [.052, .455]], legFar: [[-.028, .215], [-.056, .455]] },
+    photo:  { armNear: [[.105, .080], [.055, -.045]], armFar: [[-.100, .085], [-.050, -.045]],
+              legNear: [[.026, .215], [.030, .455]], legFar: [[-.026, .215], [-.034, .455]] },
+    wave:   { armNear: [[.085, .040], [.115, -.115]], armFar: [[-.042, .128], [-.055, .250]],
+              legNear: [[.020, .215], [.012, .455]], legFar: [[-.022, .215], [-.034, .455]] },
+    walk:   { armNear: [[.060, .120], [.030, .245]], armFar: [[-.055, .120], [-.020, .245]],
+              legNear: [[.075, .200], [.130, .440]], legFar: [[-.055, .215], [-.105, .450]] },
+    sit:    { armNear: [[.055, .105], [.150, .145]], armFar: [[-.045, .110], [.085, .150]],
+              legNear: [[.130, .030], [.155, .255]], legFar: [[.112, .052], [.138, .258]] },
+    /* drawn up to a table: legs straight down, where the tabletop hides them */
+    table:  { armNear: [[.062, .100], [.140, .150]], armFar: [[-.058, .100], [-.120, .152]],
+              legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
+    dance:  { armNear: [[.110, -.010], [.170, -.150]], armFar: [[-.115, .060], [-.205, .015]],
+              legNear: [[.075, .200], [.120, .450]], legFar: [[-.080, .195], [-.135, .450]] },
+    dance2: { armNear: [[.125, .045], [.215, -.035]], armFar: [[-.095, -.020], [-.140, -.160]],
+              legNear: [[.055, .205], [.145, .450]], legFar: [[-.070, .215], [-.090, .450]] }
+  };
+
+  /* Small things people hold. Drawn at the hand, so they never drift off. */
+  function prop(kind, hx, hy, s, tint) {
+    if (kind === 'glass') {
+      return '<path d="M ' + f(hx - 3.6 * s) + ' ' + f(hy - 2 * s) +
+        ' l ' + f(7.2 * s) + ' 0 l -' + f(1.1 * s) + ' ' + f(5.2 * s) + ' l -' + f(5 * s) + ' 0 Z" fill="#FBF4E8" opacity=".92"/>' +
+        '<path d="M ' + f(hx - 2.9 * s) + ' ' + f(hy - 1.2 * s) + ' l ' + f(5.8 * s) + ' 0 l -' + f(.7 * s) + ' ' + f(3 * s) +
+        ' l -' + f(4.4 * s) + ' 0 Z" fill="' + (tint || '#E8B25E') + '" opacity=".85"/>' +
+        '<rect x="' + f(hx - .5 * s) + '" y="' + f(hy + 3 * s) + '" width="' + f(1.2 * s) + '" height="' + f(3.4 * s) + '" fill="#FBF4E8" opacity=".8"/>';
+    }
+    if (kind === 'camera') {
+      return '<rect x="' + f(hx - 5.5 * s) + '" y="' + f(hy - 4 * s) + '" width="' + f(11 * s) + '" height="' + f(8 * s) +
+        '" rx="' + f(1.6 * s) + '" fill="#3B2A22"/>' +
+        '<circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(2.6 * s) + '" fill="#7A97A8"/>' +
+        '<circle class="ww-twinkle" cx="' + f(hx + 4 * s) + '" cy="' + f(hy - 3 * s) + '" r="' + f(1.2 * s) + '" fill="#FFF3D0"/>';
+    }
+    if (kind === 'phone') {
+      return '<rect x="' + f(hx - 2.2 * s) + '" y="' + f(hy - 4.4 * s) + '" width="' + f(4.4 * s) + '" height="' + f(8.4 * s) +
+        '" rx="' + f(1 * s) + '" fill="#3B2A22"/>' +
+        '<rect x="' + f(hx - 1.5 * s) + '" y="' + f(hy - 3.6 * s) + '" width="' + f(3 * s) + '" height="' + f(6.6 * s) + '" fill="#9FC4CE"/>';
+    }
+    if (kind === 'plate') {
+      return '<ellipse cx="' + f(hx) + '" cy="' + f(hy) + '" rx="' + f(6.5 * s) + '" ry="' + f(2.4 * s) + '" fill="#FFFAF0"/>';
+    }
+    return '';
+  }
+
+  /**
+   * person({ x, baseY, h, pose, flip, skin, cloth, hair, dress, flat, hold,
+   *          anim, delay, seed })
+   * baseY is the ground (or the seat front, for `sit`). Returns one <g>.
+   */
+  function person(o) {
+    o = o || {};
+    var x = o.x || 0, b = o.baseY || 0, h = o.h || 100;
+    var r = rand(o.seed != null ? o.seed : (Math.abs(x * 31 + b * 17 + h) | 0) + 3);
+    var flat  = o.flat || null;
+    var skin  = flat || o.skin  || SKINS[(r() * SKINS.length) | 0];
+    var cloth = flat || o.cloth || CLOTHES[(r() * CLOTHES.length) | 0];
+    var hair  = flat || o.hair  || HAIRS[(r() * HAIRS.length) | 0];
+    var shoe  = flat || '#3B2A22';
+    var dir   = o.flip ? -1 : 1;
+    var pose  = POSES[o.pose] || POSES.stand;
+    var dress = o.dress != null ? o.dress : (r() < 0.45);
+    var seated = o.pose === 'sit' || o.pose === 'table';
+
+    /* skeleton */
+    var headR = h * 0.098,
+        headY = b - h * (seated ? 0.440 : 0.895),
+        shY   = b - h * (seated ? 0.300 : 0.745),
+        hipY  = b - h * (seated ? 0.020 : 0.455),
+        shW   = h * 0.104,
+        hipW  = h * 0.080,
+        limbW = h * 0.070;
+
+    /* a little wonkiness, so no two are quite the same */
+    var lean = (r() - 0.5) * 2.2;
+    var shTilt = (r() - 0.5) * h * 0.012;
+
+    function pts(list, ox, oy) {
+      var out = [[ox, oy]];
+      for (var i = 0; i < list.length; i++) {
+        out.push([ox + list[i][0] * h * dir, oy + list[i][1] * h]);
+      }
+      return out;
+    }
+
+    var shL = [x - shW * dir, shY + shTilt],     // far shoulder
+        shR = [x + shW * dir, shY - shTilt],     // near shoulder
+        hpL = [x - hipW * dir, hipY],
+        hpR = [x + hipW * dir, hipY];
+
+    var armFar  = pts(pose.armFar,  shL[0], shL[1]);
+    var armNear = pts(pose.armNear, shR[0], shR[1]);
+    var legFar  = pts(pose.legFar,  hpL[0], hpL[1]);
+    var legNear = pts(pose.legNear, hpR[0], hpR[1]);
+
+    var g = '';
+
+    function sleeve(arm) {                     /* the cloth that covers the joint */
+      return limbPath([arm[0], [arm[0][0] + (arm[1][0] - arm[0][0]) * 0.62,
+                                arm[0][1] + (arm[1][1] - arm[0][1]) * 0.62]],
+        limbW * 1.06, flat || shade(cloth, -0.04));
+    }
+
+    /* --- far arm and far leg go behind the body ---------------------- */
+    g += limbPath(legFar, limbW, flat || shade(cloth, -0.20));
+    g += limbPath(armFar, limbW * 0.80, flat || shade(skin, -0.10));
+    if (!flat) g += sleeve(armFar);
+
+    /* --- near leg ---------------------------------------------------- */
+    g += limbPath(legNear, limbW, flat || shade(cloth, -0.08));
+    if (!flat) {
+      g += '<ellipse cx="' + f(legFar[2][0]) + '" cy="' + f(legFar[2][1] + limbW * 0.16) + '" rx="' + f(limbW * 0.70) + '" ry="' + f(limbW * 0.36) + '" fill="' + shade(shoe, 0.12) + '"/>';
+      g += '<ellipse cx="' + f(legNear[2][0]) + '" cy="' + f(legNear[2][1] + limbW * 0.16) + '" rx="' + f(limbW * 0.74) + '" ry="' + f(limbW * 0.38) + '" fill="' + shoe + '"/>';
+    }
+
+    /* --- neck, drawn first so the collar covers where it joins -------- */
+    g += '<rect x="' + f(x - h * 0.020 + h * 0.006 * dir) + '" y="' + f(headY + headR * 0.42) +
+      '" width="' + f(h * 0.040) + '" height="' + f(h * 0.105) + '" fill="' + (flat || shade(skin, -0.16)) + '"/>';
+
+    /* --- torso: round shoulders, a little waist ---------------------- */
+    var torso = 'M ' + f(x - shW) + ' ' + f(shY + h * 0.022) +
+      ' C ' + f(x - shW) + ' ' + f(shY - h * 0.030) + ', ' + f(x - shW * 0.44) + ' ' + f(shY - h * 0.046) + ', ' + f(x) + ' ' + f(shY - h * 0.046) +
+      ' C ' + f(x + shW * 0.44) + ' ' + f(shY - h * 0.046) + ', ' + f(x + shW) + ' ' + f(shY - h * 0.030) + ', ' + f(x + shW) + ' ' + f(shY + h * 0.022) +
+      ' L ' + f(x + hipW) + ' ' + f(hipY) + ' Q ' + f(x) + ' ' + f(hipY + h * 0.024) + ' ' + f(x - hipW) + ' ' + f(hipY) + ' Z';
+    g += '<path d="' + torso + '" fill="' + cloth + '"/>';
+    if (!flat) {
+      /* a wedge of shade down the shadowed edge, so the body reads as solid */
+      g += '<path d="M ' + f(x + shW * 0.40 * dir) + ' ' + f(shY - h * 0.018) +
+        ' L ' + f(x + shW * dir) + ' ' + f(shY + h * 0.022) +
+        ' L ' + f(x + hipW * dir) + ' ' + f(hipY) +
+        ' L ' + f(x + hipW * 0.40 * dir) + ' ' + f(hipY) + ' Z" fill="' + shade(cloth, -0.18) + '" opacity=".3"/>';
+    }
+    if (dress && !seated) {
+      g += '<path d="M ' + f(x - hipW * 1.06) + ' ' + f(hipY - h * 0.045) +
+        ' L ' + f(x + hipW * 1.06) + ' ' + f(hipY - h * 0.045) +
+        ' L ' + f(x + hipW * 1.95) + ' ' + f(hipY + h * 0.175) +
+        ' Q ' + f(x) + ' ' + f(hipY + h * 0.215) + ' ' + f(x - hipW * 1.95) + ' ' + f(hipY + h * 0.175) + ' Z" fill="' + cloth + '"/>';
+      g += '<path d="M ' + f(x + hipW * 0.35 * dir) + ' ' + f(hipY - h * 0.045) + ' L ' + f(x + hipW * 1.95 * dir) + ' ' + f(hipY + h * 0.175) +
+        ' Q ' + f(x + hipW * 0.9 * dir) + ' ' + f(hipY + h * 0.203) + ' ' + f(x + hipW * 0.22 * dir) + ' ' + f(hipY + h * 0.192) + ' Z" fill="' + shade(cloth, -0.14) + '" opacity=".45"/>';
+    }
+
+    /* --- near arm sits on top of the torso, joined at the shoulder ---- */
+    g += limbPath(armNear, limbW * 0.80, flat || shade(skin, 0.04));
+    if (!flat) g += sleeve(armNear);
+    if (o.hold) g += prop(o.hold, armNear[2][0], armNear[2][1], h * 0.011, o.holdTint);
+
+    /* --- head --------------------------------------------------------- */
+    var hx = x + h * 0.010 * dir;
+    var style = r();
+    if (o.back) {                              /* seen from behind */
+      g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR * 1.04) + '" fill="' + (flat || hair) + '"/>';
+      if (style < 0.4) g += '<circle cx="' + f(hx) + '" cy="' + f(headY - headR * 0.72) + '" r="' + f(headR * 0.46) + '" fill="' + (flat || shade(hair, 0.12)) + '"/>';
+    } else if (!flat) {
+      /* hair behind, face in front: the join can never come apart */
+      if (style < 0.30) {                       /* long hair, down the back */
+        g += '<path d="M ' + f(hx - headR * 1.02) + ' ' + f(headY - headR * 0.1) +
+          ' q -' + f(headR * 0.30) + ' ' + f(headR * 2.4) + ' ' + f(headR * 0.55) + ' ' + f(headR * 2.7) +
+          ' l ' + f(headR * 1.5) + ' 0' +
+          ' q ' + f(headR * 0.85) + ' -' + f(headR * 0.3) + ' ' + f(headR * 0.5) + ' -' + f(headR * 2.7) + ' Z" fill="' + hair + '"/>';
+      } else if (style < 0.44) {                /* a bun */
+        g += '<circle cx="' + f(hx - headR * 1.0 * dir) + '" cy="' + f(headY - headR * 0.62) + '" r="' + f(headR * 0.44) + '" fill="' + hair + '"/>';
+      }
+      g += '<circle cx="' + f(hx) + '" cy="' + f(headY - headR * 0.15) + '" r="' + f(headR * 1.06) + '" fill="' + hair + '"/>';
+    }
+    if (!o.back) g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR) + '" fill="' + skin + '"/>';
+    if (!flat && !o.back) {
+      /* the fringe, sitting on the brow */
+      g += '<ellipse cx="' + f(hx + headR * 0.06 * dir) + '" cy="' + f(headY - headR * 0.60) + '" rx="' + f(headR * 0.99) + '" ry="' + f(headR * 0.46) + '" fill="' + hair + '"/>';
+      /* the smallest possible face */
+      g += '<circle cx="' + f(hx + headR * 0.34 * dir) + '" cy="' + f(headY + headR * 0.02) + '" r="' + f(headR * 0.10) + '" fill="' + shade(skin, -0.5) + '" opacity=".75"/>';
+      g += '<circle cx="' + f(hx - headR * 0.30 * dir) + '" cy="' + f(headY + headR * 0.02) + '" r="' + f(headR * 0.10) + '" fill="' + shade(skin, -0.5) + '" opacity=".55"/>';
+      g += '<path d="M ' + f(hx - headR * 0.16 * dir) + ' ' + f(headY + headR * 0.44) +
+        ' q ' + f(headR * 0.30 * dir) + ' ' + f(headR * (o.pose === 'laugh' ? 0.46 : 0.28)) + ' ' + f(headR * 0.56 * dir) + ' ' + f(headR * 0.02) + '" ' +
+        'fill="none" stroke="' + shade(skin, -0.5) + '" stroke-width="' + f(headR * 0.15) + '" stroke-linecap="round" opacity=".8"/>';
+      g += '<circle cx="' + f(hx + headR * 0.72 * dir) + '" cy="' + f(headY + headR * 0.28) + '" r="' + f(headR * 0.22) + '" fill="#D98A5E" opacity=".28"/>';
+    }
+
+    /* --- ground shadow ------------------------------------------------ */
+    var shadow = (!flat && !seated && o.shadow !== false)
+      ? '<ellipse cx="' + f(x) + '" cy="' + f(b + limbW * 0.3) + '" rx="' + f(h * 0.15) + '" ry="' + f(h * 0.032) + '" fill="rgba(59,42,34,.20)"/>'
+      : '';
+
+    var cls = o.anim !== false ? (o.anim || 'ww-idle') : '';
+    var delay = o.delay != null ? o.delay : -(r() * 6);
+    return shadow + '<g class="' + cls + '" style="transform-origin:' + f(x) + 'px ' + f(b) + 'px;' +
+      (cls ? 'animation-delay:' + f(delay) + 's;' : '') + '">' +
+      (lean ? '<g transform="rotate(' + f(lean) + ' ' + f(x) + ' ' + f(b) + ')">' + g + '</g>' : g) +
+      '</g>';
+  }
+
+  /* Nudge a hex colour lighter (+) or darker (−). */
+  function shade(hex, amt) {
+    if (!hex || hex.charAt(0) !== '#' || hex.length !== 7) return hex;
+    var n = parseInt(hex.slice(1), 16);
+    var c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(function (v) {
+      v = Math.round(v + (amt < 0 ? v * amt : (255 - v) * amt));
+      return Math.max(0, Math.min(255, v));
+    });
+    return '#' + c.map(function (v) { var s = v.toString(16); return s.length < 2 ? '0' + s : s; }).join('');
+  }
+
+  /* A knot of two or three people mid-conversation. */
+  function chatGroup(x, baseY, h, seed, opts) {
+    opts = opts || {};
+    var r = rand(seed || 7), g = '';
+    var n = opts.n || (r() < 0.45 ? 3 : 2);
+    var talker = (r() * n) | 0;
+    for (var i = 0; i < n; i++) {
+      var off = (i - (n - 1) / 2) * h * 0.36;
+      var hh = h * (0.93 + r() * 0.14);
+      var facing = off <= 0;                       /* everyone faces the middle */
+      var pose = i === talker ? 'chat' : (r() < 0.3 ? 'laugh' : 'listen');
+      g += person({
+        x: x + off, baseY: baseY + (r() - 0.5) * h * 0.03, h: hh,
+        pose: pose, flip: !facing, seed: (seed || 7) * 31 + i * 7,
+        hold: r() < 0.45 ? 'glass' : null,
+        anim: pose === 'laugh' ? 'ww-laugh' : (i === talker ? 'ww-talk' : 'ww-idle'),
+        flat: opts.flat, cloth: opts.cloth
+      });
+    }
+    return g;
+  }
+
+  /* A dinner guest, seated, elbows on the table. baseY is the seat front. */
+  function diner(x, seatY, h, seed, opts) {
+    opts = opts || {};
+    var r = rand(seed || 11);
+    return person({
+      x: x, baseY: seatY, h: h, pose: 'sit', seed: seed,
+      flip: opts.flip, cloth: opts.cloth,
+      hold: r() < 0.4 ? 'glass' : null,
+      anim: r() < 0.4 ? 'ww-talk' : 'ww-idle', shadow: false
+    });
+  }
+
+  /* A plate with something on it. */
+  function plate(x, y, s, seed) {
+    var r = rand(seed || 13);
+    var g = '<ellipse cx="' + f(x) + '" cy="' + f(y) + '" rx="' + f(34 * s) + '" ry="' + f(9 * s) + '" fill="#FFFAF0"/>';
+    g += '<ellipse cx="' + f(x) + '" cy="' + f(y - 0.8 * s) + '" rx="' + f(23 * s) + '" ry="' + f(5.6 * s) + '" fill="#F2E6D0"/>';
+    var foods = [
+      ['#C4643C', '#E4A853'], ['#7C8B5E', '#9BA87C'], ['#D98A5E', '#F0C9A4'], ['#9B4A2A', '#C4643C']
+    ][(r() * 4) | 0];
+    for (var i = 0; i < 4; i++) {
+      g += '<ellipse cx="' + f(x + (r() - 0.5) * 30 * s) + '" cy="' + f(y - 2 * s + (r() - 0.5) * 5 * s) +
+        '" rx="' + f((5 + r() * 5) * s) + '" ry="' + f((2.6 + r() * 2.2) * s) + '" fill="' + (i % 2 ? foods[0] : foods[1]) + '"/>';
+    }
+    /* cutlery either side */
+    g += '<rect x="' + f(x - 44 * s) + '" y="' + f(y - 4 * s) + '" width="' + f(2.4 * s) + '" height="' + f(15 * s) + '" rx="' + f(1.2 * s) + '" fill="#CBB795"/>';
+    g += '<rect x="' + f(x + 41 * s) + '" y="' + f(y - 4 * s) + '" width="' + f(2.4 * s) + '" height="' + f(15 * s) + '" rx="' + f(1.2 * s) + '" fill="#CBB795"/>';
+    return g;
+  }
+
+  /* A small aeroplane, banking away. */
+  function airplane(x, y, s, body, trail) {
+    body = body || '#4E6E80';
+    var g = '';
+    if (trail !== false) {
+      g += '<path d="M ' + f(x - 96 * s) + ' ' + f(y + 5 * s) + ' L ' + f(x - 14 * s) + ' ' + f(y + 1 * s) +
+        '" stroke="#FFFFFF" stroke-width="' + f(3.4 * s) + '" opacity=".5" stroke-linecap="round" fill="none"/>';
+    }
+    g += '<path d="M ' + f(x - 20 * s) + ' ' + f(y) +
+      ' l ' + f(26 * s) + ' 0 l ' + f(11 * s) + ' -' + f(9 * s) + ' l ' + f(6 * s) + ' 0 l -' + f(5 * s) + ' ' + f(9 * s) +
+      ' l ' + f(14 * s) + ' 0 l ' + f(7 * s) + ' -' + f(6 * s) + ' l ' + f(4.5 * s) + ' 0 l -' + f(3.5 * s) + ' ' + f(6 * s) +
+      ' l ' + f(8 * s) + ' ' + f(3.4 * s) + ' l -' + f(68 * s) + ' 0 Z" fill="' + body + '"/>';
+    g += '<path d="M ' + f(x - 6 * s) + ' ' + f(y + 1 * s) + ' l ' + f(15 * s) + ' 0 l -' + f(9 * s) + ' ' + f(10 * s) + ' l -' + f(7 * s) + ' 0 Z" fill="' + shade(body, -0.18) + '"/>';
+    return g;
+  }
+
+  /* Kept for the after-party: a dancing silhouette, same body rules. */
   function dancer(x, baseY, h, color, delay) {
-    var s = h / 100;
-    var g = '<circle cx="' + f(x) + '" cy="' + f(baseY - h * 0.88) + '" r="' + f(8 * s) + '" fill="' + color + '"/>' +
-      '<path d="M ' + f(x) + ' ' + f(baseY - h * 0.8) + ' q ' + f(11 * s) + ' ' + f(22 * s) + ' ' + f(4 * s) + ' ' + f(44 * s) +
-      ' l -' + f(9 * s) + ' 0 q -' + f(7 * s) + ' -' + f(22 * s) + ' ' + f(5 * s) + ' -' + f(44 * s) + ' Z" fill="' + color + '"/>' +
-      '<path d="M ' + f(x - 2 * s) + ' ' + f(baseY - h * 0.36) + ' l -' + f(7 * s) + ' ' + f(36 * s) + ' l ' + f(6 * s) + ' 0 l ' + f(7 * s) + ' -' + f(30 * s) +
-      ' l ' + f(6 * s) + ' ' + f(30 * s) + ' l ' + f(6 * s) + ' 0 l -' + f(5 * s) + ' -' + f(36 * s) + ' Z" fill="' + color + '"/>' +
-      '<path d="M ' + f(x - 1 * s) + ' ' + f(baseY - h * 0.74) + ' l -' + f(20 * s) + ' -' + f(16 * s) + ' l ' + f(4 * s) + ' -' + f(5 * s) + ' l ' + f(19 * s) + ' ' + f(13 * s) + ' Z" fill="' + color + '"/>' +
-      '<path d="M ' + f(x + 3 * s) + ' ' + f(baseY - h * 0.74) + ' l ' + f(21 * s) + ' -' + f(11 * s) + ' l ' + f(3 * s) + ' ' + f(6 * s) + ' l -' + f(20 * s) + ' ' + f(9 * s) + ' Z" fill="' + color + '"/>';
-    return '<g class="ww-dance" style="transform-origin:' + f(x) + 'px ' + f(baseY) + 'px;animation-delay:' + (delay || 0) + 's">' + g + '</g>';
+    return person({
+      x: x, baseY: baseY, h: h, flat: color, pose: (Math.abs(x | 0) % 2) ? 'dance' : 'dance2',
+      flip: (Math.abs(x | 0) % 3) === 0, anim: 'ww-dance', delay: delay || 0,
+      seed: (x | 0) + (h | 0), dress: (Math.abs(x | 0) % 5) < 2
+    });
   }
 
   global.WW = global.WW || {};
@@ -1411,7 +1850,9 @@ svg { display: block; }
     ridge: ridge, houses: houses, campanile: campanile, cypress: cypress, olive: olive,
     water: water, sun: sun, clouds: clouds, birds: birds, lantern: lantern,
     stringLights: stringLights, stoneWall: stoneWall, boat: boat, grassTufts: grassTufts,
-    branch: branch, dancer: dancer
+    branch: branch, dancer: dancer,
+    person: person, chatGroup: chatGroup, diner: diner, plate: plate,
+    prop: prop, shade: shade, limbPath: limbPath, airplane: airplane
   };
 })(window);
 
@@ -1655,11 +2096,10 @@ svg { display: block; }
       /* iron gate bars + a ferry on the water beyond */
       g += '<rect x="' + f(ax + 4) + '" y="' + f(baseY - 76) + '" width="' + f(aw - 8) + '" height="76" fill="#7FA3B0" opacity=".8"/>';
       g += A.boat(cx - 6, baseY - 40, 0.85, '#31485A', '#F4E7D3');
-      for (var b = 0; b < 6; b++) {
-        var bx2 = ax + 12 + b * ((aw - 24) / 5);
-        g += '<line x1="' + f(bx2) + '" y1="' + f(ay + 26) + '" x2="' + f(bx2) + '" y2="' + f(baseY - 4) + '" stroke="rgba(59,42,34,.5)" stroke-width="3"/>';
-      }
-      g += '<line x1="' + f(ax + 8) + '" y1="' + f(ay + 96) + '" x2="' + f(ax + aw - 8) + '" y2="' + f(ay + 96) + '" stroke="rgba(59,42,34,.5)" stroke-width="3"/>';
+      /* an aeroplane crossing the opening, climbing away over the water */
+      g += '<g class="ww-plane-door">' + A.airplane(cx - 6, ay + 74, 0.62, '#4E6E80') + '</g>';
+      g += '<ellipse cx="' + f(cx + 34) + '" cy="' + f(ay + 40) + '" rx="26" ry="9" fill="#FFFFFF" opacity=".5"/>';
+      g += '<ellipse cx="' + f(cx - 30) + '" cy="' + f(ay + 128) + '" rx="20" ry="7" fill="#FFFFFF" opacity=".38"/>';
       g += '<path class="ww-spin-slow" style="transform-origin:' + f(cx) + 'px ' + f(ay - 58) + 'px" d="M ' + f(cx - 26) + ' ' + f(ay - 58) + ' l 40 0 l -8 -7 l 20 7 l -20 7 l 8 -7 Z" fill="#7A6247"/>';
       g += '<rect x="' + f(cx - 2) + '" y="' + f(ay - 58) + '" width="4" height="34" fill="#7A6247"/>';
     } else if (id === 'rsvp') {
@@ -1756,17 +2196,25 @@ svg { display: block; }
           g += '<rect x="' + bx + '" y="666" width="58" height="14" rx="4" fill="#5C4436"/>';
           g += '<path d="M ' + bx + ' 666 l 0 -74 q 29 -14 58 0 l 0 74 Z" fill="#6B5039"/>';
         }
+        /* the guests already sitting down, drawn before the table so it
+           covers their laps exactly as a real table would */
+        for (var d = 0; d < 6; d++) {
+          var dx = 120 + d * 158 + 29;
+          g += A.person({ x: dx, baseY: 710, h: 236 + (d % 3) * 11, pose: 'table',
+            seed: 200 + d * 13, flip: d % 2 === 1, shadow: false,
+            hold: d % 3 === 0 ? 'glass' : null,
+            anim: d % 2 ? 'ww-talk' : 'ww-idle' });
+        }
         g += '<rect x="40" y="742" width="1140" height="26" rx="6" fill="#F2E7D2"/>';
         g += '<rect x="40" y="768" width="1140" height="14" fill="#CBB795"/>';
         for (var i = 0; i < 7; i++) {
           var x = 96 + i * 168;
           g += '<rect x="' + x + '" y="782" width="14" height="86" rx="3" fill="#6B5744"/>';
         }
-        /* place settings */
+        /* place settings, with something on them */
         for (var p2 = 0; p2 < 7; p2++) {
           var px = 110 + p2 * 160;
-          g += '<ellipse cx="' + px + '" cy="756" rx="34" ry="9" fill="#FFFAF0"/>';
-          g += '<ellipse cx="' + px + '" cy="755" rx="22" ry="5.5" fill="#EADCC4"/>';
+          g += A.plate(px, 757, 1, 300 + p2 * 7);
         }
         /* candles down the middle */
         for (var c = 0; c < 6; c++) {
@@ -1779,12 +2227,19 @@ svg { display: block; }
         g += '<path d="M 560 742 l 0 -34 q 0 -14 12 -20 l 0 -12 l 20 0 l 0 12 q 12 6 12 20 l 0 34 Z" fill="#D8C9A8" opacity=".9"/>';
         g += '<path d="M 700 742 l 0 -22 q -9 -8 -9 -20 l 26 0 q 0 12 -9 20 l 0 22 Z" fill="#EFE7D4" opacity=".85"/>';
         g += '<path d="M 940 742 l 0 -22 q -9 -8 -9 -20 l 26 0 q 0 12 -9 20 l 0 22 Z" fill="#EFE7D4" opacity=".85"/>';
-        /* front-row chairs, seen from behind */
+        /* front-row chairs, seen from behind — with three guests in them */
         for (var fch = 0; fch < 5; fch++) {
           var fx = 200 + fch * 214;
+          if (fch === 0 || fch === 2 || fch === 4) {
+            g += A.person({ x: fx + 40, baseY: 884, h: 300, pose: 'table', back: true,
+              seed: 400 + fch * 11, shadow: false, anim: fch === 2 ? 'ww-talk' : 'ww-idle' });
+          }
           g += '<path d="M ' + fx + ' 960 l 0 -84 q 40 -16 80 0 l 0 84 Z" fill="#4E382A"/>';
           g += '<rect x="' + (fx - 6) + '" y="868" width="92" height="14" rx="6" fill="#5E452F"/>';
         }
+        /* one guest still on their feet at the end of the table, pouring */
+        g += A.person({ x: 1256, baseY: 806, h: 236, pose: 'toast', flip: true,
+          seed: 517, hold: 'glass', anim: 'ww-talk' });
         return g;
       })() + '</g>'
     )});
@@ -1843,8 +2298,17 @@ svg { display: block; }
         /* chairs either side of the aisle */
         for (var c = 0; c < 5; c++) {
           var yy = 828 + c * 20, sc = 1 + c * 0.12;
-          g += chair(300 - c * 46, yy, sc) + chair(392 - c * 30, yy + 6, sc);
-          g += chair(1030 + c * 34, yy, sc) + chair(1122 + c * 48, yy + 6, sc);
+          var seats = [[300 - c * 46, yy], [392 - c * 30, yy + 6],
+                       [1030 + c * 34, yy], [1122 + c * 48, yy + 6]];
+          for (var st = 0; st < seats.length; st++) {
+            /* not every seat is taken — people are still finding them */
+            if ((c * 4 + st) % 3 !== 1) {
+              g += A.person({ x: seats[st][0] + 13 * sc, baseY: seats[st][1] - 30 * sc,
+                h: 96 * sc, pose: 'table', back: true, shadow: false,
+                seed: 600 + c * 7 + st * 3, anim: (c + st) % 3 === 0 ? 'ww-talk' : 'ww-idle' });
+            }
+            g += chair(seats[st][0], seats[st][1], sc);
+          }
         }
         /* petals down the aisle */
         var rp = rand(47);
@@ -1852,6 +2316,28 @@ svg { display: block; }
           g += '<ellipse cx="' + f(560 + rp() * 300) + '" cy="' + f(828 + rp() * 78) + '" rx="' + f(4 + rp() * 4) + '" ry="' + f(2 + rp() * 2) +
             '" fill="' + (p % 2 ? '#F0D2C4' : '#E8BCA8') + '" opacity=".9"/>';
         }
+
+        /* --- the two of them, under the arch --------------------------- */
+        g += A.person({ x: 596, baseY: 806, h: 150, pose: 'listen', seed: 701,
+          cloth: '#FBF4E8', dress: true, anim: 'ww-idle' });
+        g += A.person({ x: 652, baseY: 806, h: 156, pose: 'chat', flip: true, seed: 707,
+          cloth: '#3B4A56', dress: false, anim: 'ww-talk' });
+
+        /* --- the guests who are not sitting down ----------------------- */
+        g += A.chatGroup(150, 884, 126, 711);              /* near the terrace edge */
+        g += A.chatGroup(880, 878, 116, 719, { n: 3 });    /* by the aisle */
+        g += A.chatGroup(1420, 882, 120, 723, { n: 2 });   /* off to the right */
+
+        /* someone photographing the arch, someone raising a glass */
+        g += A.person({ x: 470, baseY: 890, h: 124, pose: 'photo', hold: 'camera',
+          seed: 727, anim: 'ww-idle' });
+        g += A.person({ x: 1010, baseY: 892, h: 122, pose: 'toast', hold: 'glass',
+          flip: true, seed: 733, anim: 'ww-talk' });
+
+        /* two more drifting across the open terrace */
+        g += A.person({ x: 726, baseY: 896, h: 128, pose: 'walk', seed: 739, anim: 'ww-stroll' });
+        g += A.person({ x: 772, baseY: 899, h: 122, pose: 'walk', seed: 743, anim: 'ww-stroll',
+          delay: -2.6 });
         return g;
       })()
     )});
@@ -1910,7 +2396,19 @@ svg { display: block; }
       A.dancer(390, 848, 190, '#0C1119', -0.9) +
       A.dancer(560, 836, 220, '#0C1119', -1.7) +
       A.dancer(720, 852, 176, '#0C1119', -0.4) +
-      A.dancer(880, 840, 200, '#0C1119', -2.2)
+      A.dancer(880, 840, 200, '#0C1119', -2.2) +
+      /* two hanging back at the edge of it all, drinks in hand */
+      A.person({ x: 96, baseY: 862, h: 188, flat: '#0C1119', pose: 'chat', hold: 'glass',
+        seed: 811, anim: 'ww-talk' }) +
+      A.person({ x: 158, baseY: 868, h: 178, flat: '#0C1119', pose: 'listen', flip: true,
+        seed: 817, anim: 'ww-idle' }) +
+      /* the DJ — drawn first, so the decks stand in front of them */
+      A.person({ x: 1351, baseY: 862, h: 200, flat: '#0C1119', pose: 'dance', seed: 823,
+        anim: 'ww-dance', delay: -1.1 }) +
+      '<rect x="1276" y="806" width="150" height="58" rx="4" fill="#0C1119"/>' +
+      '<rect x="1290" y="798" width="122" height="10" rx="3" fill="#161E2C"/>' +
+      '<circle class="ww-twinkle" cx="1318" cy="818" r="7" fill="#C98CE0" opacity=".8"/>' +
+      '<circle class="ww-twinkle" cx="1384" cy="818" r="7" fill="#F0B45C" opacity=".8" style="animation-delay:-1.4s"/>'
     )});
     L.push({ depth: 1.3, svg: wrap(ROOM_W, ROOM_H,
       A.lantern(150, 200, 2.2, 0) + A.lantern(430, 130, 1.7, 0) + A.lantern(1290, 176, 2, 0) + A.lantern(1520, 120, 1.5, 0) +
@@ -2174,102 +2672,265 @@ svg { display: block; }
 })(window);
 
 /* ==========================================================================
-   audio.js — ambient sound, synthesised in the browser
-   No .mp3 files to host or wait for. Off by default; the guest opts in.
-   Waves + wind (filtered noise) with occasional distant bell tones.
+   audio.js — the ambience, synthesised in the browser
+   --------------------------------------------------------------------------
+   No .mp3 files to host, licence or wait for. Four buses — sea, wind, birds
+   and a soft instrumental bed — mixed differently for each place in the
+   world. Nothing starts until the guest presses "Begin the walk", because
+   that click is the browser's price of admission for sound.
+
+   The music is deliberately not a song: a slow, wide arpeggio through a long
+   reverb, so it sits underneath the site rather than playing at you. If you
+   would rather have a real licensed recording, replace the `music` bus with
+   an <audio> element and leave the sea, wind and birds exactly as they are.
    ========================================================================== */
 (function (global) {
   'use strict';
 
-  var ctx = null, master = null, nodes = [], bellTimer = null, started = false;
+  var ctx = null, master = null, verb = null;
+  var bus = {};                       // sea | wind | birds | music
+  var started = false, muted = true;
+  var birdTimer = null, arpTimer = null, pulseTimer = null, bellTimer = null;
+  var sceneId = 'hub', level = 0.5;
 
+  /* --- the mix for each place ----------------------------------------- */
+  var MOODS = {
+    hub:        { sea: .40, wind: .15, birds: .30, music: .10, scale: 'day',   step: 2.10, bells: true },
+    welcome:    { sea: .20, wind: .10, birds: .04, music: .13, scale: 'dusk',  step: 2.60 },
+    wedding:    { sea: .18, wind: .12, birds: .16, music: .15, scale: 'gold',  step: 1.85 },
+    afterparty: { sea: .00, wind: .04, birds: .00, music: .13, scale: 'night', step: 0.95, pulse: true },
+    explore:    { sea: .34, wind: .16, birds: .26, music: .09, scale: 'day',   step: 2.20 },
+    stay:       { sea: .22, wind: .12, birds: .22, music: .10, scale: 'day',   step: 2.45, bells: true },
+    travel:     { sea: .26, wind: .18, birds: .14, music: .09, scale: 'day',   step: 2.30 },
+    rsvp:       { sea: .22, wind: .10, birds: .08, music: .14, scale: 'dusk',  step: 2.70 }
+  };
+
+  /* Pentatonic sets — no semitone clashes, so any order sounds intentional. */
+  var SCALES = {
+    day:   { root: 261.63, steps: [0, 2, 4, 7, 9, 12, 16], type: 'triangle', tone: 1400 },
+    gold:  { root: 293.66, steps: [0, 4, 7, 9, 12, 14, 16], type: 'triangle', tone: 1700 },
+    dusk:  { root: 220.00, steps: [0, 3, 5, 7, 10, 12, 15], type: 'sine',     tone: 1100 },
+    night: { root: 110.00, steps: [0, 3, 5, 7, 10, 15, 22], type: 'sawtooth', tone: 620 }
+  };
+
+  function t() { return ctx.currentTime; }
+  function semis(root, n) { return root * Math.pow(2, n / 12); }
+  function ramp(param, to, secs) {
+    param.cancelScheduledValues(t());
+    param.setValueAtTime(param.value, t());
+    param.linearRampToValueAtTime(to, t() + (secs || 1.2));
+  }
+
+  /* --- building blocks -------------------------------------------------- */
   function noiseBuffer(seconds) {
-    var len = ctx.sampleRate * seconds;
-    var buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    var d = buf.getChannelData(0);
-    var last = 0;
+    var len = Math.floor(ctx.sampleRate * seconds);
+    var buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0), last = 0;
     for (var i = 0; i < len; i++) {
       var white = Math.random() * 2 - 1;
-      last = (last + 0.02 * white) / 1.02;   // brown-ish noise: softer, less hissy
+      last = (last + 0.02 * white) / 1.02;      // brown-ish: softer, less hissy
       d[i] = last * 3.2;
     }
     return buf;
   }
 
-  function makeLayer(bufSeconds, filterType, freq, q, gainVal, lfoRate, lfoDepth) {
+  /* A hall, made out of decaying noise. Cheap, and it is what stops the
+     music sounding like a ringtone. */
+  function impulse(seconds, decay) {
+    var len = Math.floor(ctx.sampleRate * seconds);
+    var buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (var ch = 0; ch < 2; ch++) {
+      var d = buf.getChannelData(ch);
+      for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+    return buf;
+  }
+
+  function noiseLayer(target, seconds, type, freq, q, lfoRate, lfoDepth) {
     var src = ctx.createBufferSource();
-    src.buffer = noiseBuffer(bufSeconds);
+    src.buffer = noiseBuffer(seconds);
     src.loop = true;
-
     var filt = ctx.createBiquadFilter();
-    filt.type = filterType;
-    filt.frequency.value = freq;
-    filt.Q.value = q;
-
-    var gain = ctx.createGain();
-    gain.gain.value = gainVal;
-
-    /* slow swell, so it breathes like surf instead of hissing flatly */
+    filt.type = type; filt.frequency.value = freq; filt.Q.value = q;
+    var swell = ctx.createGain();
+    swell.gain.value = 1;
     var lfo = ctx.createOscillator();
     lfo.frequency.value = lfoRate;
     var lfoGain = ctx.createGain();
     lfoGain.gain.value = lfoDepth;
-    lfo.connect(lfoGain).connect(gain.gain);
-
-    src.connect(filt).connect(gain).connect(master);
-    src.start();
-    lfo.start();
-    nodes.push(src, lfo);
-    return gain;
+    lfo.connect(lfoGain).connect(swell.gain);
+    src.connect(filt).connect(swell).connect(target);
+    src.start(); lfo.start();
   }
 
+  /* --- birds ------------------------------------------------------------ */
+  function chirp(when, pitch) {
+    var o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+    o.type = 'sine';
+    f.type = 'bandpass'; f.frequency.value = pitch; f.Q.value = 4;
+    o.frequency.setValueAtTime(pitch * 0.84, when);
+    o.frequency.exponentialRampToValueAtTime(pitch * 1.26, when + 0.042);
+    o.frequency.exponentialRampToValueAtTime(pitch * 0.9, when + 0.115);
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.linearRampToValueAtTime(0.3, when + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0008, when + 0.16);
+    o.connect(f).connect(g).connect(bus.birds);
+    o.start(when); o.stop(when + 0.22);
+  }
+
+  function birdBurst() {
+    if (!muted && ctx && ctx.state === 'running') {
+      var when = t() + 0.06;
+      var n = 1 + Math.floor(Math.random() * 3);
+      var base = 1450 + Math.random() * 1600;
+      for (var i = 0; i < n; i++) {
+        chirp(when + i * (0.085 + Math.random() * 0.13), base * (1 + (Math.random() - 0.5) * 0.2));
+      }
+    }
+    birdTimer = setTimeout(birdBurst, 1700 + Math.random() * 6800);
+  }
+
+  /* --- the instrumental bed --------------------------------------------- */
+  var arpStep = 0;
+  function note(freq, when, dur, type, tone, gainVal) {
+    var o = ctx.createOscillator(), o2 = ctx.createOscillator();
+    var g = ctx.createGain(), f = ctx.createBiquadFilter();
+    o.type = type; o2.type = type;
+    o.frequency.value = freq;
+    o2.frequency.value = freq * 1.005;         // a whisper of detune
+    f.type = 'lowpass'; f.frequency.value = tone; f.Q.value = 0.4;
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.linearRampToValueAtTime(gainVal, when + 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    o.connect(f); o2.connect(f);
+    f.connect(g).connect(bus.music);
+    o.start(when); o2.start(when + 0.01);
+    o.stop(when + dur + 0.1); o2.stop(when + dur + 0.1);
+  }
+
+  function arpTick() {
+    var mood = MOODS[sceneId] || MOODS.hub;
+    var sc = SCALES[mood.scale];
+    if (!muted && ctx && ctx.state === 'running') {
+      var when = t() + 0.05;
+      /* wander through the scale rather than running up and down it */
+      arpStep += (Math.random() < 0.62 ? 1 : -1) * (1 + (Math.random() < 0.25 ? 1 : 0));
+      if (arpStep < 0) arpStep += sc.steps.length;
+      var idx = arpStep % sc.steps.length;
+      note(semis(sc.root, sc.steps[idx]), when, 3.4, sc.type, sc.tone, 0.16);
+      /* every so often, a low note underneath to hold it together */
+      if (Math.random() < 0.3) {
+        note(semis(sc.root, sc.steps[0] - 12), when + 0.08, 5.5, 'sine', 700, 0.13);
+      }
+    }
+    arpTimer = setTimeout(arpTick, ((MOODS[sceneId] || MOODS.hub).step || 2.1) * 1000 * (0.85 + Math.random() * 0.3));
+  }
+
+  /* A bell from a campanile somewhere across the water. */
   function bell() {
-    if (!ctx || ctx.state !== 'running') return;
-    var base = [392, 440, 523.25, 587.33][Math.floor(Math.random() * 4)];
-    [1, 2.01].forEach(function (mult, i) {
-      var osc = ctx.createOscillator();
-      var g = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = base * mult;
-      g.gain.setValueAtTime(0, ctx.currentTime);
-      g.gain.linearRampToValueAtTime(i ? 0.012 : 0.03, ctx.currentTime + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 4.5);
-      osc.connect(g).connect(master);
-      osc.start();
-      osc.stop(ctx.currentTime + 4.6);
-    });
-    bellTimer = setTimeout(bell, 14000 + Math.random() * 26000);
+    var mood = MOODS[sceneId] || MOODS.hub;
+    if (mood.bells && !muted && ctx && ctx.state === 'running') {
+      var base = [392, 440, 523.25, 587.33][Math.floor(Math.random() * 4)];
+      [1, 2.01].forEach(function (mult, i) {
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.value = base * mult;
+        g.gain.setValueAtTime(0, t());
+        g.gain.linearRampToValueAtTime(i ? 0.010 : 0.024, t() + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t() + 4.5);
+        o.connect(g).connect(bus.music);
+        o.start(); o.stop(t() + 4.6);
+      });
+    }
+    bellTimer = setTimeout(bell, 22000 + Math.random() * 34000);
   }
 
+  /* The after-party gets a pulse under the floor — felt more than heard. */
+  function pulse() {
+    var mood = MOODS[sceneId] || MOODS.hub;
+    if (mood.pulse && !muted && ctx && ctx.state === 'running') {
+      var when = t() + 0.04;
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(96, when);
+      o.frequency.exponentialRampToValueAtTime(44, when + 0.13);
+      g.gain.setValueAtTime(0.0001, when);
+      g.gain.linearRampToValueAtTime(0.30, when + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, when + 0.34);
+      o.connect(g).connect(bus.music);
+      o.start(when); o.stop(when + 0.4);
+    }
+    pulseTimer = setTimeout(pulse, 520);
+  }
+
+  /* --- wiring ----------------------------------------------------------- */
   function start() {
     if (started) return;
     var AC = global.AudioContext || global.webkitAudioContext;
     if (!AC) return;
     ctx = new AC();
+
     master = ctx.createGain();
     master.gain.value = 0;
     master.connect(ctx.destination);
 
-    makeLayer(4, 'lowpass', 420, 0.7, 0.42, 0.06, 0.22);   // surf on the rocks
-    makeLayer(6, 'bandpass', 900, 0.5, 0.16, 0.033, 0.10); // wind through the olives
+    /* a little of everything goes through the hall */
+    verb = ctx.createConvolver();
+    verb.buffer = impulse(2.6, 2.4);
+    var verbGain = ctx.createGain();
+    verbGain.gain.value = 0.55;
+    verb.connect(verbGain).connect(master);
+
+    ['sea', 'wind', 'birds', 'music'].forEach(function (name) {
+      var g = ctx.createGain();
+      g.gain.value = 0;
+      g.connect(master);
+      if (name !== 'sea') g.connect(verb);
+      bus[name] = g;
+    });
+
+    noiseLayer(bus.sea, 4, 'lowpass', 420, 0.7, 0.06, 0.35);    // surf on the rocks
+    noiseLayer(bus.wind, 6, 'bandpass', 900, 0.5, 0.033, 0.22); // wind in the olives
+
     started = true;
-    bellTimer = setTimeout(bell, 9000);
+    applyScene(0.1);
+    birdBurst();
+    arpTick();
+    bell();
+    pulse();
   }
 
-  function fade(to, seconds) {
-    if (!ctx) return;
-    if (ctx.state === 'suspended') ctx.resume();
-    master.gain.cancelScheduledValues(ctx.currentTime);
-    master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
-    master.gain.linearRampToValueAtTime(to, ctx.currentTime + (seconds || 1.4));
+  function applyScene(secs) {
+    if (!started) return;
+    var mood = MOODS[sceneId] || MOODS.hub;
+    ramp(bus.sea.gain, mood.sea, secs || 2.2);
+    ramp(bus.wind.gain, mood.wind, secs || 2.2);
+    ramp(bus.birds.gain, mood.birds, secs || 2.2);
+    ramp(bus.music.gain, mood.music, secs || 2.2);
   }
 
   global.WW = global.WW || {};
   global.WW.audio = {
-    on: function () { start(); fade(0.5, 2.2); },
-    off: function () { fade(0, 0.8); },
-    /* quieter inside a room so the copy is the thing you notice */
-    duck: function (isRoom) { if (started && master.gain.value > 0.001) fade(isRoom ? 0.28 : 0.5, 1.2); }
+    on: function () {
+      start();
+      if (!ctx) return;
+      if (ctx.state === 'suspended') ctx.resume();
+      muted = false;
+      ramp(master.gain, level, 2.6);
+    },
+    off: function () {
+      muted = true;
+      if (ctx) ramp(master.gain, 0, 0.9);
+    },
+    /* which part of the world we are standing in */
+    scene: function (id) {
+      sceneId = MOODS[id] ? id : 'hub';
+      applyScene(2.4);
+    },
+    /* quieter inside a room, so the copy is the thing you notice */
+    duck: function (isRoom) {
+      level = isRoom ? 0.34 : 0.5;
+      if (!muted && ctx) ramp(master.gain, level, 1.2);
+    }
   };
 })(window);
 
@@ -2307,11 +2968,44 @@ svg { display: block; }
   var k = 1, worldW = 0, worldH = 0, camTop = 0;
   var pan = 0, targetPan = 0, maxPan = 0;
   var ptr = { x: 0.5, y: 0.5 };
-  var edgeVel = 0;
+  var ptrY = 0, ptrYTarget = 0;
   var camState = { tx: 0, ty: 0, z: 1 };
   var lastT = 0;
   var dragging = false, dragStartX = 0, dragStartPan = 0, dragMoved = 0;
   var revealTimer = null;
+
+  /* Only redraw when something actually changed. Without this the camera
+     wrote nine transforms every frame for ever, whether or not the world
+     had moved — which is most of what made the site feel like it was
+     grinding. */
+  var camDirty = true, roomPtrDirty = false;
+  /* Was the last thing the guest touched a keyboard? Focus moves the camera
+     for tab users; it must never do so after a mouse click, or the doorway
+     appears to "centre itself" instead of opening. */
+  var keyboardNav = false;
+  /* While the camera is moving, every idle animation in the world is paused
+     (see .is-moving in main.css). */
+  var isMoving = false, movingUntil = 0;
+  var DRAG_SLOP = 10;                        // px of travel before it is a drag
+
+  function setMoving(now) {
+    movingUntil = now + 220;
+    if (isMoving) return;
+    isMoving = true;
+    el.hub.classList.add('is-moving');
+    el.stage.classList.add('is-moving');
+  }
+  function forceStill() {
+    isMoving = false; movingUntil = 0;
+    el.hub.classList.remove('is-moving');
+    el.stage.classList.remove('is-moving');
+  }
+  function releaseMoving(now) {
+    if (!isMoving || now < movingUntil) return;
+    isMoving = false;
+    el.hub.classList.remove('is-moving');
+    el.stage.classList.remove('is-moving');
+  }
 
   /* history.pushState throws inside sandboxed frames and on some file://
      setups. The deep-link niceties are optional; the site is not. */
@@ -2328,6 +3022,7 @@ svg { display: block; }
     el.camera   = document.getElementById('camera');
     el.world    = document.getElementById('world');
     el.plane    = document.getElementById('entrance-plane');
+    el.grip     = document.getElementById('panel-grip');
     el.room     = document.getElementById('room');
     el.roomArt  = document.getElementById('room-art');
     el.panel    = document.getElementById('panel');
@@ -2358,6 +3053,7 @@ svg { display: block; }
     buildEntrances();
     buildPathmap();
     progress(0.8);
+    wireSheet();
     layout();
     makeMotes(lightMode ? 10 : 22);
     wireEvents();
@@ -2374,9 +3070,25 @@ svg { display: block; }
 
   function progress(p) { el.bar.style.width = Math.round(p * 100) + '%'; }
 
+  function setAudioButton(on) {
+    el.audioBtn.setAttribute('aria-pressed', String(on));
+    el.audioBtn.querySelector('.on').style.display = on ? 'block' : 'none';
+    el.audioBtn.querySelector('.off').style.display = on ? 'none' : 'block';
+  }
+
   function enterSite() {
     el.loader.classList.add('is-gone');
     setTimeout(function () { el.loader.style.display = 'none'; }, 1000);
+
+    /* "Begin the walk" is a real click, which is the browser's price of
+       admission for sound. Anyone who muted us last time stays muted. */
+    var pref = null;
+    try { pref = localStorage.getItem('ww-audio'); } catch (err) {}
+    if (pref !== 'off' && W.audio) {
+      W.audio.on();
+      W.audio.scene('hub');
+      setAudioButton(true);
+    }
     /* honour a deep link like  …/index.html#rsvp  */
     var hash = (location.hash || '').replace('#', '');
     if (hash && findRoom(hash)) {
@@ -2424,16 +3136,23 @@ svg { display: block; }
         '<span class="entrance-label"><span class="inner">' +
         '<span class="num">' + room.num + '</span>' +
         '<span class="name">' + room.label + '</span>' +
-        '<span class="sub">' + room.sublabel + '</span></span></span>';
+        '<span class="sub">' + room.sublabel + '</span></span></span>' +
+        '<span class="entrance-cta" aria-hidden="true">Enter</span>';
+      /* One press, one room. The only thing that cancels it is an actual
+         drag of the world, and that needs real travel across the screen. */
       b.addEventListener('click', function (e) {
         e.preventDefault();
-        if (dragMoved > 8) return;      // that was a drag, not a tap
+        if (dragMoved > DRAG_SLOP) return;   // that was a drag, not a tap
         openRoom(room.id);
       });
       var warm = function () { prefetch(room.id); };
       b.addEventListener('pointerenter', warm);
       b.addEventListener('touchstart', warm, { passive: true });
-      b.addEventListener('focus', function () { warm(); panTo(spot.x, true); });
+      b.addEventListener('focus', function () {
+        warm();
+        /* walk the camera over only for someone tabbing through */
+        if (keyboardNav) panTo(spot.x, true);
+      });
       el.plane.appendChild(b);
       entrances.push({ node: b, room: room, spot: spot });
     });
@@ -2501,10 +3220,9 @@ svg { display: block; }
   }
 
   function applyCamera() {
-    var py = (ptr.y - 0.5);
     for (var i = 0; i < hubLayers.length; i++) {
       var L = hubLayers[i];
-      var ty = reduced ? 0 : -py * L.depth * 9;
+      var ty = reduced ? 0 : -ptrY * L.depth * 9;
       L.node.style.transform = 'translate3d(' + (-pan * L.depth).toFixed(2) + 'px,' + ty.toFixed(2) + 'px,0)';
     }
     el.camera.style.transform =
@@ -2517,11 +3235,28 @@ svg { display: block; }
     lastT = t;
 
     if (view === 'hub' && !busy) {
-      if (edgeVel) targetPan = clamp(targetPan + edgeVel * dt * 620, 0, maxPan);
-      if (!dragging) pan = damp(pan, targetPan, 5.5, dt);
-      else pan = targetPan;
-      applyCamera();
-      markNearest();
+      var d = targetPan - pan;
+      if (dragging) {
+        if (d) { pan = targetPan; camDirty = true; setMoving(t); }
+      } else if (Math.abs(d) > 0.08) {
+        /* a firmer spring than before: the walk answers the wheel at once
+           instead of sliding after it */
+        pan = damp(pan, targetPan, 11, dt);
+        camDirty = true;
+        setMoving(t);
+      } else if (pan !== targetPan) {
+        pan = targetPan; camDirty = true;
+      }
+      /* the head-tilt parallax, eased, and only when it has really moved */
+      if (!reduced && !lightMode) {
+        var ny = damp(ptrY, ptrYTarget, 6, dt);
+        if (Math.abs(ny - ptrY) > 0.0015) { ptrY = ny; camDirty = true; }
+      }
+      if (camDirty) { applyCamera(); markNearest(); camDirty = false; }
+      releaseMoving(t);
+    } else if (view === 'room' && roomPtrDirty) {
+      roomPtrDirty = false;
+      applyRoomParallax();
     }
     requestAnimationFrame(loop);
   }
@@ -2581,7 +3316,7 @@ svg { display: block; }
     if (idx < 0) return;
     busy = true;
     prefetch(id);
-    if (W.audio) W.audio.duck(true);
+    if (W.audio) { W.audio.duck(true); W.audio.scene(id); }
 
     var fast = opts.fast;                       // arrived via the RSVP lantern
     var pt;
@@ -2607,6 +3342,7 @@ svg { display: block; }
           camState.tx = target.tx * v;
           camState.ty = target.ty * v;
           camState.z = 1 + (Z - 1) * v;
+          setMoving(performance.now());
           applyCamera();
         }
       });
@@ -2631,9 +3367,12 @@ svg { display: block; }
           onUpdate: function (v) { el.veil.style.opacity = v; },
           onComplete: function () {
             busy = false;
+            forceStill();
             el.panelScroll.scrollTop = 0;
-            /* move keyboard focus into the room the guest just walked into */
-            el.panelScroll.focus({ preventScroll: true });
+            /* Move keyboard focus into the room the guest just walked into.
+               Only for keyboard users: a mouse visitor would otherwise get a
+               focus ring drawn around the whole panel. */
+            if (keyboardNav) el.panelScroll.focus({ preventScroll: true });
           }
         });
       }
@@ -2655,7 +3394,7 @@ svg { display: block; }
     var idx = roomIndex(currentRoom);
     var Z = lightMode ? 1.9 : 3.4;
     var target = reduced ? { tx: 0, ty: 0 } : zoomTarget(idx, Z);
-    if (W.audio) W.audio.duck(false);
+    if (W.audio) { W.audio.duck(false); W.audio.scene('hub'); }
 
     tween({
       from: 0, to: 1, duration: reduced ? 0 : 380, ease: 'power2In',
@@ -2679,14 +3418,19 @@ svg { display: block; }
             camState.tx = target.tx * v;
             camState.ty = target.ty * v;
             camState.z = 1 + (Z - 1) * v;
+            setMoving(performance.now());
             applyCamera();
           },
           onComplete: function () {
             camState.tx = camState.ty = 0; camState.z = 1; applyCamera();
             busy = false;
-            /* leave them standing in front of the door they just came out of */
+            forceStill();
+            /* Leave them standing in front of the door they just came out of.
+               Focus goes back to it for anyone navigating by keyboard; for a
+               mouse or a thumb that would only paint a large focus ring
+               around the doorway they can already see. */
             var e = entrances[idx];
-            if (e) { e.node.focus({ preventScroll: true }); }
+            if (e && keyboardNav) e.node.focus({ preventScroll: true });
           }
         });
         tween({
@@ -2705,6 +3449,9 @@ svg { display: block; }
     var scene = prefetch(id);
 
     el.roomArt.innerHTML = '';
+    /* the first stop of the first layer is the top of that room's sky */
+    var skyMatch = /stop-color="(#[0-9A-Fa-f]{6})"/.exec(scene.layers[0].svg);
+    el.room.style.setProperty('--room-sky', skyMatch ? skyMatch[1] : '#1E2A3A');
     scene.layers.forEach(function (L) {
       var d = document.createElement('div');
       d.className = 'room-layer';
@@ -2772,6 +3519,7 @@ svg { display: block; }
 
     el.panelScroll.innerHTML = h;
     el.panelScroll.scrollTop = 0;
+    resetSheet();
     /* stagger the copy in, but guarantee it ends up visible either way */
     el.panelScroll.classList.add('is-entering');
     clearTimeout(revealTimer);
@@ -2808,6 +3556,7 @@ svg { display: block; }
   function stepToRoom(id) {
     busy = true;
     prefetch(id);
+    if (W.audio) W.audio.scene(id);
     el.veil.style.setProperty('--vx', '50%');
     el.veil.style.setProperty('--vy', '50%');
     tween({
@@ -2824,6 +3573,81 @@ svg { display: block; }
           onComplete: function () { busy = false; }
         });
       }
+    });
+  }
+
+  /* ====================================================================
+     THE SHEET  —  on a phone the copy arrives as a bottom sheet, so the
+     illustration keeps the top two thirds of the screen. Drag it up to
+     read on; drag it back down to look at the world again.
+     ==================================================================== */
+  var sheet = { h: 0, min: 0, max: 0, startY: 0, startH: 0, moved: 0, expanded: false };
+
+  function sheetBounds() {
+    var vh = global.innerHeight;
+    sheet.min = Math.round(vh * 0.34);
+    sheet.max = Math.round(vh * 0.88);
+  }
+  function setSheetH(h) {
+    sheet.h = clamp(h, sheet.min, sheet.max);
+    el.panel.style.setProperty('--sheet-h', sheet.h + 'px');
+  }
+  function snapSheet(expand) {
+    sheet.expanded = !!expand;
+    el.panel.classList.toggle('is-expanded', sheet.expanded);
+    setSheetH(sheet.expanded ? sheet.max : sheet.min);
+  }
+  function resetSheet() {
+    if (!isSmall()) {
+      el.panel.style.removeProperty('--sheet-h');
+      el.panel.classList.remove('is-expanded');
+      sheet.expanded = false;
+      return;
+    }
+    sheetBounds();
+    snapSheet(false);
+  }
+
+  function wireSheet() {
+    var active = false, fromGrip = false;
+
+    function down(e, grip) {
+      if (!isSmall() || view !== 'room' || busy) return;
+      /* from the body of the sheet, only when it has nothing left to scroll */
+      if (!grip && sheet.expanded && el.panelScroll.scrollTop > 0) return;
+      sheetBounds();
+      active = true; fromGrip = grip; sheet.moved = 0;
+      sheet.startY = e.clientY;
+      sheet.startH = sheet.h || sheet.min;
+      el.panel.classList.add('is-dragging');
+    }
+    el.grip.addEventListener('pointerdown', function (e) { down(e, true); });
+    el.panelScroll.addEventListener('pointerdown', function (e) { down(e, false); });
+
+    global.addEventListener('pointermove', function (e) {
+      if (!active) return;
+      var dy = sheet.startY - e.clientY;
+      sheet.moved = Math.max(sheet.moved, Math.abs(dy));
+      if (sheet.moved > 3) {
+        if (e.cancelable) e.preventDefault();
+        setSheetH(sheet.startH + dy);
+      }
+    }, { passive: false });
+
+    var release = function () {
+      if (!active) return;
+      active = false;
+      el.panel.classList.remove('is-dragging');
+      /* a tap on the tab itself just toggles */
+      if (sheet.moved <= 6) { if (fromGrip) snapSheet(!sheet.expanded); else setSheetH(sheet.startH); return; }
+      snapSheet(sheet.h > (sheet.min + sheet.max) / 2);
+    };
+    global.addEventListener('pointerup', release);
+    global.addEventListener('pointercancel', release);
+    /* keyboard and assistive tech get a plain button */
+    el.grip.addEventListener('click', function (e) { e.preventDefault(); });
+    el.grip.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sheetBounds(); snapSheet(!sheet.expanded); }
     });
   }
 
@@ -2931,7 +3755,7 @@ svg { display: block; }
       : 'Your reply is saved. We will send the full timings, the bus times and the packing advice nobody asked for closer to June.') + '</p>';
     if (offline) {
       h += '<p style="font-size:.85rem">We could not reach the server just now, so your answers are saved on this device. ' +
-        'Please also drop us a line at hello@miraandsam.example so nothing is lost.</p>';
+        'Please also drop us a line at ' + (C.couple.email || 'us') + ' so nothing is lost.</p>';
     }
     h += '<div class="links" style="justify-content:center"><button type="button" class="link-btn" id="rsvp-again">Reply for someone else</button></div>';
     h += '</div>';
@@ -2947,25 +3771,23 @@ svg { display: block; }
   function wireEvents() {
     el.enterBtn.addEventListener('click', enterSite);
 
-    /* pointer: pan when the guest looks toward the edges of the frame */
+    /* Pointer position only — the world no longer walks itself when the
+       cursor drifts near an edge. That auto-pan was why a doorway slid out
+       from under the cursor the moment you tried to hover or click it. */
     global.addEventListener('pointermove', function (e) {
       ptr.x = e.clientX / global.innerWidth;
       ptr.y = e.clientY / global.innerHeight;
-      if (view === 'hub' && !coarse && !dragging) {
-        var edge = 0.2;
-        if (ptr.x < edge) edgeVel = -(1 - ptr.x / edge);
-        else if (ptr.x > 1 - edge) edgeVel = (ptr.x - (1 - edge)) / edge;
-        else edgeVel = 0;
-      }
-      if (view === 'room') roomParallax(e);
-    });
-    global.addEventListener('pointerleave', function () { edgeVel = 0; });
+      ptrYTarget = ptr.y - 0.5;
+      if (view === 'room') roomPtrDirty = true;
+    }, { passive: true });
 
     /* wheel / trackpad — either axis walks you along the path */
     el.hub.addEventListener('wheel', function (e) {
       if (view !== 'hub' || busy) return;
       var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      targetPan = clamp(targetPan + d * 1.35, 0, maxPan);
+      if (e.deltaMode === 1) d *= 16;          // some mice report lines, not pixels
+      else if (e.deltaMode === 2) d *= global.innerWidth;
+      targetPan = clamp(targetPan + d * 2.4, 0, maxPan);
       e.preventDefault();
     }, { passive: false });
 
@@ -2973,6 +3795,7 @@ svg { display: block; }
     /* Note: no setPointerCapture here — it would retarget the click away
        from the doorway button the guest actually pressed. */
     el.hub.addEventListener('pointerdown', function (e) {
+      keyboardNav = false;
       if (view !== 'hub' || busy) return;
       dragging = true; dragMoved = 0;
       dragStartX = e.clientX; dragStartPan = targetPan;
@@ -2982,8 +3805,8 @@ svg { display: block; }
       if (!dragging) return;
       var dx = e.clientX - dragStartX;
       dragMoved = Math.max(dragMoved, Math.abs(dx));
-      if (dragMoved > 4) targetPan = clamp(dragStartPan - dx, 0, maxPan);
-    });
+      if (dragMoved > DRAG_SLOP) targetPan = clamp(dragStartPan - dx, 0, maxPan);
+    }, { passive: true });
     var endDrag = function () {
       if (!dragging) return;
       dragging = false;
@@ -2995,6 +3818,8 @@ svg { display: block; }
 
     /* keyboard */
     global.addEventListener('keydown', function (e) {
+      var key = e.key || '';
+      if (key === 'Tab' || key.indexOf('Arrow') === 0) keyboardNav = true;
       if (e.key === 'Escape' && view === 'room') { closeRoom(); return; }
       if (view !== 'hub') return;
       if (e.key === 'ArrowRight') targetPan = clamp(targetPan + 260, 0, maxPan);
@@ -3016,10 +3841,9 @@ svg { display: block; }
 
     el.audioBtn.addEventListener('click', function () {
       var on = el.audioBtn.getAttribute('aria-pressed') === 'true';
-      el.audioBtn.setAttribute('aria-pressed', String(!on));
-      el.audioBtn.querySelector('.on').style.display = on ? 'none' : 'block';
-      el.audioBtn.querySelector('.off').style.display = on ? 'block' : 'none';
-      if (on) W.audio.off(); else W.audio.on();
+      setAudioButton(!on);
+      try { localStorage.setItem('ww-audio', on ? 'off' : 'on'); } catch (err) {}
+      if (on) { W.audio.off(); } else { W.audio.on(); W.audio.scene(view === 'room' ? currentRoom : 'hub'); }
     });
 
     var onHistory = function () {
@@ -3041,16 +3865,19 @@ svg { display: block; }
       rt = setTimeout(function () {
         lightMode = coarse || isSmall();
         layout();
+        if (view === 'room') { sheetBounds(); snapSheet(sheet.expanded); }
+        else resetSheet();
       }, 160);
     });
     global.addEventListener('orientationchange', function () { setTimeout(layout, 300); });
   }
 
-  /* gentle parallax inside a room, following the pointer */
-  function roomParallax(e) {
+  /* Gentle parallax inside a room. Driven from the frame loop rather than
+     straight off the pointer event, so a fast mouse cannot ask for more
+     redraws than the screen can show. */
+  function applyRoomParallax() {
     if (reduced || lightMode) return;
-    var nx = (e.clientX / global.innerWidth - 0.5);
-    var ny = (e.clientY / global.innerHeight - 0.5);
+    var nx = ptr.x - 0.5, ny = ptr.y - 0.5;
     var layers = el.roomArt.children;
     for (var i = 0; i < layers.length; i++) {
       var d = parseFloat(layers[i].dataset.depth) || 0.2;
@@ -3088,3 +3915,5 @@ svg { display: block; }
 })(window);
 
 </script>
+</body>
+</html>

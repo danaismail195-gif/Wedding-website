@@ -119,7 +119,8 @@ assets/js/scenes.js      the eight illustrated places (hub + seven rooms)
 assets/js/art.js         the drawing kit: cliffs, houses, olive trees, lanterns
 assets/js/app.js         the camera, transitions, RSVP form
 assets/js/tween.js       a small animation engine (replaces GSAP)
-assets/js/audio.js       ambient sea and wind, generated live, off by default
+assets/js/audio.js       sea, wind, birdsong and a soft instrumental bed,
+                         generated live; starts with "Begin the walk"
 BRIEF.md                 the original project brief
 ```
 

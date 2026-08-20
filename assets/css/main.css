@@ -23,6 +23,11 @@
   --gold:       #E4A853;
   --gold-light: #F5D08A;
   --night:      #1E2A3A;
+  --sea-pale:   #EAF6F5;
+  --sea-light:  #B6DEE2;
+  --sea-mid:    #6FB2BF;
+  --sea-deep:   #2F7186;
+  --sea-ink:    #14434F;
 
   --panel-bg:   rgba(251, 244, 232, 0.94);
   --panel-line: rgba(59, 42, 34, 0.14);
@@ -67,34 +72,37 @@ svg { display: block; }
   position: fixed; inset: 0; z-index: 200;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 1.1rem; text-align: center; padding: 2rem;
-  background: linear-gradient(170deg, #F6E3C6 0%, #E9C9A6 45%, #C98A6E 100%);
+  background:
+    radial-gradient(120% 80% at 50% 8%, rgba(255,255,255,.55), rgba(255,255,255,0) 60%),
+    linear-gradient(168deg, var(--sea-pale) 0%, var(--sea-light) 34%, var(--sea-mid) 70%, var(--sea-deep) 100%);
   transition: opacity .9s var(--ease), visibility .9s;
 }
 #loader.is-gone { opacity: 0; visibility: hidden; pointer-events: none; }
 .loader-names {
   font-family: var(--display); font-weight: 300; letter-spacing: .06em;
-  font-size: clamp(2.6rem, 8vw, 5.2rem); line-height: 1; color: var(--espresso); margin: 0;
+  font-size: clamp(2.6rem, 8vw, 5.2rem); line-height: 1; color: #17323A; margin: 0;
+  text-shadow: 0 2px 30px rgba(255,255,255,.55);
 }
 .loader-sub {
   font-size: clamp(.78rem, 2.2vw, .95rem); letter-spacing: .34em; text-transform: uppercase;
-  color: var(--terra-deep); margin: 0;
+  color: var(--sea-ink); margin: 0;
 }
 .loader-note {
-  max-width: 34ch; font-size: .96rem; line-height: 1.65; color: var(--esp-soft);
+  max-width: 34ch; font-size: .96rem; line-height: 1.65; color: #2B5A66;
   font-family: var(--display); font-size: 1.22rem; font-style: italic;
 }
-.loader-bar { width: min(240px, 60vw); height: 2px; background: rgba(59,42,34,.18); overflow: hidden; border-radius: 2px; }
-.loader-bar i { display: block; height: 100%; width: 0; background: var(--terra-deep); transition: width .4s var(--ease); }
+.loader-bar { width: min(240px, 60vw); height: 2px; background: rgba(20,67,79,.20); overflow: hidden; border-radius: 2px; }
+.loader-bar i { display: block; height: 100%; width: 0; background: var(--sea-ink); transition: width .4s var(--ease); }
 .enter-btn {
   margin-top: .6rem; padding: .95rem 2.4rem; min-height: 48px;
-  border: 1px solid var(--terra-deep); border-radius: 999px;
-  font-size: .78rem; letter-spacing: .26em; text-transform: uppercase; color: var(--terra-deep);
-  background: rgba(255,255,255,.28); backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.9); border-radius: 999px;
+  font-size: .78rem; letter-spacing: .26em; text-transform: uppercase; color: var(--sea-ink);
+  background: rgba(255,255,255,.46);
   transition: background .4s var(--ease), color .4s var(--ease), transform .4s var(--ease);
   opacity: 0; transform: translateY(10px); pointer-events: none;
 }
 .enter-btn.is-ready { opacity: 1; transform: none; pointer-events: auto; }
-.enter-btn:hover { background: var(--terra-deep); color: var(--cream-2); transform: translateY(-2px); }
+.enter-btn:hover { background: var(--sea-ink); color: var(--sea-pale); border-color: var(--sea-ink); transform: translateY(-2px); }
 
 /* --- 4 · the hub --------------------------------------------------------- */
 #hub {
@@ -130,8 +138,35 @@ svg { display: block; }
 }
 .entrance-svg { width: 100%; height: 100%; overflow: visible; }
 .entrance .ww-door-open { transition: filter .5s var(--ease); }
-.entrance:hover, .entrance.is-near { transform: translateY(-6px) scale(1.03); filter: brightness(1.07); }
-.entrance:hover .entrance-label, .entrance.is-near .entrance-label { opacity: 1; transform: translate(-50%, 0); }
+/* Grows from its own base, so the doorway can never slide out from under
+   the cursor and start a hover/unhover flicker. No filter: it forces a
+   repaint of the whole layer on a machine that can least afford it. */
+.entrance:hover, .entrance:focus-visible, .entrance.is-near { transform: scale(1.035); }
+.entrance:hover .entrance-label, .entrance:focus-visible .entrance-label,
+.entrance.is-near .entrance-label { opacity: 1; transform: translate(-50%, 0); }
+
+/* the small permanent "this is a door you can walk through" cue */
+.entrance-cta {
+  position: absolute; left: 50%; bottom: 1.5%;
+  transform: translate(-50%, 0);
+  display: inline-flex; align-items: center; gap: .5em;
+  padding: .42em .95em .46em; border-radius: 999px;
+  font-size: .56em; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--terra-deep); background: rgba(251,244,232,.92);
+  border: 1px solid rgba(155,74,42,.3);
+  box-shadow: 0 6px 18px -9px rgba(59,42,34,.6);
+  white-space: nowrap; pointer-events: none;
+  transition: background .35s var(--ease), color .35s var(--ease), transform .35s var(--ease);
+}
+.entrance-cta::before {
+  content: ""; width: .5em; height: .5em; border-radius: 50%;
+  background: var(--gold); box-shadow: 0 0 0 .16em rgba(228,168,83,.35);
+}
+.entrance:hover .entrance-cta, .entrance:focus-visible .entrance-cta,
+.entrance.is-near .entrance-cta {
+  background: var(--terracotta); color: var(--cream-2); border-color: var(--terracotta);
+  transform: translate(-50%, -3px);
+}
 /* labels sit above the archway, clear of the path map at the bottom */
 .entrance-label {
   position: absolute; left: 50%; top: -5.6em; bottom: auto;
@@ -142,7 +177,7 @@ svg { display: block; }
 .entrance-label > span { display: block; }
 .entrance-label .inner {
   padding: .6em 1.4em .7em; border-radius: 14px;
-  background: rgba(251,244,232,.74); backdrop-filter: blur(7px);
+  background: rgba(251,244,232,.93);
   border: 1px solid rgba(59,42,34,.08);
   box-shadow: 0 10px 30px -14px rgba(59,42,34,.5);
 }
@@ -187,6 +222,7 @@ svg { display: block; }
   box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
+.panel-grip { display: none; }
 .panel-scroll {
   overflow-y: auto; overscroll-behavior: contain;
   outline-offset: -6px;
@@ -333,7 +369,10 @@ svg { display: block; }
   padding: 1.4rem clamp(1.1rem, 3vw, 2.4rem);
   pointer-events: none;
 }
-.brand { pointer-events: auto; text-align: left; }
+.brand { pointer-events: auto; text-align: left; transition: opacity .5s var(--ease); }
+/* inside a room the way back owns the top of the screen, so the names step
+   aside — the room has its own title, and nobody is lost */
+#room.is-open ~ .top-bar .brand { opacity: 0; pointer-events: none; }
 .brand .n {
   display: block; font-family: var(--display); font-size: clamp(1.15rem, 2vw, 1.5rem);
   color: var(--espresso); letter-spacing: .04em;
@@ -348,7 +387,7 @@ svg { display: block; }
 .icon-btn {
   width: 46px; height: 46px; border-radius: 50%;
   display: grid; place-items: center;
-  background: rgba(251,244,232,.72); backdrop-filter: blur(8px);
+  background: rgba(251,244,232,.88);
   border: 1px solid rgba(59,42,34,.12);
   box-shadow: var(--shadow-md);
   transition: transform .3s var(--ease), background .3s var(--ease);
@@ -397,7 +436,7 @@ svg { display: block; }
   transform: translateX(-50%);
   display: flex; align-items: center; gap: .2rem;
   padding: .5rem .8rem; border-radius: 999px;
-  background: rgba(251,244,232,.68); backdrop-filter: blur(8px);
+  background: rgba(251,244,232,.9);
   border: 1px solid rgba(59,42,34,.1); box-shadow: var(--shadow-md);
   transition: opacity .5s var(--ease);
   max-width: calc(100vw - 2rem);
@@ -467,7 +506,7 @@ svg { display: block; }
   transition: opacity .8s var(--ease);
   white-space: nowrap; pointer-events: none;
   padding: .55rem 1.1rem; border-radius: 999px;
-  background: rgba(251,244,232,.66); backdrop-filter: blur(6px);
+  background: rgba(251,244,232,.88);
   border: 1px solid rgba(59,42,34,.08);
 }
 .hint.is-gone { opacity: 0; }
@@ -487,7 +526,23 @@ svg { display: block; }
   100% { transform: translate3d(var(--dx, 40px), -108vh, 0) scale(1.15); opacity: 0; }
 }
 
-/* --- 10 · ambient motion ------------------------------------------------- */
+/* --- 10 · ambient motion -------------------------------------------------
+   Every idle animation in the world carries one of these classes. While the
+   camera is actually moving they are all paused: nobody can see a lantern
+   flicker during a 1.4s dolly, and pausing them stops the browser repainting
+   several very large SVG layers on every single frame. This is the single
+   biggest thing keeping the pan smooth on a laptop or an Android phone. */
+#hub.is-moving .ww-sway, #hub.is-moving .ww-sway-slow, #hub.is-moving .ww-swing,
+#hub.is-moving .ww-flicker, #hub.is-moving .ww-twinkle, #hub.is-moving .ww-shimmer,
+#hub.is-moving .ww-drift, #hub.is-moving .ww-bob, #hub.is-moving .ww-hover-bob,
+#hub.is-moving .ww-pulse, #hub.is-moving .ww-glow-soft, #hub.is-moving .ww-dance,
+#hub.is-moving .ww-fly, #hub.is-moving .ww-flap, #hub.is-moving .ww-spin-slow,
+#hub.is-moving .ww-plane, #hub.is-moving .ww-plane-door, #hub.is-moving .ww-idle,
+#hub.is-moving .ww-talk, #hub.is-moving .ww-laugh, #hub.is-moving .ww-stroll {
+  animation-play-state: paused;
+}
+#stage.is-moving .mote { animation-play-state: paused; }
+
 .ww-sway      { animation: ww-sway 6.5s ease-in-out infinite; transform-box: fill-box; }
 .ww-sway-slow { animation: ww-sway 13s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-sway {
@@ -539,6 +594,24 @@ svg { display: block; }
 @keyframes ww-flap { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.4); } }
 .ww-spin-slow { animation: ww-spin 22s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-spin { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+.ww-idle { animation: ww-idle 5.6s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.6px); } }
+.ww-talk { animation: ww-talk 3.6s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-talk { 0%, 100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
+.ww-laugh { animation: ww-laugh 2.9s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-laugh {
+  0%, 100% { transform: rotate(-1.6deg) translateY(0); }
+  50%      { transform: rotate(2.2deg) translateY(-2.5px); }
+}
+.ww-stroll { animation: ww-stroll 19s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-stroll { 0%, 100% { transform: translateX(-26px); } 50% { transform: translateX(34px); } }
+.ww-plane-door { animation: ww-plane-door 15s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-plane-door {
+  0%   { transform: translate(-26px, 16px); opacity: 0; }
+  14%  { opacity: 1; }
+  82%  { opacity: 1; }
+  100% { transform: translate(40px, -18px); opacity: 0; }
+}
 .ww-plane { animation: ww-plane 34s linear infinite; }
 @keyframes ww-plane {
   from { transform: translate(-320px, 150px); }
@@ -547,26 +620,50 @@ svg { display: block; }
 
 /* --- 11 · mobile & tablet ------------------------------------------------ */
 @media (max-width: 900px) {
-  :root { --panel-w: 100%; }
-  /* On a phone the illustration becomes a band above the content sheet,
-     so the whole scene is visible rather than a sliver of sky. */
-  #room { background: var(--cream-2); }
-  .room-art { inset: 0 0 auto 0; height: 34vh; height: 34dvh; }
+  :root { --panel-w: 100%; --sheet-min: 34dvh; --sheet-max: 88dvh; }
+  /* On a phone the illustration keeps two thirds of the screen and the copy
+     arrives as a bottom sheet you can pull up. The artwork is drawn to the
+     full width and anchored to the foot of its band, with the room's own sky
+     colour continuing above it — so nothing is cropped away sideways. */
+  #room { background: var(--room-sky, var(--night)); }
+  .room-art {
+    inset: 0 0 auto 0; height: 66vh; height: 66dvh;
+    background: var(--room-sky, var(--night));
+  }
+  .room-layer > svg {
+    position: absolute; left: -20%; right: -20%; bottom: 0;
+    width: 140%; height: auto;
+  }
   .room-scrim {
-    inset: 0 0 auto 0; height: 34vh; height: 34dvh;
-    background: linear-gradient(180deg, rgba(59,42,34,.34) 0%, rgba(59,42,34,0) 42%);
+    inset: 0 0 auto 0; height: 66vh; height: 66dvh;
+    background: linear-gradient(180deg, rgba(59,42,34,.30) 0%, rgba(59,42,34,0) 34%);
   }
   .panel {
-    top: auto; height: 74vh; height: 74dvh; border-radius: 22px 22px 0 0;
+    top: auto; bottom: 0;
+    height: var(--sheet-h, 34dvh);
+    border-radius: 22px 22px 0 0;
     box-shadow: 0 -18px 60px -20px rgba(59,42,34,.6);
+    transition: transform .95s var(--ease), opacity .7s var(--ease), height .42s var(--ease);
   }
-  .panel::before {
-    content: ""; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-    width: 46px; height: 4px; border-radius: 999px; background: rgba(59,42,34,.22);
+  .panel.is-dragging { transition: none; }
+  /* the pull tab — a proper 44px target, not just a decorative line */
+  .panel-grip {
+    position: absolute; top: 0; left: 0; right: 0; height: 30px; z-index: 2;
+    display: grid; place-items: center; cursor: grab;
+    touch-action: none;
   }
-  .panel-scroll { padding: 2.4rem 1.5rem 8rem; }
+  .panel-grip::before {
+    content: ""; width: 46px; height: 4px; border-radius: 999px;
+    background: rgba(59,42,34,.26);
+    transition: width .3s var(--ease), background .3s var(--ease);
+  }
+  .panel-grip:active::before { background: var(--terracotta); width: 62px; }
+  .panel-scroll { padding: 2.1rem 1.5rem 7rem; }
+  /* collapsed, the whole sheet is a handle: drag anywhere on it to open */
+  .panel:not(.is-expanded) .panel-scroll { overflow-y: hidden; touch-action: none; }
   .back-btn { bottom: auto; top: 1.1rem; left: 1.1rem; padding: .7rem 1.2rem .7rem .9rem; min-height: 46px; }
   .beacon { bottom: 4.9rem; padding: .6rem .6rem .6rem 1.1rem; min-height: 52px; }
+  .entrance-cta { font-size: .68em; letter-spacing: .14em; }
   .beacon .t { font-size: .64rem; letter-spacing: .18em; }
   .facts li { grid-template-columns: 1fr; gap: .25rem; }
   .top-bar { padding: 1rem 1.1rem; }
@@ -584,6 +681,24 @@ svg { display: block; }
 }
 @media (min-width: 901px) {
   .panel { border-left: 1px solid rgba(59,42,34,.1); }
+
+  /* The names used to sit in the top-left corner, where the foreground
+     olive branch hangs into the frame and ate them. Centre them, and give
+     them a plaque so they never have to compete with the artwork. */
+  .brand {
+    position: absolute; left: 50%; top: 0;
+    transform: translateX(-50%); text-align: center;
+    padding: .85rem 2.2rem .95rem; border-radius: 0 0 18px 18px;
+    background: linear-gradient(180deg, rgba(251,244,232,.94), rgba(251,244,232,.6));
+    border: 1px solid rgba(59,42,34,.09); border-top: 0;
+    box-shadow: 0 14px 34px -22px rgba(59,42,34,.65);
+    transition: transform .8s var(--ease);
+  }
+  .brand .n { font-size: clamp(1.3rem, 2.1vw, 1.7rem); text-shadow: none; }
+  .brand .d { font-size: .62rem; text-shadow: none; letter-spacing: .3em; }
+
+  /* one clear way back, top left, where a back control belongs */
+  .back-btn { top: 1.25rem; bottom: auto; }
   /* keep the sound toggle clear of the panel while a room is open */
   #room.is-open ~ .top-bar .top-actions {
     transform: translateX(calc(-1 * var(--panel-w) - .6rem));

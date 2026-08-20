@@ -238,11 +238,10 @@
       /* iron gate bars + a ferry on the water beyond */
       g += '<rect x="' + f(ax + 4) + '" y="' + f(baseY - 76) + '" width="' + f(aw - 8) + '" height="76" fill="#7FA3B0" opacity=".8"/>';
       g += A.boat(cx - 6, baseY - 40, 0.85, '#31485A', '#F4E7D3');
-      for (var b = 0; b < 6; b++) {
-        var bx2 = ax + 12 + b * ((aw - 24) / 5);
-        g += '<line x1="' + f(bx2) + '" y1="' + f(ay + 26) + '" x2="' + f(bx2) + '" y2="' + f(baseY - 4) + '" stroke="rgba(59,42,34,.5)" stroke-width="3"/>';
-      }
-      g += '<line x1="' + f(ax + 8) + '" y1="' + f(ay + 96) + '" x2="' + f(ax + aw - 8) + '" y2="' + f(ay + 96) + '" stroke="rgba(59,42,34,.5)" stroke-width="3"/>';
+      /* an aeroplane crossing the opening, climbing away over the water */
+      g += '<g class="ww-plane-door">' + A.airplane(cx - 6, ay + 74, 0.62, '#4E6E80') + '</g>';
+      g += '<ellipse cx="' + f(cx + 34) + '" cy="' + f(ay + 40) + '" rx="26" ry="9" fill="#FFFFFF" opacity=".5"/>';
+      g += '<ellipse cx="' + f(cx - 30) + '" cy="' + f(ay + 128) + '" rx="20" ry="7" fill="#FFFFFF" opacity=".38"/>';
       g += '<path class="ww-spin-slow" style="transform-origin:' + f(cx) + 'px ' + f(ay - 58) + 'px" d="M ' + f(cx - 26) + ' ' + f(ay - 58) + ' l 40 0 l -8 -7 l 20 7 l -20 7 l 8 -7 Z" fill="#7A6247"/>';
       g += '<rect x="' + f(cx - 2) + '" y="' + f(ay - 58) + '" width="4" height="34" fill="#7A6247"/>';
     } else if (id === 'rsvp') {
@@ -339,17 +338,25 @@
           g += '<rect x="' + bx + '" y="666" width="58" height="14" rx="4" fill="#5C4436"/>';
           g += '<path d="M ' + bx + ' 666 l 0 -74 q 29 -14 58 0 l 0 74 Z" fill="#6B5039"/>';
         }
+        /* the guests already sitting down, drawn before the table so it
+           covers their laps exactly as a real table would */
+        for (var d = 0; d < 6; d++) {
+          var dx = 120 + d * 158 + 29;
+          g += A.person({ x: dx, baseY: 710, h: 236 + (d % 3) * 11, pose: 'table',
+            seed: 200 + d * 13, flip: d % 2 === 1, shadow: false,
+            hold: d % 3 === 0 ? 'glass' : null,
+            anim: d % 2 ? 'ww-talk' : 'ww-idle' });
+        }
         g += '<rect x="40" y="742" width="1140" height="26" rx="6" fill="#F2E7D2"/>';
         g += '<rect x="40" y="768" width="1140" height="14" fill="#CBB795"/>';
         for (var i = 0; i < 7; i++) {
           var x = 96 + i * 168;
           g += '<rect x="' + x + '" y="782" width="14" height="86" rx="3" fill="#6B5744"/>';
         }
-        /* place settings */
+        /* place settings, with something on them */
         for (var p2 = 0; p2 < 7; p2++) {
           var px = 110 + p2 * 160;
-          g += '<ellipse cx="' + px + '" cy="756" rx="34" ry="9" fill="#FFFAF0"/>';
-          g += '<ellipse cx="' + px + '" cy="755" rx="22" ry="5.5" fill="#EADCC4"/>';
+          g += A.plate(px, 757, 1, 300 + p2 * 7);
         }
         /* candles down the middle */
         for (var c = 0; c < 6; c++) {
@@ -362,12 +369,19 @@
         g += '<path d="M 560 742 l 0 -34 q 0 -14 12 -20 l 0 -12 l 20 0 l 0 12 q 12 6 12 20 l 0 34 Z" fill="#D8C9A8" opacity=".9"/>';
         g += '<path d="M 700 742 l 0 -22 q -9 -8 -9 -20 l 26 0 q 0 12 -9 20 l 0 22 Z" fill="#EFE7D4" opacity=".85"/>';
         g += '<path d="M 940 742 l 0 -22 q -9 -8 -9 -20 l 26 0 q 0 12 -9 20 l 0 22 Z" fill="#EFE7D4" opacity=".85"/>';
-        /* front-row chairs, seen from behind */
+        /* front-row chairs, seen from behind — with three guests in them */
         for (var fch = 0; fch < 5; fch++) {
           var fx = 200 + fch * 214;
+          if (fch === 0 || fch === 2 || fch === 4) {
+            g += A.person({ x: fx + 40, baseY: 884, h: 300, pose: 'table', back: true,
+              seed: 400 + fch * 11, shadow: false, anim: fch === 2 ? 'ww-talk' : 'ww-idle' });
+          }
           g += '<path d="M ' + fx + ' 960 l 0 -84 q 40 -16 80 0 l 0 84 Z" fill="#4E382A"/>';
           g += '<rect x="' + (fx - 6) + '" y="868" width="92" height="14" rx="6" fill="#5E452F"/>';
         }
+        /* one guest still on their feet at the end of the table, pouring */
+        g += A.person({ x: 1256, baseY: 806, h: 236, pose: 'toast', flip: true,
+          seed: 517, hold: 'glass', anim: 'ww-talk' });
         return g;
       })() + '</g>'
     )});
@@ -426,8 +440,17 @@
         /* chairs either side of the aisle */
         for (var c = 0; c < 5; c++) {
           var yy = 828 + c * 20, sc = 1 + c * 0.12;
-          g += chair(300 - c * 46, yy, sc) + chair(392 - c * 30, yy + 6, sc);
-          g += chair(1030 + c * 34, yy, sc) + chair(1122 + c * 48, yy + 6, sc);
+          var seats = [[300 - c * 46, yy], [392 - c * 30, yy + 6],
+                       [1030 + c * 34, yy], [1122 + c * 48, yy + 6]];
+          for (var st = 0; st < seats.length; st++) {
+            /* not every seat is taken — people are still finding them */
+            if ((c * 4 + st) % 3 !== 1) {
+              g += A.person({ x: seats[st][0] + 13 * sc, baseY: seats[st][1] - 30 * sc,
+                h: 96 * sc, pose: 'table', back: true, shadow: false,
+                seed: 600 + c * 7 + st * 3, anim: (c + st) % 3 === 0 ? 'ww-talk' : 'ww-idle' });
+            }
+            g += chair(seats[st][0], seats[st][1], sc);
+          }
         }
         /* petals down the aisle */
         var rp = rand(47);
@@ -435,6 +458,28 @@
           g += '<ellipse cx="' + f(560 + rp() * 300) + '" cy="' + f(828 + rp() * 78) + '" rx="' + f(4 + rp() * 4) + '" ry="' + f(2 + rp() * 2) +
             '" fill="' + (p % 2 ? '#F0D2C4' : '#E8BCA8') + '" opacity=".9"/>';
         }
+
+        /* --- the two of them, under the arch --------------------------- */
+        g += A.person({ x: 596, baseY: 806, h: 150, pose: 'listen', seed: 701,
+          cloth: '#FBF4E8', dress: true, anim: 'ww-idle' });
+        g += A.person({ x: 652, baseY: 806, h: 156, pose: 'chat', flip: true, seed: 707,
+          cloth: '#3B4A56', dress: false, anim: 'ww-talk' });
+
+        /* --- the guests who are not sitting down ----------------------- */
+        g += A.chatGroup(150, 884, 126, 711);              /* near the terrace edge */
+        g += A.chatGroup(880, 878, 116, 719, { n: 3 });    /* by the aisle */
+        g += A.chatGroup(1420, 882, 120, 723, { n: 2 });   /* off to the right */
+
+        /* someone photographing the arch, someone raising a glass */
+        g += A.person({ x: 470, baseY: 890, h: 124, pose: 'photo', hold: 'camera',
+          seed: 727, anim: 'ww-idle' });
+        g += A.person({ x: 1010, baseY: 892, h: 122, pose: 'toast', hold: 'glass',
+          flip: true, seed: 733, anim: 'ww-talk' });
+
+        /* two more drifting across the open terrace */
+        g += A.person({ x: 726, baseY: 896, h: 128, pose: 'walk', seed: 739, anim: 'ww-stroll' });
+        g += A.person({ x: 772, baseY: 899, h: 122, pose: 'walk', seed: 743, anim: 'ww-stroll',
+          delay: -2.6 });
         return g;
       })()
     )});
@@ -493,7 +538,19 @@
       A.dancer(390, 848, 190, '#0C1119', -0.9) +
       A.dancer(560, 836, 220, '#0C1119', -1.7) +
       A.dancer(720, 852, 176, '#0C1119', -0.4) +
-      A.dancer(880, 840, 200, '#0C1119', -2.2)
+      A.dancer(880, 840, 200, '#0C1119', -2.2) +
+      /* two hanging back at the edge of it all, drinks in hand */
+      A.person({ x: 96, baseY: 862, h: 188, flat: '#0C1119', pose: 'chat', hold: 'glass',
+        seed: 811, anim: 'ww-talk' }) +
+      A.person({ x: 158, baseY: 868, h: 178, flat: '#0C1119', pose: 'listen', flip: true,
+        seed: 817, anim: 'ww-idle' }) +
+      /* the DJ — drawn first, so the decks stand in front of them */
+      A.person({ x: 1351, baseY: 862, h: 200, flat: '#0C1119', pose: 'dance', seed: 823,
+        anim: 'ww-dance', delay: -1.1 }) +
+      '<rect x="1276" y="806" width="150" height="58" rx="4" fill="#0C1119"/>' +
+      '<rect x="1290" y="798" width="122" height="10" rx="3" fill="#161E2C"/>' +
+      '<circle class="ww-twinkle" cx="1318" cy="818" r="7" fill="#C98CE0" opacity=".8"/>' +
+      '<circle class="ww-twinkle" cx="1384" cy="818" r="7" fill="#F0B45C" opacity=".8" style="animation-delay:-1.4s"/>'
     )});
     L.push({ depth: 1.3, svg: wrap(ROOM_W, ROOM_H,
       A.lantern(150, 200, 2.2, 0) + A.lantern(430, 130, 1.7, 0) + A.lantern(1290, 176, 2, 0) + A.lantern(1520, 120, 1.5, 0) +

@@ -168,13 +168,16 @@
       '<stop offset="0" stop-color="' + top + '"/><stop offset="1" stop-color="' + bottom + '"/></linearGradient></defs>';
     g += '<rect x="' + f(x) + '" y="' + f(y) + '" width="' + f(w) + '" height="' + f(h) + '" fill="url(#' + id + ')"/>';
     var r = rand(glintSeed || 11), gl = '';
-    for (var i = 0; i < Math.round(w / 26); i++) {
+    var n = Math.round(w / 40);
+    for (var i = 0; i < n; i++) {
       var gx = x + r() * w;
       var gy = y + Math.pow(r(), 1.7) * h;
       var gw = 10 + r() * 46;
-      gl += '<rect class="ww-shimmer" x="' + f(gx) + '" y="' + f(gy) + '" width="' + f(gw) + '" height="' + f(1.6 + r() * 1.8) +
+      var lively = i % 3 !== 0;                 // most of them just sit there
+      gl += '<rect' + (lively ? ' class="ww-shimmer"' : '') +
+            ' x="' + f(gx) + '" y="' + f(gy) + '" width="' + f(gw) + '" height="' + f(1.6 + r() * 1.8) +
             '" rx="1" fill="' + (glintColor || '#FFFFFF') + '" opacity="' + (0.06 + r() * 0.22).toFixed(2) +
-            '" style="animation-delay:' + (-r() * 7).toFixed(1) + 's"/>';
+            '"' + (lively ? ' style="animation-delay:' + (-r() * 9).toFixed(1) + 's"' : '') + '/>';
     }
     return g + gl;
   }
@@ -271,7 +274,10 @@
     var r = rand(seed || 23), g = '';
     for (var i = 0; i < n; i++) {
       var gx = x + r() * w, hgt = 8 + r() * 16;
-      g += '<path class="ww-sway" style="transform-origin:' + f(gx) + 'px ' + f(y) + 'px;animation-delay:' + (-r() * 5).toFixed(1) + 's" d="M ' + f(gx) + ' ' + f(y) +
+      /* only some of the grass moves — nobody counts, and the layer repaints
+         a third as often */
+      var sway = i % 3 === 0;
+      g += '<path' + (sway ? ' class="ww-sway"' : '') + ' style="transform-origin:' + f(gx) + 'px ' + f(y) + 'px;animation-delay:' + (-r() * 5).toFixed(1) + 's" d="M ' + f(gx) + ' ' + f(y) +
            ' q ' + f((r() - 0.5) * 10) + ' -' + f(hgt * 0.6) + ' ' + f((r() - 0.5) * 14) + ' -' + f(hgt) + '" fill="none" stroke="' + (color || P.oliveDeep) + '" stroke-width="1.7" stroke-linecap="round"/>';
     }
     return g;
@@ -296,17 +302,315 @@
     return '<g class="ww-sway-slow" style="transform-origin:' + f(x) + 'px ' + f(y) + 'px">' + g + '</g>';
   }
 
-  /* Dancing silhouettes, for the after-party. */
+  /* ======================================================================
+     PEOPLE — flat, hand-made, deliberately a bit wonky, but properly built.
+     Every limb is a round-capped polyline that STARTS at the shoulder or
+     hip it belongs to, so an arm can never float free of its body. Poses
+     are described in fractions of the figure's height, which keeps the
+     proportions honest at any scale.
+     ====================================================================== */
+
+  var SKINS   = ['#EFC49F', '#E2AC81', '#C98A5E', '#A06A43', '#7A4E32', '#5B3826'];
+  var CLOTHES = ['#C4643C', '#7A97A8', '#7C8B5E', '#E4A853', '#9B4A2A', '#5A4260',
+                 '#4E6E80', '#D98A5E', '#F4E7D3', '#3B2A22'];
+  var HAIRS   = ['#3B2A22', '#5C4436', '#241A16', '#6B5744', '#2A2430', '#8A6A46', '#B08A55'];
+
+  /* round-capped, round-joined polyline — the only way limbs are drawn */
+  function limbPath(pts, w, color, extra) {
+    var d = 'M ' + f(pts[0][0]) + ' ' + f(pts[0][1]);
+    for (var i = 1; i < pts.length; i++) d += ' L ' + f(pts[i][0]) + ' ' + f(pts[i][1]);
+    return '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="' + f(w) +
+      '" stroke-linecap="round" stroke-linejoin="round"' + (extra || '') + '/>';
+  }
+
+  /* Pose tables. Every offset is a fraction of the figure's height, measured
+     from the shoulder (arms) or the hip (legs). [elbow, hand] / [knee, foot].
+     dir = +1 facing right. */
+  var POSES = {
+    stand:  { armNear: [[.045, .125], [.070, .255]], armFar: [[-.040, .125], [-.062, .250]],
+              legNear: [[.022, .215], [.014, .455]], legFar: [[-.020, .215], [-.030, .455]] },
+    chat:   { armNear: [[.080, .095], [.170, .020]], armFar: [[-.045, .120], [-.055, .245]],
+              legNear: [[.030, .215], [.045, .455]], legFar: [[-.022, .215], [-.048, .455]] },
+    listen: { armNear: [[.055, .130], [.115, .195]], armFar: [[-.050, .125], [-.070, .240]],
+              legNear: [[.018, .215], [.010, .455]], legFar: [[-.024, .218], [-.044, .455]] },
+    toast:  { armNear: [[.090, .050], [.135, -.090]], armFar: [[-.045, .125], [-.058, .248]],
+              legNear: [[.024, .215], [.018, .455]], legFar: [[-.022, .215], [-.036, .455]] },
+    laugh:  { armNear: [[.075, .105], [.055, .010]], armFar: [[-.075, .105], [-.140, .150]],
+              legNear: [[.030, .215], [.052, .455]], legFar: [[-.028, .215], [-.056, .455]] },
+    photo:  { armNear: [[.105, .080], [.055, -.045]], armFar: [[-.100, .085], [-.050, -.045]],
+              legNear: [[.026, .215], [.030, .455]], legFar: [[-.026, .215], [-.034, .455]] },
+    wave:   { armNear: [[.085, .040], [.115, -.115]], armFar: [[-.042, .128], [-.055, .250]],
+              legNear: [[.020, .215], [.012, .455]], legFar: [[-.022, .215], [-.034, .455]] },
+    walk:   { armNear: [[.060, .120], [.030, .245]], armFar: [[-.055, .120], [-.020, .245]],
+              legNear: [[.075, .200], [.130, .440]], legFar: [[-.055, .215], [-.105, .450]] },
+    sit:    { armNear: [[.055, .105], [.150, .145]], armFar: [[-.045, .110], [.085, .150]],
+              legNear: [[.130, .030], [.155, .255]], legFar: [[.112, .052], [.138, .258]] },
+    /* drawn up to a table: legs straight down, where the tabletop hides them */
+    table:  { armNear: [[.062, .100], [.140, .150]], armFar: [[-.058, .100], [-.120, .152]],
+              legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
+    dance:  { armNear: [[.110, -.010], [.170, -.150]], armFar: [[-.115, .060], [-.205, .015]],
+              legNear: [[.075, .200], [.120, .450]], legFar: [[-.080, .195], [-.135, .450]] },
+    dance2: { armNear: [[.125, .045], [.215, -.035]], armFar: [[-.095, -.020], [-.140, -.160]],
+              legNear: [[.055, .205], [.145, .450]], legFar: [[-.070, .215], [-.090, .450]] }
+  };
+
+  /* Small things people hold. Drawn at the hand, so they never drift off. */
+  function prop(kind, hx, hy, s, tint) {
+    if (kind === 'glass') {
+      return '<path d="M ' + f(hx - 3.6 * s) + ' ' + f(hy - 2 * s) +
+        ' l ' + f(7.2 * s) + ' 0 l -' + f(1.1 * s) + ' ' + f(5.2 * s) + ' l -' + f(5 * s) + ' 0 Z" fill="#FBF4E8" opacity=".92"/>' +
+        '<path d="M ' + f(hx - 2.9 * s) + ' ' + f(hy - 1.2 * s) + ' l ' + f(5.8 * s) + ' 0 l -' + f(.7 * s) + ' ' + f(3 * s) +
+        ' l -' + f(4.4 * s) + ' 0 Z" fill="' + (tint || '#E8B25E') + '" opacity=".85"/>' +
+        '<rect x="' + f(hx - .5 * s) + '" y="' + f(hy + 3 * s) + '" width="' + f(1.2 * s) + '" height="' + f(3.4 * s) + '" fill="#FBF4E8" opacity=".8"/>';
+    }
+    if (kind === 'camera') {
+      return '<rect x="' + f(hx - 5.5 * s) + '" y="' + f(hy - 4 * s) + '" width="' + f(11 * s) + '" height="' + f(8 * s) +
+        '" rx="' + f(1.6 * s) + '" fill="#3B2A22"/>' +
+        '<circle cx="' + f(hx) + '" cy="' + f(hy) + '" r="' + f(2.6 * s) + '" fill="#7A97A8"/>' +
+        '<circle class="ww-twinkle" cx="' + f(hx + 4 * s) + '" cy="' + f(hy - 3 * s) + '" r="' + f(1.2 * s) + '" fill="#FFF3D0"/>';
+    }
+    if (kind === 'phone') {
+      return '<rect x="' + f(hx - 2.2 * s) + '" y="' + f(hy - 4.4 * s) + '" width="' + f(4.4 * s) + '" height="' + f(8.4 * s) +
+        '" rx="' + f(1 * s) + '" fill="#3B2A22"/>' +
+        '<rect x="' + f(hx - 1.5 * s) + '" y="' + f(hy - 3.6 * s) + '" width="' + f(3 * s) + '" height="' + f(6.6 * s) + '" fill="#9FC4CE"/>';
+    }
+    if (kind === 'plate') {
+      return '<ellipse cx="' + f(hx) + '" cy="' + f(hy) + '" rx="' + f(6.5 * s) + '" ry="' + f(2.4 * s) + '" fill="#FFFAF0"/>';
+    }
+    return '';
+  }
+
+  /**
+   * person({ x, baseY, h, pose, flip, skin, cloth, hair, dress, flat, hold,
+   *          anim, delay, seed })
+   * baseY is the ground (or the seat front, for `sit`). Returns one <g>.
+   */
+  function person(o) {
+    o = o || {};
+    var x = o.x || 0, b = o.baseY || 0, h = o.h || 100;
+    var r = rand(o.seed != null ? o.seed : (Math.abs(x * 31 + b * 17 + h) | 0) + 3);
+    var flat  = o.flat || null;
+    var skin  = flat || o.skin  || SKINS[(r() * SKINS.length) | 0];
+    var cloth = flat || o.cloth || CLOTHES[(r() * CLOTHES.length) | 0];
+    var hair  = flat || o.hair  || HAIRS[(r() * HAIRS.length) | 0];
+    var shoe  = flat || '#3B2A22';
+    var dir   = o.flip ? -1 : 1;
+    var pose  = POSES[o.pose] || POSES.stand;
+    var dress = o.dress != null ? o.dress : (r() < 0.45);
+    var seated = o.pose === 'sit' || o.pose === 'table';
+
+    /* skeleton */
+    var headR = h * 0.098,
+        headY = b - h * (seated ? 0.440 : 0.895),
+        shY   = b - h * (seated ? 0.300 : 0.745),
+        hipY  = b - h * (seated ? 0.020 : 0.455),
+        shW   = h * 0.104,
+        hipW  = h * 0.080,
+        limbW = h * 0.070;
+
+    /* a little wonkiness, so no two are quite the same */
+    var lean = (r() - 0.5) * 2.2;
+    var shTilt = (r() - 0.5) * h * 0.012;
+
+    function pts(list, ox, oy) {
+      var out = [[ox, oy]];
+      for (var i = 0; i < list.length; i++) {
+        out.push([ox + list[i][0] * h * dir, oy + list[i][1] * h]);
+      }
+      return out;
+    }
+
+    var shL = [x - shW * dir, shY + shTilt],     // far shoulder
+        shR = [x + shW * dir, shY - shTilt],     // near shoulder
+        hpL = [x - hipW * dir, hipY],
+        hpR = [x + hipW * dir, hipY];
+
+    var armFar  = pts(pose.armFar,  shL[0], shL[1]);
+    var armNear = pts(pose.armNear, shR[0], shR[1]);
+    var legFar  = pts(pose.legFar,  hpL[0], hpL[1]);
+    var legNear = pts(pose.legNear, hpR[0], hpR[1]);
+
+    var g = '';
+
+    function sleeve(arm) {                     /* the cloth that covers the joint */
+      return limbPath([arm[0], [arm[0][0] + (arm[1][0] - arm[0][0]) * 0.62,
+                                arm[0][1] + (arm[1][1] - arm[0][1]) * 0.62]],
+        limbW * 1.06, flat || shade(cloth, -0.04));
+    }
+
+    /* --- far arm and far leg go behind the body ---------------------- */
+    g += limbPath(legFar, limbW, flat || shade(cloth, -0.20));
+    g += limbPath(armFar, limbW * 0.80, flat || shade(skin, -0.10));
+    if (!flat) g += sleeve(armFar);
+
+    /* --- near leg ---------------------------------------------------- */
+    g += limbPath(legNear, limbW, flat || shade(cloth, -0.08));
+    if (!flat) {
+      g += '<ellipse cx="' + f(legFar[2][0]) + '" cy="' + f(legFar[2][1] + limbW * 0.16) + '" rx="' + f(limbW * 0.70) + '" ry="' + f(limbW * 0.36) + '" fill="' + shade(shoe, 0.12) + '"/>';
+      g += '<ellipse cx="' + f(legNear[2][0]) + '" cy="' + f(legNear[2][1] + limbW * 0.16) + '" rx="' + f(limbW * 0.74) + '" ry="' + f(limbW * 0.38) + '" fill="' + shoe + '"/>';
+    }
+
+    /* --- neck, drawn first so the collar covers where it joins -------- */
+    g += '<rect x="' + f(x - h * 0.020 + h * 0.006 * dir) + '" y="' + f(headY + headR * 0.42) +
+      '" width="' + f(h * 0.040) + '" height="' + f(h * 0.105) + '" fill="' + (flat || shade(skin, -0.16)) + '"/>';
+
+    /* --- torso: round shoulders, a little waist ---------------------- */
+    var torso = 'M ' + f(x - shW) + ' ' + f(shY + h * 0.022) +
+      ' C ' + f(x - shW) + ' ' + f(shY - h * 0.030) + ', ' + f(x - shW * 0.44) + ' ' + f(shY - h * 0.046) + ', ' + f(x) + ' ' + f(shY - h * 0.046) +
+      ' C ' + f(x + shW * 0.44) + ' ' + f(shY - h * 0.046) + ', ' + f(x + shW) + ' ' + f(shY - h * 0.030) + ', ' + f(x + shW) + ' ' + f(shY + h * 0.022) +
+      ' L ' + f(x + hipW) + ' ' + f(hipY) + ' Q ' + f(x) + ' ' + f(hipY + h * 0.024) + ' ' + f(x - hipW) + ' ' + f(hipY) + ' Z';
+    g += '<path d="' + torso + '" fill="' + cloth + '"/>';
+    if (!flat) {
+      /* a wedge of shade down the shadowed edge, so the body reads as solid */
+      g += '<path d="M ' + f(x + shW * 0.40 * dir) + ' ' + f(shY - h * 0.018) +
+        ' L ' + f(x + shW * dir) + ' ' + f(shY + h * 0.022) +
+        ' L ' + f(x + hipW * dir) + ' ' + f(hipY) +
+        ' L ' + f(x + hipW * 0.40 * dir) + ' ' + f(hipY) + ' Z" fill="' + shade(cloth, -0.18) + '" opacity=".3"/>';
+    }
+    if (dress && !seated) {
+      g += '<path d="M ' + f(x - hipW * 1.06) + ' ' + f(hipY - h * 0.045) +
+        ' L ' + f(x + hipW * 1.06) + ' ' + f(hipY - h * 0.045) +
+        ' L ' + f(x + hipW * 1.95) + ' ' + f(hipY + h * 0.175) +
+        ' Q ' + f(x) + ' ' + f(hipY + h * 0.215) + ' ' + f(x - hipW * 1.95) + ' ' + f(hipY + h * 0.175) + ' Z" fill="' + cloth + '"/>';
+      g += '<path d="M ' + f(x + hipW * 0.35 * dir) + ' ' + f(hipY - h * 0.045) + ' L ' + f(x + hipW * 1.95 * dir) + ' ' + f(hipY + h * 0.175) +
+        ' Q ' + f(x + hipW * 0.9 * dir) + ' ' + f(hipY + h * 0.203) + ' ' + f(x + hipW * 0.22 * dir) + ' ' + f(hipY + h * 0.192) + ' Z" fill="' + shade(cloth, -0.14) + '" opacity=".45"/>';
+    }
+
+    /* --- near arm sits on top of the torso, joined at the shoulder ---- */
+    g += limbPath(armNear, limbW * 0.80, flat || shade(skin, 0.04));
+    if (!flat) g += sleeve(armNear);
+    if (o.hold) g += prop(o.hold, armNear[2][0], armNear[2][1], h * 0.011, o.holdTint);
+
+    /* --- head --------------------------------------------------------- */
+    var hx = x + h * 0.010 * dir;
+    var style = r();
+    if (o.back) {                              /* seen from behind */
+      g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR * 1.04) + '" fill="' + (flat || hair) + '"/>';
+      if (style < 0.4) g += '<circle cx="' + f(hx) + '" cy="' + f(headY - headR * 0.72) + '" r="' + f(headR * 0.46) + '" fill="' + (flat || shade(hair, 0.12)) + '"/>';
+    } else if (!flat) {
+      /* hair behind, face in front: the join can never come apart */
+      if (style < 0.30) {                       /* long hair, down the back */
+        g += '<path d="M ' + f(hx - headR * 1.02) + ' ' + f(headY - headR * 0.1) +
+          ' q -' + f(headR * 0.30) + ' ' + f(headR * 2.4) + ' ' + f(headR * 0.55) + ' ' + f(headR * 2.7) +
+          ' l ' + f(headR * 1.5) + ' 0' +
+          ' q ' + f(headR * 0.85) + ' -' + f(headR * 0.3) + ' ' + f(headR * 0.5) + ' -' + f(headR * 2.7) + ' Z" fill="' + hair + '"/>';
+      } else if (style < 0.44) {                /* a bun */
+        g += '<circle cx="' + f(hx - headR * 1.0 * dir) + '" cy="' + f(headY - headR * 0.62) + '" r="' + f(headR * 0.44) + '" fill="' + hair + '"/>';
+      }
+      g += '<circle cx="' + f(hx) + '" cy="' + f(headY - headR * 0.15) + '" r="' + f(headR * 1.06) + '" fill="' + hair + '"/>';
+    }
+    if (!o.back) g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR) + '" fill="' + skin + '"/>';
+    if (!flat && !o.back) {
+      /* the fringe, sitting on the brow */
+      g += '<ellipse cx="' + f(hx + headR * 0.06 * dir) + '" cy="' + f(headY - headR * 0.60) + '" rx="' + f(headR * 0.99) + '" ry="' + f(headR * 0.46) + '" fill="' + hair + '"/>';
+      /* the smallest possible face */
+      g += '<circle cx="' + f(hx + headR * 0.34 * dir) + '" cy="' + f(headY + headR * 0.02) + '" r="' + f(headR * 0.10) + '" fill="' + shade(skin, -0.5) + '" opacity=".75"/>';
+      g += '<circle cx="' + f(hx - headR * 0.30 * dir) + '" cy="' + f(headY + headR * 0.02) + '" r="' + f(headR * 0.10) + '" fill="' + shade(skin, -0.5) + '" opacity=".55"/>';
+      g += '<path d="M ' + f(hx - headR * 0.16 * dir) + ' ' + f(headY + headR * 0.44) +
+        ' q ' + f(headR * 0.30 * dir) + ' ' + f(headR * (o.pose === 'laugh' ? 0.46 : 0.28)) + ' ' + f(headR * 0.56 * dir) + ' ' + f(headR * 0.02) + '" ' +
+        'fill="none" stroke="' + shade(skin, -0.5) + '" stroke-width="' + f(headR * 0.15) + '" stroke-linecap="round" opacity=".8"/>';
+      g += '<circle cx="' + f(hx + headR * 0.72 * dir) + '" cy="' + f(headY + headR * 0.28) + '" r="' + f(headR * 0.22) + '" fill="#D98A5E" opacity=".28"/>';
+    }
+
+    /* --- ground shadow ------------------------------------------------ */
+    var shadow = (!flat && !seated && o.shadow !== false)
+      ? '<ellipse cx="' + f(x) + '" cy="' + f(b + limbW * 0.3) + '" rx="' + f(h * 0.15) + '" ry="' + f(h * 0.032) + '" fill="rgba(59,42,34,.20)"/>'
+      : '';
+
+    var cls = o.anim !== false ? (o.anim || 'ww-idle') : '';
+    var delay = o.delay != null ? o.delay : -(r() * 6);
+    return shadow + '<g class="' + cls + '" style="transform-origin:' + f(x) + 'px ' + f(b) + 'px;' +
+      (cls ? 'animation-delay:' + f(delay) + 's;' : '') + '">' +
+      (lean ? '<g transform="rotate(' + f(lean) + ' ' + f(x) + ' ' + f(b) + ')">' + g + '</g>' : g) +
+      '</g>';
+  }
+
+  /* Nudge a hex colour lighter (+) or darker (−). */
+  function shade(hex, amt) {
+    if (!hex || hex.charAt(0) !== '#' || hex.length !== 7) return hex;
+    var n = parseInt(hex.slice(1), 16);
+    var c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(function (v) {
+      v = Math.round(v + (amt < 0 ? v * amt : (255 - v) * amt));
+      return Math.max(0, Math.min(255, v));
+    });
+    return '#' + c.map(function (v) { var s = v.toString(16); return s.length < 2 ? '0' + s : s; }).join('');
+  }
+
+  /* A knot of two or three people mid-conversation. */
+  function chatGroup(x, baseY, h, seed, opts) {
+    opts = opts || {};
+    var r = rand(seed || 7), g = '';
+    var n = opts.n || (r() < 0.45 ? 3 : 2);
+    var talker = (r() * n) | 0;
+    for (var i = 0; i < n; i++) {
+      var off = (i - (n - 1) / 2) * h * 0.36;
+      var hh = h * (0.93 + r() * 0.14);
+      var facing = off <= 0;                       /* everyone faces the middle */
+      var pose = i === talker ? 'chat' : (r() < 0.3 ? 'laugh' : 'listen');
+      g += person({
+        x: x + off, baseY: baseY + (r() - 0.5) * h * 0.03, h: hh,
+        pose: pose, flip: !facing, seed: (seed || 7) * 31 + i * 7,
+        hold: r() < 0.45 ? 'glass' : null,
+        anim: pose === 'laugh' ? 'ww-laugh' : (i === talker ? 'ww-talk' : 'ww-idle'),
+        flat: opts.flat, cloth: opts.cloth
+      });
+    }
+    return g;
+  }
+
+  /* A dinner guest, seated, elbows on the table. baseY is the seat front. */
+  function diner(x, seatY, h, seed, opts) {
+    opts = opts || {};
+    var r = rand(seed || 11);
+    return person({
+      x: x, baseY: seatY, h: h, pose: 'sit', seed: seed,
+      flip: opts.flip, cloth: opts.cloth,
+      hold: r() < 0.4 ? 'glass' : null,
+      anim: r() < 0.4 ? 'ww-talk' : 'ww-idle', shadow: false
+    });
+  }
+
+  /* A plate with something on it. */
+  function plate(x, y, s, seed) {
+    var r = rand(seed || 13);
+    var g = '<ellipse cx="' + f(x) + '" cy="' + f(y) + '" rx="' + f(34 * s) + '" ry="' + f(9 * s) + '" fill="#FFFAF0"/>';
+    g += '<ellipse cx="' + f(x) + '" cy="' + f(y - 0.8 * s) + '" rx="' + f(23 * s) + '" ry="' + f(5.6 * s) + '" fill="#F2E6D0"/>';
+    var foods = [
+      ['#C4643C', '#E4A853'], ['#7C8B5E', '#9BA87C'], ['#D98A5E', '#F0C9A4'], ['#9B4A2A', '#C4643C']
+    ][(r() * 4) | 0];
+    for (var i = 0; i < 4; i++) {
+      g += '<ellipse cx="' + f(x + (r() - 0.5) * 30 * s) + '" cy="' + f(y - 2 * s + (r() - 0.5) * 5 * s) +
+        '" rx="' + f((5 + r() * 5) * s) + '" ry="' + f((2.6 + r() * 2.2) * s) + '" fill="' + (i % 2 ? foods[0] : foods[1]) + '"/>';
+    }
+    /* cutlery either side */
+    g += '<rect x="' + f(x - 44 * s) + '" y="' + f(y - 4 * s) + '" width="' + f(2.4 * s) + '" height="' + f(15 * s) + '" rx="' + f(1.2 * s) + '" fill="#CBB795"/>';
+    g += '<rect x="' + f(x + 41 * s) + '" y="' + f(y - 4 * s) + '" width="' + f(2.4 * s) + '" height="' + f(15 * s) + '" rx="' + f(1.2 * s) + '" fill="#CBB795"/>';
+    return g;
+  }
+
+  /* A small aeroplane, banking away. */
+  function airplane(x, y, s, body, trail) {
+    body = body || '#4E6E80';
+    var g = '';
+    if (trail !== false) {
+      g += '<path d="M ' + f(x - 96 * s) + ' ' + f(y + 5 * s) + ' L ' + f(x - 14 * s) + ' ' + f(y + 1 * s) +
+        '" stroke="#FFFFFF" stroke-width="' + f(3.4 * s) + '" opacity=".5" stroke-linecap="round" fill="none"/>';
+    }
+    g += '<path d="M ' + f(x - 20 * s) + ' ' + f(y) +
+      ' l ' + f(26 * s) + ' 0 l ' + f(11 * s) + ' -' + f(9 * s) + ' l ' + f(6 * s) + ' 0 l -' + f(5 * s) + ' ' + f(9 * s) +
+      ' l ' + f(14 * s) + ' 0 l ' + f(7 * s) + ' -' + f(6 * s) + ' l ' + f(4.5 * s) + ' 0 l -' + f(3.5 * s) + ' ' + f(6 * s) +
+      ' l ' + f(8 * s) + ' ' + f(3.4 * s) + ' l -' + f(68 * s) + ' 0 Z" fill="' + body + '"/>';
+    g += '<path d="M ' + f(x - 6 * s) + ' ' + f(y + 1 * s) + ' l ' + f(15 * s) + ' 0 l -' + f(9 * s) + ' ' + f(10 * s) + ' l -' + f(7 * s) + ' 0 Z" fill="' + shade(body, -0.18) + '"/>';
+    return g;
+  }
+
+  /* Kept for the after-party: a dancing silhouette, same body rules. */
   function dancer(x, baseY, h, color, delay) {
-    var s = h / 100;
-    var g = '<circle cx="' + f(x) + '" cy="' + f(baseY - h * 0.88) + '" r="' + f(8 * s) + '" fill="' + color + '"/>' +
-      '<path d="M ' + f(x) + ' ' + f(baseY - h * 0.8) + ' q ' + f(11 * s) + ' ' + f(22 * s) + ' ' + f(4 * s) + ' ' + f(44 * s) +
-      ' l -' + f(9 * s) + ' 0 q -' + f(7 * s) + ' -' + f(22 * s) + ' ' + f(5 * s) + ' -' + f(44 * s) + ' Z" fill="' + color + '"/>' +
-      '<path d="M ' + f(x - 2 * s) + ' ' + f(baseY - h * 0.36) + ' l -' + f(7 * s) + ' ' + f(36 * s) + ' l ' + f(6 * s) + ' 0 l ' + f(7 * s) + ' -' + f(30 * s) +
-      ' l ' + f(6 * s) + ' ' + f(30 * s) + ' l ' + f(6 * s) + ' 0 l -' + f(5 * s) + ' -' + f(36 * s) + ' Z" fill="' + color + '"/>' +
-      '<path d="M ' + f(x - 1 * s) + ' ' + f(baseY - h * 0.74) + ' l -' + f(20 * s) + ' -' + f(16 * s) + ' l ' + f(4 * s) + ' -' + f(5 * s) + ' l ' + f(19 * s) + ' ' + f(13 * s) + ' Z" fill="' + color + '"/>' +
-      '<path d="M ' + f(x + 3 * s) + ' ' + f(baseY - h * 0.74) + ' l ' + f(21 * s) + ' -' + f(11 * s) + ' l ' + f(3 * s) + ' ' + f(6 * s) + ' l -' + f(20 * s) + ' ' + f(9 * s) + ' Z" fill="' + color + '"/>';
-    return '<g class="ww-dance" style="transform-origin:' + f(x) + 'px ' + f(baseY) + 'px;animation-delay:' + (delay || 0) + 's">' + g + '</g>';
+    return person({
+      x: x, baseY: baseY, h: h, flat: color, pose: (Math.abs(x | 0) % 2) ? 'dance' : 'dance2',
+      flip: (Math.abs(x | 0) % 3) === 0, anim: 'ww-dance', delay: delay || 0,
+      seed: (x | 0) + (h | 0), dress: (Math.abs(x | 0) % 5) < 2
+    });
   }
 
   global.WW = global.WW || {};
@@ -315,6 +619,8 @@
     ridge: ridge, houses: houses, campanile: campanile, cypress: cypress, olive: olive,
     water: water, sun: sun, clouds: clouds, birds: birds, lantern: lantern,
     stringLights: stringLights, stoneWall: stoneWall, boat: boat, grassTufts: grassTufts,
-    branch: branch, dancer: dancer
+    branch: branch, dancer: dancer,
+    person: person, chatGroup: chatGroup, diner: diner, plate: plate,
+    prop: prop, shade: shade, limbPath: limbPath, airplane: airplane
   };
 })(window);

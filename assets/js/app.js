@@ -32,11 +32,44 @@
   var k = 1, worldW = 0, worldH = 0, camTop = 0;
   var pan = 0, targetPan = 0, maxPan = 0;
   var ptr = { x: 0.5, y: 0.5 };
-  var edgeVel = 0;
+  var ptrY = 0, ptrYTarget = 0;
   var camState = { tx: 0, ty: 0, z: 1 };
   var lastT = 0;
   var dragging = false, dragStartX = 0, dragStartPan = 0, dragMoved = 0;
   var revealTimer = null;
+
+  /* Only redraw when something actually changed. Without this the camera
+     wrote nine transforms every frame for ever, whether or not the world
+     had moved — which is most of what made the site feel like it was
+     grinding. */
+  var camDirty = true, roomPtrDirty = false;
+  /* Was the last thing the guest touched a keyboard? Focus moves the camera
+     for tab users; it must never do so after a mouse click, or the doorway
+     appears to "centre itself" instead of opening. */
+  var keyboardNav = false;
+  /* While the camera is moving, every idle animation in the world is paused
+     (see .is-moving in main.css). */
+  var isMoving = false, movingUntil = 0;
+  var DRAG_SLOP = 10;                        // px of travel before it is a drag
+
+  function setMoving(now) {
+    movingUntil = now + 220;
+    if (isMoving) return;
+    isMoving = true;
+    el.hub.classList.add('is-moving');
+    el.stage.classList.add('is-moving');
+  }
+  function forceStill() {
+    isMoving = false; movingUntil = 0;
+    el.hub.classList.remove('is-moving');
+    el.stage.classList.remove('is-moving');
+  }
+  function releaseMoving(now) {
+    if (!isMoving || now < movingUntil) return;
+    isMoving = false;
+    el.hub.classList.remove('is-moving');
+    el.stage.classList.remove('is-moving');
+  }
 
   /* history.pushState throws inside sandboxed frames and on some file://
      setups. The deep-link niceties are optional; the site is not. */
@@ -53,6 +86,7 @@
     el.camera   = document.getElementById('camera');
     el.world    = document.getElementById('world');
     el.plane    = document.getElementById('entrance-plane');
+    el.grip     = document.getElementById('panel-grip');
     el.room     = document.getElementById('room');
     el.roomArt  = document.getElementById('room-art');
     el.panel    = document.getElementById('panel');
@@ -83,6 +117,7 @@
     buildEntrances();
     buildPathmap();
     progress(0.8);
+    wireSheet();
     layout();
     makeMotes(lightMode ? 10 : 22);
     wireEvents();
@@ -99,9 +134,25 @@
 
   function progress(p) { el.bar.style.width = Math.round(p * 100) + '%'; }
 
+  function setAudioButton(on) {
+    el.audioBtn.setAttribute('aria-pressed', String(on));
+    el.audioBtn.querySelector('.on').style.display = on ? 'block' : 'none';
+    el.audioBtn.querySelector('.off').style.display = on ? 'none' : 'block';
+  }
+
   function enterSite() {
     el.loader.classList.add('is-gone');
     setTimeout(function () { el.loader.style.display = 'none'; }, 1000);
+
+    /* "Begin the walk" is a real click, which is the browser's price of
+       admission for sound. Anyone who muted us last time stays muted. */
+    var pref = null;
+    try { pref = localStorage.getItem('ww-audio'); } catch (err) {}
+    if (pref !== 'off' && W.audio) {
+      W.audio.on();
+      W.audio.scene('hub');
+      setAudioButton(true);
+    }
     /* honour a deep link like  …/index.html#rsvp  */
     var hash = (location.hash || '').replace('#', '');
     if (hash && findRoom(hash)) {
@@ -149,16 +200,23 @@
         '<span class="entrance-label"><span class="inner">' +
         '<span class="num">' + room.num + '</span>' +
         '<span class="name">' + room.label + '</span>' +
-        '<span class="sub">' + room.sublabel + '</span></span></span>';
+        '<span class="sub">' + room.sublabel + '</span></span></span>' +
+        '<span class="entrance-cta" aria-hidden="true">Enter</span>';
+      /* One press, one room. The only thing that cancels it is an actual
+         drag of the world, and that needs real travel across the screen. */
       b.addEventListener('click', function (e) {
         e.preventDefault();
-        if (dragMoved > 8) return;      // that was a drag, not a tap
+        if (dragMoved > DRAG_SLOP) return;   // that was a drag, not a tap
         openRoom(room.id);
       });
       var warm = function () { prefetch(room.id); };
       b.addEventListener('pointerenter', warm);
       b.addEventListener('touchstart', warm, { passive: true });
-      b.addEventListener('focus', function () { warm(); panTo(spot.x, true); });
+      b.addEventListener('focus', function () {
+        warm();
+        /* walk the camera over only for someone tabbing through */
+        if (keyboardNav) panTo(spot.x, true);
+      });
       el.plane.appendChild(b);
       entrances.push({ node: b, room: room, spot: spot });
     });
@@ -226,10 +284,9 @@
   }
 
   function applyCamera() {
-    var py = (ptr.y - 0.5);
     for (var i = 0; i < hubLayers.length; i++) {
       var L = hubLayers[i];
-      var ty = reduced ? 0 : -py * L.depth * 9;
+      var ty = reduced ? 0 : -ptrY * L.depth * 9;
       L.node.style.transform = 'translate3d(' + (-pan * L.depth).toFixed(2) + 'px,' + ty.toFixed(2) + 'px,0)';
     }
     el.camera.style.transform =
@@ -242,11 +299,28 @@
     lastT = t;
 
     if (view === 'hub' && !busy) {
-      if (edgeVel) targetPan = clamp(targetPan + edgeVel * dt * 620, 0, maxPan);
-      if (!dragging) pan = damp(pan, targetPan, 5.5, dt);
-      else pan = targetPan;
-      applyCamera();
-      markNearest();
+      var d = targetPan - pan;
+      if (dragging) {
+        if (d) { pan = targetPan; camDirty = true; setMoving(t); }
+      } else if (Math.abs(d) > 0.08) {
+        /* a firmer spring than before: the walk answers the wheel at once
+           instead of sliding after it */
+        pan = damp(pan, targetPan, 11, dt);
+        camDirty = true;
+        setMoving(t);
+      } else if (pan !== targetPan) {
+        pan = targetPan; camDirty = true;
+      }
+      /* the head-tilt parallax, eased, and only when it has really moved */
+      if (!reduced && !lightMode) {
+        var ny = damp(ptrY, ptrYTarget, 6, dt);
+        if (Math.abs(ny - ptrY) > 0.0015) { ptrY = ny; camDirty = true; }
+      }
+      if (camDirty) { applyCamera(); markNearest(); camDirty = false; }
+      releaseMoving(t);
+    } else if (view === 'room' && roomPtrDirty) {
+      roomPtrDirty = false;
+      applyRoomParallax();
     }
     requestAnimationFrame(loop);
   }
@@ -306,7 +380,7 @@
     if (idx < 0) return;
     busy = true;
     prefetch(id);
-    if (W.audio) W.audio.duck(true);
+    if (W.audio) { W.audio.duck(true); W.audio.scene(id); }
 
     var fast = opts.fast;                       // arrived via the RSVP lantern
     var pt;
@@ -332,6 +406,7 @@
           camState.tx = target.tx * v;
           camState.ty = target.ty * v;
           camState.z = 1 + (Z - 1) * v;
+          setMoving(performance.now());
           applyCamera();
         }
       });
@@ -356,9 +431,12 @@
           onUpdate: function (v) { el.veil.style.opacity = v; },
           onComplete: function () {
             busy = false;
+            forceStill();
             el.panelScroll.scrollTop = 0;
-            /* move keyboard focus into the room the guest just walked into */
-            el.panelScroll.focus({ preventScroll: true });
+            /* Move keyboard focus into the room the guest just walked into.
+               Only for keyboard users: a mouse visitor would otherwise get a
+               focus ring drawn around the whole panel. */
+            if (keyboardNav) el.panelScroll.focus({ preventScroll: true });
           }
         });
       }
@@ -380,7 +458,7 @@
     var idx = roomIndex(currentRoom);
     var Z = lightMode ? 1.9 : 3.4;
     var target = reduced ? { tx: 0, ty: 0 } : zoomTarget(idx, Z);
-    if (W.audio) W.audio.duck(false);
+    if (W.audio) { W.audio.duck(false); W.audio.scene('hub'); }
 
     tween({
       from: 0, to: 1, duration: reduced ? 0 : 380, ease: 'power2In',
@@ -404,14 +482,19 @@
             camState.tx = target.tx * v;
             camState.ty = target.ty * v;
             camState.z = 1 + (Z - 1) * v;
+            setMoving(performance.now());
             applyCamera();
           },
           onComplete: function () {
             camState.tx = camState.ty = 0; camState.z = 1; applyCamera();
             busy = false;
-            /* leave them standing in front of the door they just came out of */
+            forceStill();
+            /* Leave them standing in front of the door they just came out of.
+               Focus goes back to it for anyone navigating by keyboard; for a
+               mouse or a thumb that would only paint a large focus ring
+               around the doorway they can already see. */
             var e = entrances[idx];
-            if (e) { e.node.focus({ preventScroll: true }); }
+            if (e && keyboardNav) e.node.focus({ preventScroll: true });
           }
         });
         tween({
@@ -430,6 +513,9 @@
     var scene = prefetch(id);
 
     el.roomArt.innerHTML = '';
+    /* the first stop of the first layer is the top of that room's sky */
+    var skyMatch = /stop-color="(#[0-9A-Fa-f]{6})"/.exec(scene.layers[0].svg);
+    el.room.style.setProperty('--room-sky', skyMatch ? skyMatch[1] : '#1E2A3A');
     scene.layers.forEach(function (L) {
       var d = document.createElement('div');
       d.className = 'room-layer';
@@ -497,6 +583,7 @@
 
     el.panelScroll.innerHTML = h;
     el.panelScroll.scrollTop = 0;
+    resetSheet();
     /* stagger the copy in, but guarantee it ends up visible either way */
     el.panelScroll.classList.add('is-entering');
     clearTimeout(revealTimer);
@@ -533,6 +620,7 @@
   function stepToRoom(id) {
     busy = true;
     prefetch(id);
+    if (W.audio) W.audio.scene(id);
     el.veil.style.setProperty('--vx', '50%');
     el.veil.style.setProperty('--vy', '50%');
     tween({
@@ -549,6 +637,81 @@
           onComplete: function () { busy = false; }
         });
       }
+    });
+  }
+
+  /* ====================================================================
+     THE SHEET  —  on a phone the copy arrives as a bottom sheet, so the
+     illustration keeps the top two thirds of the screen. Drag it up to
+     read on; drag it back down to look at the world again.
+     ==================================================================== */
+  var sheet = { h: 0, min: 0, max: 0, startY: 0, startH: 0, moved: 0, expanded: false };
+
+  function sheetBounds() {
+    var vh = global.innerHeight;
+    sheet.min = Math.round(vh * 0.34);
+    sheet.max = Math.round(vh * 0.88);
+  }
+  function setSheetH(h) {
+    sheet.h = clamp(h, sheet.min, sheet.max);
+    el.panel.style.setProperty('--sheet-h', sheet.h + 'px');
+  }
+  function snapSheet(expand) {
+    sheet.expanded = !!expand;
+    el.panel.classList.toggle('is-expanded', sheet.expanded);
+    setSheetH(sheet.expanded ? sheet.max : sheet.min);
+  }
+  function resetSheet() {
+    if (!isSmall()) {
+      el.panel.style.removeProperty('--sheet-h');
+      el.panel.classList.remove('is-expanded');
+      sheet.expanded = false;
+      return;
+    }
+    sheetBounds();
+    snapSheet(false);
+  }
+
+  function wireSheet() {
+    var active = false, fromGrip = false;
+
+    function down(e, grip) {
+      if (!isSmall() || view !== 'room' || busy) return;
+      /* from the body of the sheet, only when it has nothing left to scroll */
+      if (!grip && sheet.expanded && el.panelScroll.scrollTop > 0) return;
+      sheetBounds();
+      active = true; fromGrip = grip; sheet.moved = 0;
+      sheet.startY = e.clientY;
+      sheet.startH = sheet.h || sheet.min;
+      el.panel.classList.add('is-dragging');
+    }
+    el.grip.addEventListener('pointerdown', function (e) { down(e, true); });
+    el.panelScroll.addEventListener('pointerdown', function (e) { down(e, false); });
+
+    global.addEventListener('pointermove', function (e) {
+      if (!active) return;
+      var dy = sheet.startY - e.clientY;
+      sheet.moved = Math.max(sheet.moved, Math.abs(dy));
+      if (sheet.moved > 3) {
+        if (e.cancelable) e.preventDefault();
+        setSheetH(sheet.startH + dy);
+      }
+    }, { passive: false });
+
+    var release = function () {
+      if (!active) return;
+      active = false;
+      el.panel.classList.remove('is-dragging');
+      /* a tap on the tab itself just toggles */
+      if (sheet.moved <= 6) { if (fromGrip) snapSheet(!sheet.expanded); else setSheetH(sheet.startH); return; }
+      snapSheet(sheet.h > (sheet.min + sheet.max) / 2);
+    };
+    global.addEventListener('pointerup', release);
+    global.addEventListener('pointercancel', release);
+    /* keyboard and assistive tech get a plain button */
+    el.grip.addEventListener('click', function (e) { e.preventDefault(); });
+    el.grip.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sheetBounds(); snapSheet(!sheet.expanded); }
     });
   }
 
@@ -656,7 +819,7 @@
       : 'Your reply is saved. We will send the full timings, the bus times and the packing advice nobody asked for closer to June.') + '</p>';
     if (offline) {
       h += '<p style="font-size:.85rem">We could not reach the server just now, so your answers are saved on this device. ' +
-        'Please also drop us a line at hello@miraandsam.example so nothing is lost.</p>';
+        'Please also drop us a line at ' + (C.couple.email || 'us') + ' so nothing is lost.</p>';
     }
     h += '<div class="links" style="justify-content:center"><button type="button" class="link-btn" id="rsvp-again">Reply for someone else</button></div>';
     h += '</div>';
@@ -672,25 +835,23 @@
   function wireEvents() {
     el.enterBtn.addEventListener('click', enterSite);
 
-    /* pointer: pan when the guest looks toward the edges of the frame */
+    /* Pointer position only — the world no longer walks itself when the
+       cursor drifts near an edge. That auto-pan was why a doorway slid out
+       from under the cursor the moment you tried to hover or click it. */
     global.addEventListener('pointermove', function (e) {
       ptr.x = e.clientX / global.innerWidth;
       ptr.y = e.clientY / global.innerHeight;
-      if (view === 'hub' && !coarse && !dragging) {
-        var edge = 0.2;
-        if (ptr.x < edge) edgeVel = -(1 - ptr.x / edge);
-        else if (ptr.x > 1 - edge) edgeVel = (ptr.x - (1 - edge)) / edge;
-        else edgeVel = 0;
-      }
-      if (view === 'room') roomParallax(e);
-    });
-    global.addEventListener('pointerleave', function () { edgeVel = 0; });
+      ptrYTarget = ptr.y - 0.5;
+      if (view === 'room') roomPtrDirty = true;
+    }, { passive: true });
 
     /* wheel / trackpad — either axis walks you along the path */
     el.hub.addEventListener('wheel', function (e) {
       if (view !== 'hub' || busy) return;
       var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      targetPan = clamp(targetPan + d * 1.35, 0, maxPan);
+      if (e.deltaMode === 1) d *= 16;          // some mice report lines, not pixels
+      else if (e.deltaMode === 2) d *= global.innerWidth;
+      targetPan = clamp(targetPan + d * 2.4, 0, maxPan);
       e.preventDefault();
     }, { passive: false });
 
@@ -698,6 +859,7 @@
     /* Note: no setPointerCapture here — it would retarget the click away
        from the doorway button the guest actually pressed. */
     el.hub.addEventListener('pointerdown', function (e) {
+      keyboardNav = false;
       if (view !== 'hub' || busy) return;
       dragging = true; dragMoved = 0;
       dragStartX = e.clientX; dragStartPan = targetPan;
@@ -707,8 +869,8 @@
       if (!dragging) return;
       var dx = e.clientX - dragStartX;
       dragMoved = Math.max(dragMoved, Math.abs(dx));
-      if (dragMoved > 4) targetPan = clamp(dragStartPan - dx, 0, maxPan);
-    });
+      if (dragMoved > DRAG_SLOP) targetPan = clamp(dragStartPan - dx, 0, maxPan);
+    }, { passive: true });
     var endDrag = function () {
       if (!dragging) return;
       dragging = false;
@@ -720,6 +882,8 @@
 
     /* keyboard */
     global.addEventListener('keydown', function (e) {
+      var key = e.key || '';
+      if (key === 'Tab' || key.indexOf('Arrow') === 0) keyboardNav = true;
       if (e.key === 'Escape' && view === 'room') { closeRoom(); return; }
       if (view !== 'hub') return;
       if (e.key === 'ArrowRight') targetPan = clamp(targetPan + 260, 0, maxPan);
@@ -741,10 +905,9 @@
 
     el.audioBtn.addEventListener('click', function () {
       var on = el.audioBtn.getAttribute('aria-pressed') === 'true';
-      el.audioBtn.setAttribute('aria-pressed', String(!on));
-      el.audioBtn.querySelector('.on').style.display = on ? 'none' : 'block';
-      el.audioBtn.querySelector('.off').style.display = on ? 'block' : 'none';
-      if (on) W.audio.off(); else W.audio.on();
+      setAudioButton(!on);
+      try { localStorage.setItem('ww-audio', on ? 'off' : 'on'); } catch (err) {}
+      if (on) { W.audio.off(); } else { W.audio.on(); W.audio.scene(view === 'room' ? currentRoom : 'hub'); }
     });
 
     var onHistory = function () {
@@ -766,16 +929,19 @@
       rt = setTimeout(function () {
         lightMode = coarse || isSmall();
         layout();
+        if (view === 'room') { sheetBounds(); snapSheet(sheet.expanded); }
+        else resetSheet();
       }, 160);
     });
     global.addEventListener('orientationchange', function () { setTimeout(layout, 300); });
   }
 
-  /* gentle parallax inside a room, following the pointer */
-  function roomParallax(e) {
+  /* Gentle parallax inside a room. Driven from the frame loop rather than
+     straight off the pointer event, so a fast mouse cannot ask for more
+     redraws than the screen can show. */
+  function applyRoomParallax() {
     if (reduced || lightMode) return;
-    var nx = (e.clientX / global.innerWidth - 0.5);
-    var ny = (e.clientY / global.innerHeight - 0.5);
+    var nx = ptr.x - 0.5, ny = ptr.y - 0.5;
     var layers = el.roomArt.children;
     for (var i = 0; i < layers.length; i++) {
       var d = parseFloat(layers[i].dataset.depth) || 0.2;
