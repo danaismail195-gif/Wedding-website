@@ -323,6 +323,16 @@
                  '#B08A55', '#A85331', '#D9B071', '#4A3B52'];
   var HAIR_STYLES = ['crop', 'bob', 'long', 'bun', 'curls', 'pony', 'wave', 'part'];
 
+  /* A limb in two pieces: upper arm thicker than forearm, thigh thicker than
+     calf. Drawing both at one width is exactly what makes a figure read as a
+     stick — the taper is most of the difference between a diagram of a person
+     and a drawing of one. The round caps overlap at the joint, so the elbow
+     and the knee close themselves. */
+  function limb(pts, wUp, wLow, color) {
+    return limbPath([pts[0], pts[1]], wUp, color) +
+           limbPath([pts[1], pts[2]], wLow, color);
+  }
+
   /* round-capped, round-joined polyline — the only way limbs are drawn */
   function limbPath(pts, w, color, extra) {
     var d = 'M ' + f(pts[0][0]) + ' ' + f(pts[0][1]);
@@ -353,12 +363,21 @@
               legNear: [[.075, .200], [.130, .440]], legFar: [[-.055, .215], [-.105, .450]] },
     sit:    { armNear: [[.055, .105], [.150, .145]], armFar: [[-.045, .110], [.085, .150]],
               legNear: [[.130, .030], [.155, .255]], legFar: [[.112, .052], [.138, .258]] },
-    /* drawn up to a table: legs straight down, where the tabletop hides them */
-    table:  { armNear: [[.062, .100], [.140, .150]], armFar: [[-.058, .100], [-.120, .152]],
+    /* Drawn up to a table: legs straight down where the tabletop hides them,
+       and forearms coming down to meet its edge. The hands used to stop .15
+       of a height below the shoulder, which left everybody sitting with
+       their palms in mid-air about seventy units above the cloth. */
+    table:  { armNear: [[.058, .180], [.112, .400]], armFar: [[-.055, .178], [-.104, .402]],
               legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
     /* leaning in over the table, one hand up mid-sentence */
-    tableUp:{ armNear: [[.080, .060], [.150, -.010]], armFar: [[-.058, .100], [-.120, .152]],
+    tableUp:{ armNear: [[.086, .075], [.148, -.020]], armFar: [[-.055, .178], [-.104, .402]],
               legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
+    /* both forearms on the cloth, mid-conversation with a neighbour */
+    tableIn:{ armNear: [[.070, .165], [.168, .355]], armFar: [[-.055, .178], [-.104, .402]],
+              legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
+    /* a tray held at the shoulder, the far hand steadying the way ------ */
+    serve:  { armNear: [[.082, .046], [.108, -.052]], armFar: [[-.048, .120], [-.062, .240]],
+              legNear: [[.062, .200], [.104, .448]], legFar: [[-.052, .212], [-.092, .452]] },
     dance:  { armNear: [[.110, -.010], [.170, -.150]], armFar: [[-.115, .060], [-.205, .015]],
               legNear: [[.075, .200], [.120, .450]], legFar: [[-.080, .195], [-.135, .450]] },
     dance2: { armNear: [[.125, .045], [.215, -.035]], armFar: [[-.095, -.020], [-.140, -.160]],
@@ -394,6 +413,23 @@
     }
     if (kind === 'plate') {
       return '<ellipse cx="' + f(hx) + '" cy="' + f(hy) + '" rx="' + f(6.5 * s) + '" ry="' + f(2.4 * s) + '" fill="#FFFAF0"/>';
+    }
+    if (kind === 'tray') {
+      /* held flat on the palm, so it sits above the hand rather than in it */
+      var ty = hy - 2.4 * s;
+      var tr = '<ellipse cx="' + f(hx) + '" cy="' + f(ty) + '" rx="' + f(12.5 * s) + '" ry="' + f(4 * s) + '" fill="#C9B79B"/>';
+      tr += '<ellipse cx="' + f(hx) + '" cy="' + f(ty - 1.2 * s) + '" rx="' + f(12.5 * s) + '" ry="' + f(4 * s) + '" fill="#E3D6C0"/>';
+      /* three glasses and a small carafe on it */
+      [-8, -2.4, 8.6].forEach(function (gx, gi) {
+        tr += '<path d="M ' + f(hx + gx * s - 2 * s) + ' ' + f(ty - 8.6 * s) +
+          ' l ' + f(4 * s) + ' 0 l -' + f(.5 * s) + ' ' + f(5 * s) + ' l -' + f(3 * s) + ' 0 Z" fill="#FBF4E8" opacity="' + (gi === 1 ? '.95' : '.9') + '"/>';
+        tr += '<path d="M ' + f(hx + gx * s - 1.6 * s) + ' ' + f(ty - 6.4 * s) +
+          ' l ' + f(3.2 * s) + ' 0 l -' + f(.4 * s) + ' ' + f(2.6 * s) + ' l -' + f(2.4 * s) + ' 0 Z" fill="' + (tint || '#E8B25E') + '" opacity=".85"/>';
+      });
+      tr += '<path d="M ' + f(hx + 2.6 * s) + ' ' + f(ty - 3 * s) + ' l 0 -' + f(6 * s) +
+        ' q 0 -' + f(2 * s) + ' ' + f(2 * s) + ' -' + f(3 * s) + ' l ' + f(2 * s) + ' 0 q ' + f(2 * s) + ' ' + f(1 * s) + ' ' + f(2 * s) + ' ' + f(3 * s) +
+        ' l 0 ' + f(6 * s) + ' Z" fill="#D8C9A8" opacity=".9"/>';
+      return tr;
     }
     if (kind === 'bouquet') {
       /* held low, the way people actually carry one: stems down through the
@@ -514,18 +550,23 @@
     var dir   = o.flip ? -1 : 1;
     var pose  = POSES[o.pose] || POSES.stand;
     var dress = o.dress != null ? o.dress : (r() < 0.45);
-    var seated = o.pose === 'sit' || o.pose === 'table' || o.pose === 'tableUp';
+    var seated = o.pose === 'sit' || o.pose === 'table' ||
+                 o.pose === 'tableUp' || o.pose === 'tableIn';
 
     /* skeleton — a shade chunkier than life, which is what makes a flat
        figure read as drawn rather than as a stick */
-    var headR = h * 0.112,
-        headY = b - h * (seated ? 0.452 : 0.878),
-        shY   = b - h * (seated ? 0.300 : 0.718),
-        hipY  = b - h * (seated ? 0.020 : 0.452),
-        shW   = h * 0.134,
-        hipW  = h * 0.102,
-        limbW = h * 0.084,
-        handR = limbW * 0.46;
+    /* Proportions. The head used to be 0.224 of the height — about four and a
+       half heads tall, which is a child. At 0.19 the figure comes out just
+       over five heads: still stylised, still friendly, but grown up. The neck
+       lengthened by the same amount it lost. */
+    var headR = h * 0.095,
+        headY = b - h * (seated ? 0.462 : 0.895),
+        shY   = b - h * (seated ? 0.306 : 0.752),
+        hipY  = b - h * (seated ? 0.020 : 0.468),
+        shW   = h * 0.132,
+        hipW  = h * 0.100,
+        limbW = h * 0.082,
+        handR = limbW * 0.44;
 
     /* a little wonkiness, so no two are quite the same */
     var lean = (r() - 0.5) * 2.2;
@@ -565,17 +606,27 @@
       return '<circle cx="' + f(arm[2][0]) + '" cy="' + f(arm[2][1]) + '" r="' + f(handR) + '" fill="' + (flat || tone) + '"/>';
     }
 
+    /* a shoe, with a bit of a toe on it rather than a flat bean */
+    function foot(pt, tone) {
+      var fx = pt[0], fy = pt[1] + limbW * 0.16;
+      return '<path d="M ' + f(fx - limbW * 0.36) + ' ' + f(fy - limbW * 0.30) +
+        ' l ' + f(limbW * 0.66) + ' 0' +
+        ' q ' + f(limbW * 0.62 * dir) + ' ' + f(limbW * 0.10) + ' ' + f(limbW * 0.64 * dir) + ' ' + f(limbW * 0.34) +
+        ' q 0 ' + f(limbW * 0.20) + ' -' + f(limbW * 0.26) + ' ' + f(limbW * 0.20) +
+        ' l -' + f(limbW * 1.06) + ' 0 Z" fill="' + tone + '"/>';
+    }
+
     /* --- far arm and far leg go behind the body ---------------------- */
-    g += limbPath(legFar, limbW, flat || (dress ? shade(skin, -0.14) : shade(pants, -0.14)));
-    g += limbPath(armFar, limbW * 0.82, flat || shade(skin, -0.10));
+    g += limb(legFar, limbW * 1.04, limbW * 0.80, flat || (dress ? shade(skin, -0.14) : shade(pants, -0.14)));
+    g += limb(armFar, limbW * 0.84, limbW * 0.60, flat || shade(skin, -0.10));
     if (!flat) { g += sleeve(armFar); g += hand(armFar, shade(skin, -0.10)); }
     if (o.holdFar) g += prop(o.holdFar, armFar[2][0], armFar[2][1] - handR * 0.5, h * 0.012, o.holdFarTint);
 
     /* --- near leg ---------------------------------------------------- */
-    g += limbPath(legNear, limbW, flat || (dress ? skin : pants));
+    g += limb(legNear, limbW * 1.08, limbW * 0.82, flat || (dress ? skin : pants));
     if (!flat) {
-      g += '<ellipse cx="' + f(legFar[2][0] + limbW * 0.12 * dir) + '" cy="' + f(legFar[2][1] + limbW * 0.2) + '" rx="' + f(limbW * 0.72) + '" ry="' + f(limbW * 0.34) + '" fill="' + shade(shoe, 0.12) + '"/>';
-      g += '<ellipse cx="' + f(legNear[2][0] + limbW * 0.12 * dir) + '" cy="' + f(legNear[2][1] + limbW * 0.2) + '" rx="' + f(limbW * 0.76) + '" ry="' + f(limbW * 0.36) + '" fill="' + shoe + '"/>';
+      g += foot(legFar[2], shade(shoe, 0.14));
+      g += foot(legNear[2], shoe);
     }
 
     /* --- neck, drawn first so the collar covers where it joins -------- */
@@ -599,6 +650,13 @@
         ' Q ' + f(x) + ' ' + f(shY + h * 0.010) + ' ' + f(x + shW * 0.40) + ' ' + f(shY - h * 0.048) +
         ' Q ' + f(x) + ' ' + f(shY - h * 0.022) + ' ' + f(x - shW * 0.40) + ' ' + f(shY - h * 0.048) + ' Z" fill="' + shade(cloth, -0.26) + '" opacity=".38"/>';
     }
+    if (!flat) {
+      /* the hem of the shirt, which is where a body stops being a shape */
+      g += '<path d="M ' + f(x - hipW * 1.01) + ' ' + f(hipY - h * 0.026) +
+        ' Q ' + f(x) + ' ' + f(hipY + h * 0.002) + ' ' + f(x + hipW * 1.01) + ' ' + f(hipY - h * 0.026) +
+        ' L ' + f(x + hipW) + ' ' + f(hipY) + ' Q ' + f(x) + ' ' + f(hipY + h * 0.028) + ' ' + f(x - hipW) + ' ' + f(hipY) +
+        ' Z" fill="' + shade(cloth, -0.22) + '" opacity=".45"/>';
+    }
     if (dress && !seated) {
       g += '<path d="M ' + f(x - hipW * 1.04) + ' ' + f(hipY - h * 0.048) +
         ' L ' + f(x + hipW * 1.04) + ' ' + f(hipY - h * 0.048) +
@@ -610,13 +668,25 @@
       }
     }
 
-    /* --- near arm sits on top of the torso, joined at the shoulder ---- */
-    g += limbPath(armNear, limbW * 0.82, flat || shade(skin, 0.04));
-    if (!flat) { g += sleeve(armNear); g += hand(armNear, shade(skin, 0.04)); }
-    if (o.hold) g += prop(o.hold, armNear[2][0], armNear[2][1] - handR * 0.5, h * 0.012, o.holdTint);
+    /* --- near arm sits on top of the torso, joined at the shoulder ----
+       Optionally its own animated group, pivoting on that shoulder: a guest
+       who lifts a glass while they talk is worth ten who only sway. */
+    var armG = limb(armNear, limbW * 0.84, limbW * 0.60, flat || shade(skin, 0.04));
+    if (!flat) { armG += sleeve(armNear); armG += hand(armNear, shade(skin, 0.04)); }
+    if (o.hold) armG += prop(o.hold, armNear[2][0], armNear[2][1] - handR * 0.5, h * 0.012, o.holdTint);
+    if (o.armAnim) {
+      armG = '<g class="' + o.armAnim + '" style="transform-box:view-box;transform-origin:' +
+        f(shR[0]) + 'px ' + f(shR[1]) + 'px;animation-delay:' +
+        f(o.armDelay != null ? o.armDelay : -(r() * 5)) + 's">' + armG + '</g>';
+    }
+    g += armG;
 
-    /* --- head --------------------------------------------------------- */
+    /* --- head ---------------------------------------------------------
+       Built into its own string, then optionally wrapped in a group that
+       pivots on the base of the neck, so a listening guest can nod. */
     var hx = x + h * 0.010 * dir;
+    var headG = '';
+    var gHead = g; g = '';
     if (o.back) {                              /* seen from behind */
       g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR * 1.06) + '" fill="' + (flat || hair) + '"/>';
       if (!flat) {
@@ -653,6 +723,14 @@
         g += '<circle cx="' + f(hx - headR * 0.60 * dir) + '" cy="' + f(headY + headR * 0.32) + '" r="' + f(headR * 0.17) + '" fill="#D9714E" opacity=".18"/>';
       }
     }
+
+    headG = g; g = gHead;
+    if (o.headAnim) {
+      headG = '<g class="' + o.headAnim + '" style="transform-box:view-box;transform-origin:' +
+        f(hx) + 'px ' + f(headY + headR * 1.15) + 'px;animation-delay:' +
+        f(o.headDelay != null ? o.headDelay : -(r() * 5)) + 's">' + headG + '</g>';
+    }
+    g += headG;
 
     /* --- ground shadow ------------------------------------------------ */
     var shadow = (!flat && !seated && o.shadow !== false)

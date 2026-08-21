@@ -167,21 +167,23 @@ svg { display: block; }
    is left is warm ivory type with a soft shadow, which is legible over all
    seven interiors — the pale teal of Explore and the deep plum of the
    After-Party alike — and belongs to the artwork rather than sitting on
-   top of it. The text-indent cancels the trailing letter-space, so the
-   word is optically centred and not pushed a hair to the left. */
+   top of it. No shadow: the doorway gradients were deepened so the letters
+   can sit straight on the light without being propped up by a halo, which
+   is what kept making them look stuck on. The text-indent cancels the
+   trailing letter-space, so the word is optically centred and not pushed a
+   hair to the left. */
 .entrance-cta {
   position: absolute; left: 50%; top: 69%;
   transform: translate(-50%, -50%);
-  font-size: .62em; letter-spacing: .34em; text-indent: .34em;
-  text-transform: uppercase; font-weight: 400;
-  color: #FBF3E4; opacity: .9;
-  text-shadow: 0 1px 3px rgba(38,24,16,.7), 0 0 14px rgba(38,24,16,.55);
+  font-size: .56em; letter-spacing: .38em; text-indent: .38em;
+  text-transform: uppercase; font-weight: 300;
+  color: #FBF3E4; opacity: .72;
   white-space: nowrap; pointer-events: none;
   transition: opacity .35s var(--ease), letter-spacing .35s var(--ease);
 }
 .entrance:hover .entrance-cta, .entrance:focus-visible .entrance-cta,
 .entrance.is-near .entrance-cta {
-  opacity: 1; letter-spacing: .44em; text-indent: .44em;
+  opacity: .95; letter-spacing: .46em; text-indent: .46em;
 }
 /* labels sit above the archway, clear of the path map at the bottom */
 .entrance-label {
@@ -563,7 +565,9 @@ svg { display: block; }
 #hub.is-moving .ww-pulse, #hub.is-moving .ww-glow-soft, #hub.is-moving .ww-dance,
 #hub.is-moving .ww-fly, #hub.is-moving .ww-flap, #hub.is-moving .ww-spin-slow,
 #hub.is-moving .ww-plane, #hub.is-moving .ww-plane-door, #hub.is-moving .ww-idle,
-#hub.is-moving .ww-talk, #hub.is-moving .ww-laugh, #hub.is-moving .ww-stroll {
+#hub.is-moving .ww-talk, #hub.is-moving .ww-laugh, #hub.is-moving .ww-stroll,
+#hub.is-moving .ww-nod, #hub.is-moving .ww-nod-slow,
+#hub.is-moving .ww-arm-talk, #hub.is-moving .ww-arm-raise {
   animation-play-state: paused;
 }
 #stage.is-moving .mote { animation-play-state: paused; }
@@ -647,6 +651,32 @@ svg { display: block; }
 @keyframes ww-laugh {
   0%, 100% { transform: rotate(-1deg) translateY(0); }
   50%      { transform: rotate(1.2deg) translateY(var(--ww-amp-y, -1.6px)); }
+}
+/* Heads and arms, animated separately from the body. A figure that only
+   sways is a figure standing still politely; a figure that nods while their
+   neighbour lifts a glass is a room with something going on in it. Both
+   pivot on a real joint — the base of the neck, the shoulder — passed in by
+   art.js as an inline origin. Use these where the guest is close to the
+   camera and you can actually see them; the distant wedding crowd does not
+   need them and should not have them. */
+.ww-nod { animation: ww-nod 4.6s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-nod {
+  0%, 100% { transform: rotate(-2.4deg); }
+  46%      { transform: rotate(2.8deg); }
+  70%      { transform: rotate(-.6deg); }
+}
+.ww-nod-slow { animation: ww-nod 7.2s ease-in-out infinite; transform-box: fill-box; }
+.ww-arm-talk { animation: ww-arm-talk 3.4s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-arm-talk {
+  0%, 100% { transform: rotate(-4deg); }
+  40%      { transform: rotate(7deg); }
+  68%      { transform: rotate(1deg); }
+}
+.ww-arm-raise { animation: ww-arm-raise 5.4s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-arm-raise {
+  0%, 62%, 100% { transform: rotate(0deg); }
+  22%           { transform: rotate(-13deg); }
+  40%           { transform: rotate(-9deg); }
 }
 .ww-stroll { animation: ww-stroll 22s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-stroll {
@@ -1579,6 +1609,16 @@ svg { display: block; }
                  '#B08A55', '#A85331', '#D9B071', '#4A3B52'];
   var HAIR_STYLES = ['crop', 'bob', 'long', 'bun', 'curls', 'pony', 'wave', 'part'];
 
+  /* A limb in two pieces: upper arm thicker than forearm, thigh thicker than
+     calf. Drawing both at one width is exactly what makes a figure read as a
+     stick — the taper is most of the difference between a diagram of a person
+     and a drawing of one. The round caps overlap at the joint, so the elbow
+     and the knee close themselves. */
+  function limb(pts, wUp, wLow, color) {
+    return limbPath([pts[0], pts[1]], wUp, color) +
+           limbPath([pts[1], pts[2]], wLow, color);
+  }
+
   /* round-capped, round-joined polyline — the only way limbs are drawn */
   function limbPath(pts, w, color, extra) {
     var d = 'M ' + f(pts[0][0]) + ' ' + f(pts[0][1]);
@@ -1609,12 +1649,21 @@ svg { display: block; }
               legNear: [[.075, .200], [.130, .440]], legFar: [[-.055, .215], [-.105, .450]] },
     sit:    { armNear: [[.055, .105], [.150, .145]], armFar: [[-.045, .110], [.085, .150]],
               legNear: [[.130, .030], [.155, .255]], legFar: [[.112, .052], [.138, .258]] },
-    /* drawn up to a table: legs straight down, where the tabletop hides them */
-    table:  { armNear: [[.062, .100], [.140, .150]], armFar: [[-.058, .100], [-.120, .152]],
+    /* Drawn up to a table: legs straight down where the tabletop hides them,
+       and forearms coming down to meet its edge. The hands used to stop .15
+       of a height below the shoulder, which left everybody sitting with
+       their palms in mid-air about seventy units above the cloth. */
+    table:  { armNear: [[.058, .180], [.112, .400]], armFar: [[-.055, .178], [-.104, .402]],
               legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
     /* leaning in over the table, one hand up mid-sentence */
-    tableUp:{ armNear: [[.080, .060], [.150, -.010]], armFar: [[-.058, .100], [-.120, .152]],
+    tableUp:{ armNear: [[.086, .075], [.148, -.020]], armFar: [[-.055, .178], [-.104, .402]],
               legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
+    /* both forearms on the cloth, mid-conversation with a neighbour */
+    tableIn:{ armNear: [[.070, .165], [.168, .355]], armFar: [[-.055, .178], [-.104, .402]],
+              legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
+    /* a tray held at the shoulder, the far hand steadying the way ------ */
+    serve:  { armNear: [[.082, .046], [.108, -.052]], armFar: [[-.048, .120], [-.062, .240]],
+              legNear: [[.062, .200], [.104, .448]], legFar: [[-.052, .212], [-.092, .452]] },
     dance:  { armNear: [[.110, -.010], [.170, -.150]], armFar: [[-.115, .060], [-.205, .015]],
               legNear: [[.075, .200], [.120, .450]], legFar: [[-.080, .195], [-.135, .450]] },
     dance2: { armNear: [[.125, .045], [.215, -.035]], armFar: [[-.095, -.020], [-.140, -.160]],
@@ -1650,6 +1699,23 @@ svg { display: block; }
     }
     if (kind === 'plate') {
       return '<ellipse cx="' + f(hx) + '" cy="' + f(hy) + '" rx="' + f(6.5 * s) + '" ry="' + f(2.4 * s) + '" fill="#FFFAF0"/>';
+    }
+    if (kind === 'tray') {
+      /* held flat on the palm, so it sits above the hand rather than in it */
+      var ty = hy - 2.4 * s;
+      var tr = '<ellipse cx="' + f(hx) + '" cy="' + f(ty) + '" rx="' + f(12.5 * s) + '" ry="' + f(4 * s) + '" fill="#C9B79B"/>';
+      tr += '<ellipse cx="' + f(hx) + '" cy="' + f(ty - 1.2 * s) + '" rx="' + f(12.5 * s) + '" ry="' + f(4 * s) + '" fill="#E3D6C0"/>';
+      /* three glasses and a small carafe on it */
+      [-8, -2.4, 8.6].forEach(function (gx, gi) {
+        tr += '<path d="M ' + f(hx + gx * s - 2 * s) + ' ' + f(ty - 8.6 * s) +
+          ' l ' + f(4 * s) + ' 0 l -' + f(.5 * s) + ' ' + f(5 * s) + ' l -' + f(3 * s) + ' 0 Z" fill="#FBF4E8" opacity="' + (gi === 1 ? '.95' : '.9') + '"/>';
+        tr += '<path d="M ' + f(hx + gx * s - 1.6 * s) + ' ' + f(ty - 6.4 * s) +
+          ' l ' + f(3.2 * s) + ' 0 l -' + f(.4 * s) + ' ' + f(2.6 * s) + ' l -' + f(2.4 * s) + ' 0 Z" fill="' + (tint || '#E8B25E') + '" opacity=".85"/>';
+      });
+      tr += '<path d="M ' + f(hx + 2.6 * s) + ' ' + f(ty - 3 * s) + ' l 0 -' + f(6 * s) +
+        ' q 0 -' + f(2 * s) + ' ' + f(2 * s) + ' -' + f(3 * s) + ' l ' + f(2 * s) + ' 0 q ' + f(2 * s) + ' ' + f(1 * s) + ' ' + f(2 * s) + ' ' + f(3 * s) +
+        ' l 0 ' + f(6 * s) + ' Z" fill="#D8C9A8" opacity=".9"/>';
+      return tr;
     }
     if (kind === 'bouquet') {
       /* held low, the way people actually carry one: stems down through the
@@ -1770,18 +1836,23 @@ svg { display: block; }
     var dir   = o.flip ? -1 : 1;
     var pose  = POSES[o.pose] || POSES.stand;
     var dress = o.dress != null ? o.dress : (r() < 0.45);
-    var seated = o.pose === 'sit' || o.pose === 'table' || o.pose === 'tableUp';
+    var seated = o.pose === 'sit' || o.pose === 'table' ||
+                 o.pose === 'tableUp' || o.pose === 'tableIn';
 
     /* skeleton — a shade chunkier than life, which is what makes a flat
        figure read as drawn rather than as a stick */
-    var headR = h * 0.112,
-        headY = b - h * (seated ? 0.452 : 0.878),
-        shY   = b - h * (seated ? 0.300 : 0.718),
-        hipY  = b - h * (seated ? 0.020 : 0.452),
-        shW   = h * 0.134,
-        hipW  = h * 0.102,
-        limbW = h * 0.084,
-        handR = limbW * 0.46;
+    /* Proportions. The head used to be 0.224 of the height — about four and a
+       half heads tall, which is a child. At 0.19 the figure comes out just
+       over five heads: still stylised, still friendly, but grown up. The neck
+       lengthened by the same amount it lost. */
+    var headR = h * 0.095,
+        headY = b - h * (seated ? 0.462 : 0.895),
+        shY   = b - h * (seated ? 0.306 : 0.752),
+        hipY  = b - h * (seated ? 0.020 : 0.468),
+        shW   = h * 0.132,
+        hipW  = h * 0.100,
+        limbW = h * 0.082,
+        handR = limbW * 0.44;
 
     /* a little wonkiness, so no two are quite the same */
     var lean = (r() - 0.5) * 2.2;
@@ -1821,17 +1892,27 @@ svg { display: block; }
       return '<circle cx="' + f(arm[2][0]) + '" cy="' + f(arm[2][1]) + '" r="' + f(handR) + '" fill="' + (flat || tone) + '"/>';
     }
 
+    /* a shoe, with a bit of a toe on it rather than a flat bean */
+    function foot(pt, tone) {
+      var fx = pt[0], fy = pt[1] + limbW * 0.16;
+      return '<path d="M ' + f(fx - limbW * 0.36) + ' ' + f(fy - limbW * 0.30) +
+        ' l ' + f(limbW * 0.66) + ' 0' +
+        ' q ' + f(limbW * 0.62 * dir) + ' ' + f(limbW * 0.10) + ' ' + f(limbW * 0.64 * dir) + ' ' + f(limbW * 0.34) +
+        ' q 0 ' + f(limbW * 0.20) + ' -' + f(limbW * 0.26) + ' ' + f(limbW * 0.20) +
+        ' l -' + f(limbW * 1.06) + ' 0 Z" fill="' + tone + '"/>';
+    }
+
     /* --- far arm and far leg go behind the body ---------------------- */
-    g += limbPath(legFar, limbW, flat || (dress ? shade(skin, -0.14) : shade(pants, -0.14)));
-    g += limbPath(armFar, limbW * 0.82, flat || shade(skin, -0.10));
+    g += limb(legFar, limbW * 1.04, limbW * 0.80, flat || (dress ? shade(skin, -0.14) : shade(pants, -0.14)));
+    g += limb(armFar, limbW * 0.84, limbW * 0.60, flat || shade(skin, -0.10));
     if (!flat) { g += sleeve(armFar); g += hand(armFar, shade(skin, -0.10)); }
     if (o.holdFar) g += prop(o.holdFar, armFar[2][0], armFar[2][1] - handR * 0.5, h * 0.012, o.holdFarTint);
 
     /* --- near leg ---------------------------------------------------- */
-    g += limbPath(legNear, limbW, flat || (dress ? skin : pants));
+    g += limb(legNear, limbW * 1.08, limbW * 0.82, flat || (dress ? skin : pants));
     if (!flat) {
-      g += '<ellipse cx="' + f(legFar[2][0] + limbW * 0.12 * dir) + '" cy="' + f(legFar[2][1] + limbW * 0.2) + '" rx="' + f(limbW * 0.72) + '" ry="' + f(limbW * 0.34) + '" fill="' + shade(shoe, 0.12) + '"/>';
-      g += '<ellipse cx="' + f(legNear[2][0] + limbW * 0.12 * dir) + '" cy="' + f(legNear[2][1] + limbW * 0.2) + '" rx="' + f(limbW * 0.76) + '" ry="' + f(limbW * 0.36) + '" fill="' + shoe + '"/>';
+      g += foot(legFar[2], shade(shoe, 0.14));
+      g += foot(legNear[2], shoe);
     }
 
     /* --- neck, drawn first so the collar covers where it joins -------- */
@@ -1855,6 +1936,13 @@ svg { display: block; }
         ' Q ' + f(x) + ' ' + f(shY + h * 0.010) + ' ' + f(x + shW * 0.40) + ' ' + f(shY - h * 0.048) +
         ' Q ' + f(x) + ' ' + f(shY - h * 0.022) + ' ' + f(x - shW * 0.40) + ' ' + f(shY - h * 0.048) + ' Z" fill="' + shade(cloth, -0.26) + '" opacity=".38"/>';
     }
+    if (!flat) {
+      /* the hem of the shirt, which is where a body stops being a shape */
+      g += '<path d="M ' + f(x - hipW * 1.01) + ' ' + f(hipY - h * 0.026) +
+        ' Q ' + f(x) + ' ' + f(hipY + h * 0.002) + ' ' + f(x + hipW * 1.01) + ' ' + f(hipY - h * 0.026) +
+        ' L ' + f(x + hipW) + ' ' + f(hipY) + ' Q ' + f(x) + ' ' + f(hipY + h * 0.028) + ' ' + f(x - hipW) + ' ' + f(hipY) +
+        ' Z" fill="' + shade(cloth, -0.22) + '" opacity=".45"/>';
+    }
     if (dress && !seated) {
       g += '<path d="M ' + f(x - hipW * 1.04) + ' ' + f(hipY - h * 0.048) +
         ' L ' + f(x + hipW * 1.04) + ' ' + f(hipY - h * 0.048) +
@@ -1866,13 +1954,25 @@ svg { display: block; }
       }
     }
 
-    /* --- near arm sits on top of the torso, joined at the shoulder ---- */
-    g += limbPath(armNear, limbW * 0.82, flat || shade(skin, 0.04));
-    if (!flat) { g += sleeve(armNear); g += hand(armNear, shade(skin, 0.04)); }
-    if (o.hold) g += prop(o.hold, armNear[2][0], armNear[2][1] - handR * 0.5, h * 0.012, o.holdTint);
+    /* --- near arm sits on top of the torso, joined at the shoulder ----
+       Optionally its own animated group, pivoting on that shoulder: a guest
+       who lifts a glass while they talk is worth ten who only sway. */
+    var armG = limb(armNear, limbW * 0.84, limbW * 0.60, flat || shade(skin, 0.04));
+    if (!flat) { armG += sleeve(armNear); armG += hand(armNear, shade(skin, 0.04)); }
+    if (o.hold) armG += prop(o.hold, armNear[2][0], armNear[2][1] - handR * 0.5, h * 0.012, o.holdTint);
+    if (o.armAnim) {
+      armG = '<g class="' + o.armAnim + '" style="transform-box:view-box;transform-origin:' +
+        f(shR[0]) + 'px ' + f(shR[1]) + 'px;animation-delay:' +
+        f(o.armDelay != null ? o.armDelay : -(r() * 5)) + 's">' + armG + '</g>';
+    }
+    g += armG;
 
-    /* --- head --------------------------------------------------------- */
+    /* --- head ---------------------------------------------------------
+       Built into its own string, then optionally wrapped in a group that
+       pivots on the base of the neck, so a listening guest can nod. */
     var hx = x + h * 0.010 * dir;
+    var headG = '';
+    var gHead = g; g = '';
     if (o.back) {                              /* seen from behind */
       g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR * 1.06) + '" fill="' + (flat || hair) + '"/>';
       if (!flat) {
@@ -1909,6 +2009,14 @@ svg { display: block; }
         g += '<circle cx="' + f(hx - headR * 0.60 * dir) + '" cy="' + f(headY + headR * 0.32) + '" r="' + f(headR * 0.17) + '" fill="#D9714E" opacity=".18"/>';
       }
     }
+
+    headG = g; g = gHead;
+    if (o.headAnim) {
+      headG = '<g class="' + o.headAnim + '" style="transform-box:view-box;transform-origin:' +
+        f(hx) + 'px ' + f(headY + headR * 1.15) + 'px;animation-delay:' +
+        f(o.headDelay != null ? o.headDelay : -(r() * 5)) + 's">' + headG + '</g>';
+    }
+    g += headG;
 
     /* --- ground shadow ------------------------------------------------ */
     var shadow = (!flat && !seated && o.shadow !== false)
@@ -2298,17 +2406,22 @@ svg { display: block; }
       inner += A.cypress(ax + 14, sillY + 5, 52, 'rgba(62,74,50,.62)');
 
       /* --- the two of them ------------------------------------------------
-         Placed so the hands meet: a figure's hand reaches 0.233 of its own
-         height forward of centre in this pose, so the gap between them is
-         that, doubled. Move one and you have to move the other. */
+         Backs to us, looking out over the bay, hand in hand — no faces. That
+         is deliberate and it is Dana's call: at this size a face is three
+         dots, and three dots on the two people whose wedding this is looked
+         like a cartoon of them. Seen from behind they are anybody, which is
+         the point — the guest fills them in.
+         They are placed so the hands meet: a figure's hand reaches 0.233 of
+         its own height forward of centre in this pose, so the gap between
+         them is that, doubled. Move one and you have to move the other. */
       inner += A.person({ x: cx - 20, baseY: baseY - 3, h: 96, pose: 'listen',
-        seed: 901, cloth: '#FBF4E8', dress: true, hair: '#3B2A22',
+        back: true, seed: 901, cloth: '#FBF4E8', dress: true, hair: '#3B2A22',
         hairStyle: 'bun', skin: '#E6B183', holdFar: 'bouquet',
         anim: 'ww-idle', shadow: false });
       inner += A.person({ x: cx + 20, baseY: baseY - 3, h: 102, pose: 'listen',
-        flip: true, seed: 907, cloth: '#3B4A56', pants: '#2F3D49', dress: false,
-        hairStyle: 'crop', skin: '#CE8F60', anim: 'ww-idle', delay: -2.4,
-        shadow: false });
+        back: true, flip: true, seed: 907, cloth: '#3B4A56', pants: '#2F3D49',
+        dress: false, hair: '#2A2018', hairStyle: 'crop', skin: '#CE8F60',
+        anim: 'ww-idle', delay: -2.4, shadow: false });
       /* one shadow under the pair of them, rather than two */
       inner += '<ellipse cx="' + f(cx) + '" cy="' + f(baseY - 2) + '" rx="44" ry="6" fill="rgba(90,68,44,.18)"/>';
 
@@ -2349,7 +2462,9 @@ svg { display: block; }
       /* an aeroplane crossing the opening, climbing away over the water */
       g += '<g class="ww-plane-door">' + A.airplane(cx - 6, ay + 74, 0.62, '#4E6E80') + '</g>';
       g += '<ellipse cx="' + f(cx + 34) + '" cy="' + f(ay + 40) + '" rx="26" ry="9" fill="#FFFFFF" opacity=".5"/>';
-      g += '<ellipse cx="' + f(cx - 30) + '" cy="' + f(ay + 128) + '" rx="20" ry="7" fill="#FFFFFF" opacity=".38"/>';
+      /* kept clear of the "Enter" line at ay+127, which a pale cloud sitting
+         right behind the letters was washing out */
+      g += '<ellipse cx="' + f(cx - 32) + '" cy="' + f(ay + 88) + '" rx="20" ry="7" fill="#FFFFFF" opacity=".38"/>';
       g += '<path class="ww-spin-slow" style="transform-box:view-box;transform-origin:' + f(cx) + 'px ' + f(ay - 58) + 'px" d="M ' + f(cx - 26) + ' ' + f(ay - 58) + ' l 40 0 l -8 -7 l 20 7 l -20 7 l 8 -7 Z" fill="#7A6247"/>';
       g += '<rect x="' + f(cx - 2) + '" y="' + f(ay - 58) + '" width="4" height="34" fill="#7A6247"/>';
     } else if (id === 'rsvp') {
@@ -2458,13 +2573,27 @@ svg { display: block; }
         /* the guests already sitting down, drawn before the table so it
            covers their laps exactly as a real table would. They lean and
            turn towards each other rather than facing front in a row. */
+        /* This is the closest the guest ever gets to anybody, so it is the one
+           scene where the people are properly busy: everyone nods or gestures
+           or lifts a glass, on their own clock. The distant wedding crowd
+           deliberately does none of this — see the note on animation in
+           HANDOVER.md. */
+        var BEATS = [
+          { pose: 'tableUp', hold: 'glass', anim: 'ww-talk',  head: 'ww-nod',      arm: 'ww-arm-raise' },
+          { pose: 'table',   hold: null,    anim: 'ww-idle',  head: 'ww-nod-slow', arm: null },
+          { pose: 'tableIn', hold: null,    anim: 'ww-talk',  head: 'ww-nod',      arm: 'ww-arm-talk' },
+          { pose: 'tableUp', hold: 'glass', anim: 'ww-laugh', head: 'ww-nod',      arm: 'ww-arm-talk' },
+          { pose: 'table',   hold: null,    anim: 'ww-talk',  head: 'ww-nod-slow', arm: null },
+          { pose: 'tableIn', hold: null,    anim: 'ww-idle',  head: 'ww-nod',      arm: 'ww-arm-talk' },
+          { pose: 'tableUp', hold: 'glass', anim: 'ww-talk',  head: 'ww-nod',      arm: 'ww-arm-raise' }
+        ];
         for (var d = 0; d < BACK; d++) {
-          var lean = d % 3;
+          var beat = BEATS[d % BEATS.length];
           g += A.person({ x: backX(d), baseY: 710, h: 232 + (d % 3) * 12,
-            pose: lean === 2 ? 'tableUp' : 'table',
-            seed: 200 + d * 13, flip: d % 2 === 1, shadow: false,
-            hold: lean === 1 ? 'glass' : null,
-            anim: d % 2 ? 'ww-talk' : 'ww-idle' });
+            pose: beat.pose, seed: 200 + d * 13, flip: d % 2 === 1, shadow: false,
+            hold: beat.hold, anim: beat.anim,
+            headAnim: beat.head, armAnim: beat.arm,
+            delay: -(d * 1.7) % 6, headDelay: -(d * 2.3) % 5, armDelay: -(d * 1.1) % 5 });
         }
         g += '<rect x="40" y="742" width="1240" height="26" rx="6" fill="#F2E7D2"/>';
         g += '<rect x="40" y="768" width="1240" height="14" fill="#CBB795"/>';
@@ -2477,11 +2606,16 @@ svg { display: block; }
           g += A.plate(backX(p2), 757, 0.92, 300 + p2 * 7);
         }
         /* candles down the middle, between the settings */
+        /* Candles stand between the place settings, never in line with a guest:
+           the soft halo used to land exactly on somebody's forearm and read
+           as a glowing ball being held. Tall and thin, small flame, small
+           glow — they light the table without taking it over. */
         for (var c = 0; c < 6; c++) {
-          var cxp = 200 + c * 172;
-          g += '<rect x="' + cxp + '" y="694" width="13" height="50" rx="3" fill="#F8F1E0"/>';
-          g += '<circle class="ww-flicker" cx="' + (cxp + 6.5) + '" cy="688" r="7" fill="#FFE9B0" style="animation-delay:' + (-c * 0.6) + 's"/>';
-          g += '<circle class="ww-flicker" cx="' + (cxp + 6.5) + '" cy="688" r="21" fill="#F0B45C" opacity=".22" style="animation-delay:' + (-c * 0.6) + 's"/>';
+          var cxp = 226 + c * 158;
+          g += '<rect x="' + cxp + '" y="676" width="10" height="68" rx="3" fill="#F8F1E0"/>';
+          g += '<rect x="' + (cxp + 6) + '" y="676" width="4" height="68" fill="#E2D5BC" opacity=".7"/>';
+          g += '<circle class="ww-flicker" cx="' + (cxp + 5) + '" cy="670" r="5.5" fill="#FFE9B0" style="animation-delay:' + (-c * 0.6) + 's"/>';
+          g += '<circle class="ww-flicker" cx="' + (cxp + 5) + '" cy="670" r="13" fill="#F0B45C" opacity=".18" style="animation-delay:' + (-c * 0.6) + 's"/>';
         }
         /* a carafe and glasses, because someone always pours early */
         g += '<path d="M 560 742 l 0 -34 q 0 -14 12 -20 l 0 -12 l 20 0 l 0 12 q 12 6 12 20 l 0 34 Z" fill="#D8C9A8" opacity=".9"/>';
@@ -2491,11 +2625,23 @@ svg { display: block; }
         for (var fch = 0; fch < FRONT; fch++) {
           var fx = frontX(fch) - 40;
           g += A.person({ x: frontX(fch), baseY: 884, h: 292 + (fch % 3) * 10,
-            pose: 'table', back: true,
-            seed: 400 + fch * 11, shadow: false, anim: fch % 2 ? 'ww-talk' : 'ww-idle' });
+            pose: fch % 3 === 1 ? 'tableUp' : 'table', back: true,
+            seed: 400 + fch * 11, shadow: false,
+            anim: fch % 2 ? 'ww-talk' : 'ww-idle',
+            headAnim: fch % 2 ? 'ww-nod' : 'ww-nod-slow',
+            armAnim: fch % 3 === 1 ? 'ww-arm-talk' : null,
+            delay: -(fch * 2.1) % 6, headDelay: -(fch * 1.3) % 5 });
           g += '<path d="M ' + fx + ' 960 l 0 -84 q 40 -16 80 0 l 0 84 Z" fill="#4E382A"/>';
           g += '<rect x="' + (fx - 6) + '" y="868" width="92" height="14" rx="6" fill="#5E452F"/>';
         }
+        /* A waiter coming up to the head of the table with a tray. He lives on
+           the left because on a laptop the details panel covers everything
+           past about x=1050 — put him at the other end and half the guests
+           would never see him. */
+        g += A.person({ x: 104, baseY: 902, h: 268, pose: 'serve', seed: 523,
+          cloth: '#F2E4CC', pants: '#3B3026', hairStyle: 'crop', dress: false,
+          skin: '#CE8F60', hold: 'tray', anim: 'ww-idle', headAnim: 'ww-nod-slow',
+          delay: -1.4, headDelay: -3.1 });
         return g;
       })() + '</g>'
     )});

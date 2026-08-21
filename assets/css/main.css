@@ -152,21 +152,23 @@ svg { display: block; }
    is left is warm ivory type with a soft shadow, which is legible over all
    seven interiors — the pale teal of Explore and the deep plum of the
    After-Party alike — and belongs to the artwork rather than sitting on
-   top of it. The text-indent cancels the trailing letter-space, so the
-   word is optically centred and not pushed a hair to the left. */
+   top of it. No shadow: the doorway gradients were deepened so the letters
+   can sit straight on the light without being propped up by a halo, which
+   is what kept making them look stuck on. The text-indent cancels the
+   trailing letter-space, so the word is optically centred and not pushed a
+   hair to the left. */
 .entrance-cta {
   position: absolute; left: 50%; top: 69%;
   transform: translate(-50%, -50%);
-  font-size: .62em; letter-spacing: .34em; text-indent: .34em;
-  text-transform: uppercase; font-weight: 400;
-  color: #FBF3E4; opacity: .9;
-  text-shadow: 0 1px 3px rgba(38,24,16,.7), 0 0 14px rgba(38,24,16,.55);
+  font-size: .56em; letter-spacing: .38em; text-indent: .38em;
+  text-transform: uppercase; font-weight: 300;
+  color: #FBF3E4; opacity: .72;
   white-space: nowrap; pointer-events: none;
   transition: opacity .35s var(--ease), letter-spacing .35s var(--ease);
 }
 .entrance:hover .entrance-cta, .entrance:focus-visible .entrance-cta,
 .entrance.is-near .entrance-cta {
-  opacity: 1; letter-spacing: .44em; text-indent: .44em;
+  opacity: .95; letter-spacing: .46em; text-indent: .46em;
 }
 /* labels sit above the archway, clear of the path map at the bottom */
 .entrance-label {
@@ -548,7 +550,9 @@ svg { display: block; }
 #hub.is-moving .ww-pulse, #hub.is-moving .ww-glow-soft, #hub.is-moving .ww-dance,
 #hub.is-moving .ww-fly, #hub.is-moving .ww-flap, #hub.is-moving .ww-spin-slow,
 #hub.is-moving .ww-plane, #hub.is-moving .ww-plane-door, #hub.is-moving .ww-idle,
-#hub.is-moving .ww-talk, #hub.is-moving .ww-laugh, #hub.is-moving .ww-stroll {
+#hub.is-moving .ww-talk, #hub.is-moving .ww-laugh, #hub.is-moving .ww-stroll,
+#hub.is-moving .ww-nod, #hub.is-moving .ww-nod-slow,
+#hub.is-moving .ww-arm-talk, #hub.is-moving .ww-arm-raise {
   animation-play-state: paused;
 }
 #stage.is-moving .mote { animation-play-state: paused; }
@@ -632,6 +636,32 @@ svg { display: block; }
 @keyframes ww-laugh {
   0%, 100% { transform: rotate(-1deg) translateY(0); }
   50%      { transform: rotate(1.2deg) translateY(var(--ww-amp-y, -1.6px)); }
+}
+/* Heads and arms, animated separately from the body. A figure that only
+   sways is a figure standing still politely; a figure that nods while their
+   neighbour lifts a glass is a room with something going on in it. Both
+   pivot on a real joint — the base of the neck, the shoulder — passed in by
+   art.js as an inline origin. Use these where the guest is close to the
+   camera and you can actually see them; the distant wedding crowd does not
+   need them and should not have them. */
+.ww-nod { animation: ww-nod 4.6s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-nod {
+  0%, 100% { transform: rotate(-2.4deg); }
+  46%      { transform: rotate(2.8deg); }
+  70%      { transform: rotate(-.6deg); }
+}
+.ww-nod-slow { animation: ww-nod 7.2s ease-in-out infinite; transform-box: fill-box; }
+.ww-arm-talk { animation: ww-arm-talk 3.4s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-arm-talk {
+  0%, 100% { transform: rotate(-4deg); }
+  40%      { transform: rotate(7deg); }
+  68%      { transform: rotate(1deg); }
+}
+.ww-arm-raise { animation: ww-arm-raise 5.4s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-arm-raise {
+  0%, 62%, 100% { transform: rotate(0deg); }
+  22%           { transform: rotate(-13deg); }
+  40%           { transform: rotate(-9deg); }
 }
 .ww-stroll { animation: ww-stroll 22s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-stroll {

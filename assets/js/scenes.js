@@ -262,17 +262,22 @@
       inner += A.cypress(ax + 14, sillY + 5, 52, 'rgba(62,74,50,.62)');
 
       /* --- the two of them ------------------------------------------------
-         Placed so the hands meet: a figure's hand reaches 0.233 of its own
-         height forward of centre in this pose, so the gap between them is
-         that, doubled. Move one and you have to move the other. */
+         Backs to us, looking out over the bay, hand in hand — no faces. That
+         is deliberate and it is Dana's call: at this size a face is three
+         dots, and three dots on the two people whose wedding this is looked
+         like a cartoon of them. Seen from behind they are anybody, which is
+         the point — the guest fills them in.
+         They are placed so the hands meet: a figure's hand reaches 0.233 of
+         its own height forward of centre in this pose, so the gap between
+         them is that, doubled. Move one and you have to move the other. */
       inner += A.person({ x: cx - 20, baseY: baseY - 3, h: 96, pose: 'listen',
-        seed: 901, cloth: '#FBF4E8', dress: true, hair: '#3B2A22',
+        back: true, seed: 901, cloth: '#FBF4E8', dress: true, hair: '#3B2A22',
         hairStyle: 'bun', skin: '#E6B183', holdFar: 'bouquet',
         anim: 'ww-idle', shadow: false });
       inner += A.person({ x: cx + 20, baseY: baseY - 3, h: 102, pose: 'listen',
-        flip: true, seed: 907, cloth: '#3B4A56', pants: '#2F3D49', dress: false,
-        hairStyle: 'crop', skin: '#CE8F60', anim: 'ww-idle', delay: -2.4,
-        shadow: false });
+        back: true, flip: true, seed: 907, cloth: '#3B4A56', pants: '#2F3D49',
+        dress: false, hair: '#2A2018', hairStyle: 'crop', skin: '#CE8F60',
+        anim: 'ww-idle', delay: -2.4, shadow: false });
       /* one shadow under the pair of them, rather than two */
       inner += '<ellipse cx="' + f(cx) + '" cy="' + f(baseY - 2) + '" rx="44" ry="6" fill="rgba(90,68,44,.18)"/>';
 
@@ -313,7 +318,9 @@
       /* an aeroplane crossing the opening, climbing away over the water */
       g += '<g class="ww-plane-door">' + A.airplane(cx - 6, ay + 74, 0.62, '#4E6E80') + '</g>';
       g += '<ellipse cx="' + f(cx + 34) + '" cy="' + f(ay + 40) + '" rx="26" ry="9" fill="#FFFFFF" opacity=".5"/>';
-      g += '<ellipse cx="' + f(cx - 30) + '" cy="' + f(ay + 128) + '" rx="20" ry="7" fill="#FFFFFF" opacity=".38"/>';
+      /* kept clear of the "Enter" line at ay+127, which a pale cloud sitting
+         right behind the letters was washing out */
+      g += '<ellipse cx="' + f(cx - 32) + '" cy="' + f(ay + 88) + '" rx="20" ry="7" fill="#FFFFFF" opacity=".38"/>';
       g += '<path class="ww-spin-slow" style="transform-box:view-box;transform-origin:' + f(cx) + 'px ' + f(ay - 58) + 'px" d="M ' + f(cx - 26) + ' ' + f(ay - 58) + ' l 40 0 l -8 -7 l 20 7 l -20 7 l 8 -7 Z" fill="#7A6247"/>';
       g += '<rect x="' + f(cx - 2) + '" y="' + f(ay - 58) + '" width="4" height="34" fill="#7A6247"/>';
     } else if (id === 'rsvp') {
@@ -422,13 +429,27 @@
         /* the guests already sitting down, drawn before the table so it
            covers their laps exactly as a real table would. They lean and
            turn towards each other rather than facing front in a row. */
+        /* This is the closest the guest ever gets to anybody, so it is the one
+           scene where the people are properly busy: everyone nods or gestures
+           or lifts a glass, on their own clock. The distant wedding crowd
+           deliberately does none of this — see the note on animation in
+           HANDOVER.md. */
+        var BEATS = [
+          { pose: 'tableUp', hold: 'glass', anim: 'ww-talk',  head: 'ww-nod',      arm: 'ww-arm-raise' },
+          { pose: 'table',   hold: null,    anim: 'ww-idle',  head: 'ww-nod-slow', arm: null },
+          { pose: 'tableIn', hold: null,    anim: 'ww-talk',  head: 'ww-nod',      arm: 'ww-arm-talk' },
+          { pose: 'tableUp', hold: 'glass', anim: 'ww-laugh', head: 'ww-nod',      arm: 'ww-arm-talk' },
+          { pose: 'table',   hold: null,    anim: 'ww-talk',  head: 'ww-nod-slow', arm: null },
+          { pose: 'tableIn', hold: null,    anim: 'ww-idle',  head: 'ww-nod',      arm: 'ww-arm-talk' },
+          { pose: 'tableUp', hold: 'glass', anim: 'ww-talk',  head: 'ww-nod',      arm: 'ww-arm-raise' }
+        ];
         for (var d = 0; d < BACK; d++) {
-          var lean = d % 3;
+          var beat = BEATS[d % BEATS.length];
           g += A.person({ x: backX(d), baseY: 710, h: 232 + (d % 3) * 12,
-            pose: lean === 2 ? 'tableUp' : 'table',
-            seed: 200 + d * 13, flip: d % 2 === 1, shadow: false,
-            hold: lean === 1 ? 'glass' : null,
-            anim: d % 2 ? 'ww-talk' : 'ww-idle' });
+            pose: beat.pose, seed: 200 + d * 13, flip: d % 2 === 1, shadow: false,
+            hold: beat.hold, anim: beat.anim,
+            headAnim: beat.head, armAnim: beat.arm,
+            delay: -(d * 1.7) % 6, headDelay: -(d * 2.3) % 5, armDelay: -(d * 1.1) % 5 });
         }
         g += '<rect x="40" y="742" width="1240" height="26" rx="6" fill="#F2E7D2"/>';
         g += '<rect x="40" y="768" width="1240" height="14" fill="#CBB795"/>';
@@ -441,11 +462,16 @@
           g += A.plate(backX(p2), 757, 0.92, 300 + p2 * 7);
         }
         /* candles down the middle, between the settings */
+        /* Candles stand between the place settings, never in line with a guest:
+           the soft halo used to land exactly on somebody's forearm and read
+           as a glowing ball being held. Tall and thin, small flame, small
+           glow — they light the table without taking it over. */
         for (var c = 0; c < 6; c++) {
-          var cxp = 200 + c * 172;
-          g += '<rect x="' + cxp + '" y="694" width="13" height="50" rx="3" fill="#F8F1E0"/>';
-          g += '<circle class="ww-flicker" cx="' + (cxp + 6.5) + '" cy="688" r="7" fill="#FFE9B0" style="animation-delay:' + (-c * 0.6) + 's"/>';
-          g += '<circle class="ww-flicker" cx="' + (cxp + 6.5) + '" cy="688" r="21" fill="#F0B45C" opacity=".22" style="animation-delay:' + (-c * 0.6) + 's"/>';
+          var cxp = 226 + c * 158;
+          g += '<rect x="' + cxp + '" y="676" width="10" height="68" rx="3" fill="#F8F1E0"/>';
+          g += '<rect x="' + (cxp + 6) + '" y="676" width="4" height="68" fill="#E2D5BC" opacity=".7"/>';
+          g += '<circle class="ww-flicker" cx="' + (cxp + 5) + '" cy="670" r="5.5" fill="#FFE9B0" style="animation-delay:' + (-c * 0.6) + 's"/>';
+          g += '<circle class="ww-flicker" cx="' + (cxp + 5) + '" cy="670" r="13" fill="#F0B45C" opacity=".18" style="animation-delay:' + (-c * 0.6) + 's"/>';
         }
         /* a carafe and glasses, because someone always pours early */
         g += '<path d="M 560 742 l 0 -34 q 0 -14 12 -20 l 0 -12 l 20 0 l 0 12 q 12 6 12 20 l 0 34 Z" fill="#D8C9A8" opacity=".9"/>';
@@ -455,11 +481,23 @@
         for (var fch = 0; fch < FRONT; fch++) {
           var fx = frontX(fch) - 40;
           g += A.person({ x: frontX(fch), baseY: 884, h: 292 + (fch % 3) * 10,
-            pose: 'table', back: true,
-            seed: 400 + fch * 11, shadow: false, anim: fch % 2 ? 'ww-talk' : 'ww-idle' });
+            pose: fch % 3 === 1 ? 'tableUp' : 'table', back: true,
+            seed: 400 + fch * 11, shadow: false,
+            anim: fch % 2 ? 'ww-talk' : 'ww-idle',
+            headAnim: fch % 2 ? 'ww-nod' : 'ww-nod-slow',
+            armAnim: fch % 3 === 1 ? 'ww-arm-talk' : null,
+            delay: -(fch * 2.1) % 6, headDelay: -(fch * 1.3) % 5 });
           g += '<path d="M ' + fx + ' 960 l 0 -84 q 40 -16 80 0 l 0 84 Z" fill="#4E382A"/>';
           g += '<rect x="' + (fx - 6) + '" y="868" width="92" height="14" rx="6" fill="#5E452F"/>';
         }
+        /* A waiter coming up to the head of the table with a tray. He lives on
+           the left because on a laptop the details panel covers everything
+           past about x=1050 — put him at the other end and half the guests
+           would never see him. */
+        g += A.person({ x: 104, baseY: 902, h: 268, pose: 'serve', seed: 523,
+          cloth: '#F2E4CC', pants: '#3B3026', hairStyle: 'crop', dress: false,
+          skin: '#CE8F60', hold: 'tray', anim: 'ww-idle', headAnim: 'ww-nod-slow',
+          delay: -1.4, headDelay: -3.1 });
         return g;
       })() + '</g>'
     )});
