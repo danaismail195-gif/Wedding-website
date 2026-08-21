@@ -201,11 +201,16 @@ already in §9 of `main.css`. `.brand` is positioned absolutely inside
 `.top-bar` so the sound button can keep the right-hand end without dragging
 the names off centre.
 
-**"Enter" moved onto the doorway.** It used to be a terracotta pill under each
+**"Enter" moved onto the doorway.** (Round two took its shadow away as well:
+lighter weight, wider tracking, 72% opacity, no halo at all. The doorway
+gradients are deep enough by now to carry it, and the halo was what kept
+making the letters look stuck on rather than part of the picture. Two pieces
+of art moved off the line it sits on — the Travel cloud and the RSVP
+envelope.) It used to be a terracotta pill under each
 arch: seven of them along the promenade, all competing with the artwork, and
 the orange was the first thing the eye went to. It is now warm ivory type
 inside the opening, at the middle of the arch (69% of the 460-tall entrance
-box), with a soft dark halo and no chip at all. To make one ink work on all
+box), with no chip at all. To make one ink work on all
 seven interiors, the door gradients were deepened towards the threshold —
 which also looks more like a lit room seen from outside. Two pieces of art
 moved out of the way of the word: the RSVP envelope now hangs in the upper
@@ -248,18 +253,58 @@ colour now, not a darker shade of the shirt.
   people do this; the ridges, houses and olive groves are untouched, so the
   world still looks the way it did.
 
+**The figures grew up.** Round two of the feedback called them childish and
+stick-like. Three things fixed most of it:
+  - **Proportions.** The head was 0.224 of the height — four and a half heads
+    tall, which is a child. It is 0.19 now, just over five heads, with the
+    neck taking up the difference.
+  - **Tapered limbs.** A limb is drawn in two pieces — upper arm thicker than
+    forearm, thigh thicker than calf (`limb()` in `art.js`). One width for the
+    whole limb is most of what makes a figure read as a diagram of a person
+    rather than a drawing of one; the round caps close the elbow and the knee
+    by themselves.
+  - **Edges.** A hem where the shirt ends, a collar, and shoes with a toe on
+    them instead of flat beans.
+
+**Heads and arms move on their own now.** `person()` takes `headAnim` and
+`armAnim`; each wraps that part in its own group pivoting on a real joint (the
+base of the neck, the shoulder), with `ww-nod`, `ww-nod-slow`, `ww-arm-talk`
+and `ww-arm-raise` in §10 of `main.css`. **Use them only where the guest is
+close enough to see it.** The dinner table gets all of it; the wedding crowd
+deliberately gets none, because thirty distant figures all gesturing is noise,
+and "everyone in one scene moves in one register" is still the rule.
+
 **Welcome Dinner.** Every seat has somebody in it — seven along the far side,
 six on the near side, and the table was widened to 1240 to hold them. The
 guest who stood on their own at the right-hand end has gone; they read as an
 offcut rather than as part of the party. Guests lean and turn towards each
-other (`tableUp` is a new pose) instead of facing front in a row.
+other (`tableUp` and `tableIn` are new poses) instead of facing front in a row.
+
+  Round two: this is the closest the guest ever gets to anybody, and it was
+  the one scene where "subtle" had gone too far. Every guest now nods, or
+  gestures, or lifts a glass, each on their own clock — see the `BEATS` table
+  in `rooms.welcome`. **There is a waiter**, coming up to the head of the
+  table with a tray; he stands on the *left* because on a laptop the details
+  panel covers everything past about x=1050, and at the other end half the
+  guests would never see him.
+
+  Two fixes went with it. The seated poses used to stop the hands .15 of a
+  height below the shoulder, which left thirteen people sitting with their
+  palms in mid-air about seventy units above the cloth; forearms now come down
+  to meet the table edge. And the candles moved to sit *between* the place
+  settings — their soft halo used to land exactly on somebody's forearm and
+  read as a glowing ball being held.
 
 **The Wedding doorway** (the arch on the promenade, not the room) was rebuilt.
 It used to be the garland, a flat slab of teal with a hard edge across it, and
 a cypress that read as a dark leaf. Now you look through it onto the ceremony
 terrace at golden hour: two headlands, the bay with the sun's path on it, a
 parapet, a stone floor with petals down it — and **the couple, hand in hand**,
-she in cream with a bouquet, he in navy. The whole interior is clipped to the
+she in cream with a bouquet, he in navy. They stand with their **backs to us,
+looking out over the bay, and they have no faces** — Dana's call, and a good
+one: at that size a face is three dots, and three dots on the two people whose
+wedding this is looked like a cartoon of them. From behind they are anybody,
+which is the point. The whole interior is clipped to the
 arch (`clipPath`) so the sea and the floor can run to the jambs without
 spilling onto the stone.
 
