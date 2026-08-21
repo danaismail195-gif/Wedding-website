@@ -4,14 +4,15 @@
 > 1. Read this file, then `BRIEF.md` for the original intent.
 > 2. The real sources are in `assets/` — **that is what you edit**.
 > 3. The live site is a separate self-contained bundle. Changing `assets/` does
->    nothing to it until you run `python3 build.py` and the rebuilt
->    `UPLOAD-THIS-ONE-FILE/index.html` is uploaded to GitHub by hand. See
+>    nothing to it until you run `python3 build.py` and the rebuilt files in
+>    `UPLOAD-THESE-FILES/` are uploaded to GitHub by hand. See
 >    **Publishing** below — nobody on this machine can `git push`.
 > 4. Test locally before touching anything else. See **Testing** below.
 >
 > Last worked on: **21 August 2026** (second round — see *What changed in the
 > second August 2026 round*). **The live site is now behind this folder again:
-> the rebuilt `UPLOAD-THIS-ONE-FILE/index.html` has not been uploaded yet.**
+> the rebuilt files in `UPLOAD-THESE-FILES/` have not been uploaded yet, and
+> there are now two of them — the page and the music.**
 
 ## What this is
 An illustrated wedding website the guest **walks through** rather than scrolls.
@@ -35,7 +36,7 @@ behind.** This is the single most confusing thing about this project.
 
 | | What it holds |
 |---|---|
-| **Live `index.html`** on GitHub | The single-file build as of the *first* 21 Aug 2026 pass. **Now out of date** — the feedback round below has been built into `UPLOAD-THIS-ONE-FILE/index.html` but not uploaded. |
+| **Live `index.html`** on GitHub | The single-file build as of the *first* 21 Aug 2026 pass. **Now well out of date** — four feedback rounds have been built into `UPLOAD-THESE-FILES/` and none uploaded. The live site also has no music file at all, so uploading the HTML on its own would leave it silent. |
 | **Everything else** in the GitHub repo | Stale. Loose `app.js`, `content.js`, `main.css`, `scenes.js`, `tween.js`, `art.js`, `audio.js` sit at the repo root, left over from an old flattened upload. Nothing loads them — the live `index.html` is self-contained — so they are harmless, just misleading. There is no `assets/` folder on GitHub at all. |
 | **This local repo** | The truth. Real sources in `assets/`, full history, plus `HANDOVER.md` and `build.py` that GitHub has never seen. |
 
@@ -45,14 +46,20 @@ The live copy is a separate inlined bundle.
 ### To change anything the guest sees
 1. Edit the real sources in `assets/js/*` and `assets/css/main.css`
 2. `python3 build.py`
-3. Upload `UPLOAD-THIS-ONE-FILE/index.html` to the repo root via
-   github.com → **Add file ▸ Upload files** → drag it in → **Commit changes**
+3. Upload **every file in `UPLOAD-THESE-FILES/`** to the repo root via
+   github.com → **Add file ▸ Upload files** → drag them in → **Commit changes**
 4. Wait a minute for Pages, then hard-reload (⌘⇧R). Browser cache is the usual
    reason a change "did not work".
 
-`build.py` writes `UPLOAD-THIS-ONE-FILE/index.html` (the one to upload) and
-`the-journey.html`, and exits non-zero if a script or the stylesheet failed to
-make it into the bundle. `the-journey.html` is generated — never hand-edit it.
+⚠️ **It is two files now, not one.** The music is a real recording, so it
+cannot be baked into the HTML the way the CSS and the scripts are — a few
+megabytes of base64 in front of the page would hold up the whole site. It
+travels beside the HTML instead. **If the live site is silent, the mp3 did not
+get uploaded** — that is the first thing to check, before touching any code.
+
+`build.py` writes `UPLOAD-THESE-FILES/` (the HTML plus the music, which is
+what you upload) and `the-journey.html`, and exits non-zero if a script, the
+stylesheet or the music failed to make it into the build. `the-journey.html` is generated — never hand-edit it.
 
 ### Why not just `git push`?
 Because nobody on this machine can authenticate to GitHub. As of 21 Aug 2026
@@ -94,7 +101,8 @@ plus a real `assets/` folder. Relative paths mean it works fine under the
 | `assets/js/scenes.js` | The 8 places: `hub()` (the promenade), `entranceArt(id)` (the 7 doorways), `rooms.*` (7 environments). All procedural SVG. |
 | `assets/js/app.js` | Camera, pan/drag, transitions, room rendering, RSVP form, deep links. |
 | `assets/js/tween.js` | Tiny animation engine (replaces GSAP). |
-| `assets/js/audio.js` | **The music.** A nylon-string guitar (Karplus–Strong), a string pad and a soft bass, synthesised in-browser and sequenced live. One key, tempo and mix per place (`MOODS`). No sea, wind or birdsong — those buses are gone. Starts on "Begin the walk"; the choice is remembered. |
+| `assets/js/audio.js` | **The music player.** Loads `assets/audio/*.mp3`, loops it, fades it, and turns it down inside a room (`ROOMS`). Starts on "Begin the walk"; the choice is remembered. |
+| `assets/audio/` | **The music itself** — a licensed track. See the music section below before replacing it. |
 | `assets/css/main.css` | Design tokens at `:root`, layout, all ambient keyframes. |
 | `the-journey.html` | Single-file build (same content, no `assets/` needed). Generated — never edit it by hand. |
 | `build.py` | Regenerates both single-file builds from `assets/`. Run after every change. |
@@ -342,47 +350,44 @@ dancers plus the DJ. The dancing itself got its energy back: `ww-dance` had
 been flattened when every figure animation was scaled down, and is now ±4° with
 a lift of 0.052 of the figure's height.
 
-**The music is a piano trio, and it is only music.** `audio.js` has been
-rewritten twice. The sea, wind and birdsong buses were deleted in the first
-pass — no environmental sound anywhere, and there is none. The second pass
-threw out the guitar piece with it: Dana's word for it was "somber", and she
-was right. What plays now is a swung jazz trio — felt piano, walking upright
-bass, brushes — over jazz turnarounds in major keys, at 100–138bpm depending
-on the room.
+**The music is a licensed recording, and `audio.js` is now tiny.** It went
+through three versions before this one — sea-and-wind ambience, then a
+synthesised nylon-guitar piece ("somber", and it was), then a synthesised jazz
+trio — all because there was no file we were allowed to play. There is now.
 
-  The parts worth knowing before you touch it:
-  - **Swing.** Every off-beat eighth lands late, about two thirds of the way
-    through the beat (`m.swing` in `MOODS`). Take that out and the whole thing
-    turns back into a music box. It is the single most important number in the
-    file.
-  - **The walking bass** is most of what makes it read as jazz rather than as
-    a synth patch: root on the downbeat, chord tones through the bar, a
-    semitone leading note into whatever chord comes next.
-  - **The piano** is additive — five partials stretched very slightly sharp,
-    each dying faster than the one below it, with a few milliseconds of
-    filtered noise on the front for the hammer. That decay order is why a
-    piano note gets warmer as it fades instead of just quieter.
-  - **The brushes are drums, not weather.** Short, rhythmic, quiet, on 2 and
-    4 with a ride figure. If you make them longer or wetter they start
-    sounding like the sea again, which is the one thing this must never do.
+  The track is **"Swing Jazz Midnight Club" by Alex Morgan, from Pixabay**
+  (track 568167), kept at `assets/audio/swing-jazz-midnight-club.mp3`. The
+  Pixabay Content License covers use on a website, commercial or not, with no
+  attribution required — which is why this one can be here when the earlier
+  suggestions could not. **If you swap it, check the new licence covers a
+  *website*,** not just video: most "free for YouTube" music does not, and
+  check whether it wants a credit line.
 
-  Levels were checked rather than guessed: rendered offline through an
-  `OfflineAudioContext`, it peaks around -4 dBFS on the after-party and -5
-  elsewhere, with nothing clipping. `OUT` is the single make-up gain if the
-  whole thing needs to be louder or quieter; the per-room numbers next to it
-  are a *balance* between the three players, not a volume.
+  `audio.js` is an element, a volume and a fade. Two decisions in it are
+  deliberate and worth not undoing:
+  - **No Web Audio.** Routing the element through an `AudioContext` would buy
+    a per-room filter and cost the whole thing working when someone opens the
+    HTML by double-clicking it — a media element through an AudioContext goes
+    silent under `file://`. Volume alone is enough; at background level nobody
+    hears a lowpass. Rooms differ by level, in the `ROOMS` table.
+  - **A list of paths, not one.** `SOURCES` holds the file both as
+    `assets/audio/…` and as a bare filename, because the site is published two
+    ways — with a real `assets/` folder, and flattened to the root of the
+    repository with the mp3 beside the HTML. The first path that loads wins.
+    Add to the front of that list, never take from the end.
 
-> **The recordings Dana has sent cannot go on the site, and this will come up
-> again.** Round one was two YouTube links; round two was an mp3 of a
-> commercially released solo piano record, ripped from YouTube (the filename
-> still said so). Both are somebody's copyright, and the rips break YouTube's
-> terms as well. This is not a technical problem and rebuilding the player
-> will not solve it. The fix is a licence: Epidemic Sound, Artlist and
-> Musicbed all licence this kind of thing for a website for a small annual
-> fee. Once there is a licensed file, drop it in, delete the sequencer, and
-> point the buses at an `<audio>` element — the mixing, the per-room levels
-> and the ducking all keep working. Until then, what is here is original,
-> written to sit in the same room as the reference rather than to copy it.
+  The `<audio>` element is appended to the document with `id="ww-music"`, so
+  the next person wondering whether the music is actually playing can find it
+  in the inspector rather than guessing.
+
+> **Recordings Dana sends will keep needing this check.** Round one was two
+> YouTube links; round two was an mp3 of a commercially released piano record,
+> ripped from YouTube. Neither could go on the site — somebody's copyright,
+> and the rips break YouTube's terms as well. Round three was a Pixabay track,
+> which is fine, and is what is playing. If a future track arrives from
+> anywhere else, the question is always the same: what does its licence say
+> about a website? Epidemic Sound, Artlist and Musicbed all licence this kind
+> of music properly for a small annual fee.
 
 ## Deliberate decisions worth knowing
 - **2.5D parallax, not Three.js** — the brief recommended this for reliability on phones.
@@ -438,9 +443,9 @@ drift. That drift was the root cause of three separate complaints.
 
 ## Not done / open
 
-- **The feedback round is not live yet.** `python3 build.py` has been run and
-  `UPLOAD-THIS-ONE-FILE/index.html` is current; it still has to be dragged into
-  github.com → Add file ▸ Upload files. Until then the live site shows the
+- **The feedback rounds are not live yet.** `python3 build.py` has been run and
+  `UPLOAD-THESE-FILES/` is current; both files in it still have to be dragged
+  into github.com → Add file ▸ Upload files. Until then the live site shows the
   orange "Enter" chips, the plaque behind the names, and the old ambience.
 - **Twelve local commits have never reached GitHub** (count as of 21 Aug 2026;
   `git log --oneline origin/main..main` is the live answer). No credentials on

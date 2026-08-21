@@ -8,17 +8,26 @@ assets/ folder. Edit the real sources in assets/, then run:
 
     python3 build.py
 
-It writes two identical single-file builds:
-    UPLOAD-THIS-ONE-FILE/index.html   <- upload this one to GitHub
-    the-journey.html                  <- the same thing, kept in the repo
+It writes:
+    UPLOAD-THESE-FILES/index.html   <- upload BOTH of these to GitHub
+    UPLOAD-THESE-FILES/*.mp3
+    the-journey.html                <- the same page, kept in the repo
+
+The music is a real recording, so it cannot be baked into the HTML the way
+the CSS and the scripts are — a few megabytes of base64 in front of the page
+would hold up the whole site. It travels as a second file instead, and
+audio.js looks for it both beside the HTML and under assets/audio/, so the
+same build works in either layout. **If the site is ever silent on the live
+URL, the mp3 did not get uploaded.**
 
 If you ever publish with GitHub Desktop instead (which preserves folders),
 none of this is needed: the normal index.html + assets/ works as it is.
 """
-import re, os, sys
+import re, os, sys, shutil, glob
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 ORDER = ['tween', 'content', 'art', 'scenes', 'audio', 'app']
+OUTDIR = 'UPLOAD-THESE-FILES'
 
 
 def read(*parts):
@@ -41,8 +50,8 @@ def build():
     out = ('<!DOCTYPE html>\n<html lang="en">\n<head>' + head +
            '</head>\n<body>\n' + body + '</body>\n</html>\n')
 
-    os.makedirs(os.path.join(ROOT, 'UPLOAD-THIS-ONE-FILE'), exist_ok=True)
-    for path in [os.path.join('UPLOAD-THIS-ONE-FILE', 'index.html'), 'the-journey.html']:
+    os.makedirs(os.path.join(ROOT, OUTDIR), exist_ok=True)
+    for path in [os.path.join(OUTDIR, 'index.html'), 'the-journey.html']:
         with open(os.path.join(ROOT, path), 'w', encoding='utf-8') as fh:
             fh.write(out)
         print('wrote %s  (%d KB)' % (path, len(out.encode('utf-8')) // 1024))
@@ -56,6 +65,20 @@ def build():
     if 'assets/js/' in out or 'assets/css/' in out:
         sys.exit('BUILD FAILED: the bundle still points at assets/')
     print('all six scripts and the stylesheet are inlined.')
+
+    # the music travels beside the HTML, not inside it
+    tracks = sorted(glob.glob(os.path.join(ROOT, 'assets', 'audio', '*.mp3')))
+    if not tracks:
+        sys.exit('BUILD FAILED: no music found in assets/audio/')
+    for track in tracks:
+        dest = os.path.join(ROOT, OUTDIR, os.path.basename(track))
+        shutil.copyfile(track, dest)
+        print('copied %s  (%d KB)' % (os.path.basename(track),
+                                      os.path.getsize(track) // 1024))
+        if os.path.basename(track) not in out:
+            sys.exit('BUILD FAILED: audio.js does not mention %s'
+                     % os.path.basename(track))
+    print('upload EVERY file in %s/ — the page is silent without the mp3.' % OUTDIR)
 
 
 if __name__ == '__main__':

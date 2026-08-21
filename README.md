@@ -119,9 +119,9 @@ assets/js/scenes.js      the eight illustrated places (hub + seven rooms)
 assets/js/art.js         the drawing kit: cliffs, houses, olive trees, lanterns
 assets/js/app.js         the camera, transitions, RSVP form
 assets/js/tween.js       a small animation engine (replaces GSAP)
-assets/js/audio.js       the music: a nylon-string guitar, a warm pad and a
-                         soft bass, played live in the browser. No nature
-                         sounds. Starts with "Begin the walk"
+assets/js/audio.js       the music player — loads the track, loops it, fades
+                         it, and turns it down inside a room
+assets/audio/            the music itself (licensed; see below)
 BRIEF.md                 the original project brief
 ```
 
@@ -142,8 +142,12 @@ follows, illustrations included.
   Next" links inside a room walk on without going outside first.
 - **RSVP from anywhere:** the glowing lantern, bottom-right.
 - **Music:** the speaker button top-right turns it on or off, and remembers the
-  choice. It is an instrumental piece — guitar, strings and bass — that changes
-  key and tempo from room to room. Nothing environmental: no waves, no wind.
+  choice. It is "Swing Jazz Midnight Club" by Alex Morgan, from Pixabay — free
+  for website use, commercial or not, with no credit required. It loops, and it
+  steps back a little inside a room so the words are the thing you notice.
+  To change it, drop a new file in `assets/audio/`, point `SOURCES` at the top
+  of `assets/js/audio.js` at it, and check the new track's licence covers use
+  on a *website* (many free-for-YouTube tracks do not).
 
 ---
 
