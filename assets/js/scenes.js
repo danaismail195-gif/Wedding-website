@@ -584,20 +584,30 @@
            "the couple" at 150px tall. */
 
         /* --- the guests who are not sitting down ----------------------- */
-        /* Feet on the terrace, and above y=866: the room is drawn at 1600x900
-           but the camera crops a little off the bottom on a laptop, and a
-           guest standing at 890 loses their shoes to it. */
-        g += A.chatGroup(150, 856, 126, 711);              /* near the terrace edge */
-        g += A.chatGroup(880, 850, 116, 719, { n: 3 });    /* by the aisle */
-        g += A.chatGroup(1420, 854, 120, 723, { n: 2 });   /* off to the right */
+        /* One crowd, gathered to the right of the aisle, close enough to read
+           as people who came together — they used to be three knots at 150,
+           880 and 1420 with the whole terrace between them. Everybody in it
+           shifts their weight and most of them nod (`lively`), so the group
+           has the same low-level movement the dancefloor has.
+           Feet stay above y=866: the room is drawn 1600x900 but the camera
+           crops a little off the bottom on a laptop, and a guest standing at
+           890 loses their shoes to it. */
+        g += A.chatGroup(824, 856, 122, 711, { n: 3, lively: true });
+        g += A.chatGroup(946, 850, 116, 719, { n: 3, lively: true });
+        g += A.chatGroup(1146, 854, 118, 723, { n: 2, lively: true });
 
         /* someone photographing the arch, someone raising a glass */
-        g += A.person({ x: 436, baseY: 860, h: 124, pose: 'photo', hold: 'camera',
-          seed: 727, anim: 'ww-idle' });
-        g += A.person({ x: 1010, baseY: 862, h: 122, pose: 'toast', hold: 'glass',
-          flip: true, seed: 733, anim: 'ww-talk' });
-        g += A.person({ x: 1064, baseY: 866, h: 126, pose: 'listen', seed: 737,
-          anim: 'ww-idle' });
+        /* the photographer works the near edge of the crowd, turned back
+           towards the arch — which is also what keeps the group anchored to
+           the ceremony rather than floating on the terrace */
+        g += A.person({ x: 748, baseY: 858, h: 124, pose: 'photo', hold: 'camera',
+          flip: true, seed: 727, anim: 'ww-mingle', headAnim: 'ww-nod-slow',
+          delay: -1.7 });
+        g += A.person({ x: 1042, baseY: 862, h: 122, pose: 'toast', hold: 'glass',
+          flip: true, seed: 733, anim: 'ww-mingle', headAnim: 'ww-nod',
+          armAnim: 'ww-arm-raise', delay: -3.4, headDelay: -2.2 });
+        g += A.person({ x: 1086, baseY: 866, h: 126, pose: 'listen', seed: 737,
+          anim: 'ww-mingle', headAnim: 'ww-nod', delay: -0.9, headDelay: -4.1 });
 
         /* The two who used to drift across the middle of the aisle are gone:
            they stood directly below the arch, between the guest and the
@@ -658,22 +668,20 @@
         }
         return g;
       })() +
-      /* One long dancefloor, not a crowd and then a stranger: the DJ used to
-         stand 470 units clear of the nearest dancer, which read as somebody
-         who had wandered off. The decks have come in to meet the floor, and
-         the dancers spread to meet them. */
-      A.dancer(236, 830, 210, '#0C1119', 0) +
-      A.dancer(392, 848, 190, '#0C1119', -0.9) +
-      A.dancer(556, 836, 220, '#0C1119', -1.7) +
-      A.dancer(714, 852, 176, '#0C1119', -0.4) +
-      A.dancer(872, 840, 200, '#0C1119', -2.2) +
-      /* two hanging back at the edge of it all, drinks in hand */
-      A.person({ x: 96, baseY: 862, h: 188, flat: '#0C1119', pose: 'chat', hold: 'glass',
-        seed: 811, anim: 'ww-talk' }) +
-      A.person({ x: 158, baseY: 868, h: 178, flat: '#0C1119', pose: 'listen', flip: true,
-        seed: 817, anim: 'ww-idle' }) +
+      /* Everybody on this floor is dancing. There used to be two figures
+         standing still with drinks at the far left, and next to seven people
+         moving they read as a glitch rather than as a quiet corner — so they
+         are gone and the floor runs the full width instead. The DJ, who once
+         stood 470 units clear of the nearest dancer, is at the right-hand end
+         of the same crowd. */
+      A.dancer(112, 838, 196, '#0C1119', -2.6) +
+      A.dancer(258, 830, 214, '#0C1119', 0) +
+      A.dancer(404, 850, 186, '#0C1119', -0.9) +
+      A.dancer(552, 836, 222, '#0C1119', -1.7) +
+      A.dancer(702, 852, 178, '#0C1119', -0.4) +
+      A.dancer(858, 840, 204, '#0C1119', -2.2) +
       /* the DJ — drawn first, so the decks stand in front of them */
-      A.dancer(1026, 846, 194, '#0C1119', -1.4) +
+      A.dancer(1014, 846, 192, '#0C1119', -1.4) +
       A.person({ x: 1178, baseY: 862, h: 200, flat: '#0C1119', pose: 'dance', seed: 823,
         anim: 'ww-dance', delay: -1.1 }) +
       '<rect x="1103" y="806" width="150" height="58" rx="4" fill="#0C1119"/>' +

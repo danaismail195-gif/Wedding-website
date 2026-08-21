@@ -551,7 +551,7 @@ svg { display: block; }
 #hub.is-moving .ww-fly, #hub.is-moving .ww-flap, #hub.is-moving .ww-spin-slow,
 #hub.is-moving .ww-plane, #hub.is-moving .ww-plane-door, #hub.is-moving .ww-idle,
 #hub.is-moving .ww-talk, #hub.is-moving .ww-laugh, #hub.is-moving .ww-stroll,
-#hub.is-moving .ww-nod, #hub.is-moving .ww-nod-slow,
+#hub.is-moving .ww-nod, #hub.is-moving .ww-nod-slow, #hub.is-moving .ww-mingle,
 #hub.is-moving .ww-arm-talk, #hub.is-moving .ww-arm-raise {
   animation-play-state: paused;
 }
@@ -601,12 +601,12 @@ svg { display: block; }
 @keyframes ww-pulse { 0%, 100% { opacity: .78; transform: scale(1); } 50% { opacity: 1; transform: scale(1.06); } }
 .ww-glow-soft { animation: ww-glow 7.5s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-glow { 0%, 100% { opacity: .45; } 50% { opacity: .78; } }
-.ww-dance { animation: ww-dance 2.1s ease-in-out infinite; transform-box: fill-box; }
+.ww-dance { animation: ww-dance 1.8s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-dance {
-  0%, 100% { transform: translateY(0) rotate(-2.4deg); }
-  25%      { transform: translateY(var(--ww-lift, -6px)) rotate(0deg); }
-  50%      { transform: translateY(0) rotate(2.4deg); }
-  75%      { transform: translateY(calc(var(--ww-lift, -6px) * .7)) rotate(0deg); }
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  25%      { transform: translateY(var(--ww-lift, -9px)) rotate(0deg) scaleY(1.03); }
+  50%      { transform: translateY(0) rotate(4deg); }
+  75%      { transform: translateY(calc(var(--ww-lift, -9px) * .66)) rotate(0deg) scaleY(1.02); }
 }
 .ww-fly { animation: ww-fly 46s linear infinite; transform-box: fill-box; }
 @keyframes ww-fly { from { transform: translate(-10%, 14px); } to { transform: translate(120%, -34px); } }
@@ -662,6 +662,16 @@ svg { display: block; }
   0%, 62%, 100% { transform: rotate(0deg); }
   22%           { transform: rotate(-13deg); }
   40%           { transform: rotate(-9deg); }
+}
+/* Standing about at a party: weight shifting from one foot to the other,
+   with a little lift in it. More than ww-idle, a long way short of dancing —
+   the register for a crowd that is waiting for something to start. */
+.ww-mingle { animation: ww-mingle 4.8s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-mingle {
+  0%, 100% { transform: rotate(-2.4deg) translateY(0); }
+  30%      { transform: rotate(1.2deg) translateY(var(--ww-amp-y, -1.6px)); }
+  62%      { transform: rotate(2.4deg) translateY(0); }
+  82%      { transform: rotate(-.6deg) translateY(var(--ww-amp-y, -1.6px)); }
 }
 .ww-stroll { animation: ww-stroll 22s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-stroll {

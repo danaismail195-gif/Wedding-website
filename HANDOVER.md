@@ -270,9 +270,13 @@ stick-like. Three things fixed most of it:
 `armAnim`; each wraps that part in its own group pivoting on a real joint (the
 base of the neck, the shoulder), with `ww-nod`, `ww-nod-slow`, `ww-arm-talk`
 and `ww-arm-raise` in §10 of `main.css`. **Use them only where the guest is
-close enough to see it.** The dinner table gets all of it; the wedding crowd
-deliberately gets none, because thirty distant figures all gesturing is noise,
-and "everyone in one scene moves in one register" is still the rule.
+close enough to see it.** The dinner table gets all of it. The seated wedding
+guests in the chairs get none — thirty distant figures all gesturing is noise
+— but the standing crowd on the terrace does, at Dana's request: see
+`chatGroup(..., { lively: true })`, which puts everyone on `ww-mingle` (a
+weight-shift, more than idling and a long way short of dancing), nods most
+heads and gives the talkers their hands. "Everyone in one scene moves in one
+register" is still the rule; the register for that scene just went up.
 
 **Welcome Dinner.** Every seat has somebody in it — seven along the far side,
 six on the near side, and the table was widened to 1240 to hold them. The
@@ -330,33 +334,55 @@ so nobody stands alone.
 
 **The After-Party.** The DJ was 470 units clear of the nearest dancer, which
 read as somebody who had wandered off on their own. The decks came in to meet
-the floor (now at x=1103 instead of 1276), a sixth dancer fills the space
-between, and the whole thing reads as one crowd.
+the floor (now at x=1103 instead of 1276) and the whole thing reads as one
+crowd. Round three: the two figures who stood at the far left holding drinks
+are gone — next to seven people moving, two people not moving read as a glitch
+rather than as a quiet corner — and the floor now runs the full width, seven
+dancers plus the DJ. The dancing itself got its energy back: `ww-dance` had
+been flattened when every figure animation was scaled down, and is now ±4° with
+a lift of 0.052 of the figure's height.
 
-**The music is new, and it is only music.** `audio.js` was rewritten. The sea,
-wind and birdsong buses are deleted — the feedback asked for no environmental
-sound at all, and there is none. In their place: a piece built on the
-Andalusian cadence (i–VII–VI–V), played by a nylon-string guitar, a three-voice
-string pad and a soft bass through a synthesised hall. Each room shifts the
-key, the tempo and the balance — the same band, a different part of the
-evening. The guitar is Karplus–Strong (a noise burst fed back through its own
-delay line), which is what makes it sound like gut and wood rather than an
-oscillator. The after-party keeps a muted kick on the beat; it is an
-instrument, not a room recording.
+**The music is a piano trio, and it is only music.** `audio.js` has been
+rewritten twice. The sea, wind and birdsong buses were deleted in the first
+pass — no environmental sound anywhere, and there is none. The second pass
+threw out the guitar piece with it: Dana's word for it was "somber", and she
+was right. What plays now is a swung jazz trio — felt piano, walking upright
+bass, brushes — over jazz turnarounds in major keys, at 100–138bpm depending
+on the room.
 
-  Levels were checked rather than guessed: rendered offline, the piece peaks
-  around -4 dBFS on the loudest room and -6 dBFS elsewhere, with nothing
-  clipping. `OUT` in `audio.js` is the single make-up gain if it needs to be
-  louder or quieter overall; the per-room numbers next to it are a *balance*
-  between the three instruments, not a volume.
+  The parts worth knowing before you touch it:
+  - **Swing.** Every off-beat eighth lands late, about two thirds of the way
+    through the beat (`m.swing` in `MOODS`). Take that out and the whole thing
+    turns back into a music box. It is the single most important number in the
+    file.
+  - **The walking bass** is most of what makes it read as jazz rather than as
+    a synth patch: root on the downbeat, chord tones through the bar, a
+    semitone leading note into whatever chord comes next.
+  - **The piano** is additive — five partials stretched very slightly sharp,
+    each dying faster than the one below it, with a few milliseconds of
+    filtered noise on the front for the hammer. That decay order is why a
+    piano note gets warmer as it fades instead of just quieter.
+  - **The brushes are drums, not weather.** Short, rhythmic, quiet, on 2 and
+    4 with a ride figure. If you make them longer or wetter they start
+    sounding like the sea again, which is the one thing this must never do.
 
-> **Still true, and worth repeating to Dana:** the two tracks in the original
-> feedback were YouTube links. They cannot be downloaded and re-hosted — it is
-> against YouTube's terms and the recordings are somebody's copyright. If she
-> wants a specific recording, it needs a licence (Epidemic Sound, Artlist or
-> similar); then drop the file in, delete the scheduler, and point the music
-> bus at an `<audio>` element. The mixing, the per-room levels and the ducking
-> all keep working.
+  Levels were checked rather than guessed: rendered offline through an
+  `OfflineAudioContext`, it peaks around -4 dBFS on the after-party and -5
+  elsewhere, with nothing clipping. `OUT` is the single make-up gain if the
+  whole thing needs to be louder or quieter; the per-room numbers next to it
+  are a *balance* between the three players, not a volume.
+
+> **The recordings Dana has sent cannot go on the site, and this will come up
+> again.** Round one was two YouTube links; round two was an mp3 of a
+> commercially released solo piano record, ripped from YouTube (the filename
+> still said so). Both are somebody's copyright, and the rips break YouTube's
+> terms as well. This is not a technical problem and rebuilding the player
+> will not solve it. The fix is a licence: Epidemic Sound, Artlist and
+> Musicbed all licence this kind of thing for a website for a small annual
+> fee. Once there is a licensed file, drop it in, delete the sequencer, and
+> point the buses at an `<audio>` element — the mixing, the per-room levels
+> and the ducking all keep working. Until then, what is here is original,
+> written to sit in the same room as the reference rather than to copy it.
 
 ## Deliberate decisions worth knowing
 - **2.5D parallax, not Three.js** — the brief recommended this for reliability on phones.

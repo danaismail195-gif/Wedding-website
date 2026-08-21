@@ -748,7 +748,7 @@
     var cls = o.anim !== false ? (o.anim || 'ww-idle') : '';
     var delay = o.delay != null ? o.delay : -(r() * 6);
     var vars = '--ww-amp-y:' + f(-h * 0.009) + 'px;--ww-amp-x:' + f(h * 0.10) + 'px;' +
-               '--ww-lift:' + f(-h * 0.030) + 'px;';
+               '--ww-lift:' + f(-h * 0.052) + 'px;';
     return shadow + '<g class="' + cls + '" style="transform-box:view-box;transform-origin:' +
       f(x) + 'px ' + f(b) + 'px;' + vars +
       (cls ? 'animation-delay:' + f(delay) + 's;' : '') + '">' +
@@ -778,11 +778,21 @@
       var hh = h * (0.93 + r() * 0.14);
       var facing = off <= 0;                       /* everyone faces the middle */
       var pose = i === talker ? 'chat' : (r() < 0.3 ? 'laugh' : 'listen');
+      /* `lively` is for a crowd the guest is meant to watch: everyone shifts
+         their weight, most of them nod, the talker uses their hands. Leave it
+         off for people who are only scenery. */
+      var anim = pose === 'laugh' ? 'ww-laugh'
+               : opts.lively ? 'ww-mingle'
+               : (i === talker ? 'ww-talk' : 'ww-idle');
       g += person({
         x: x + off, baseY: baseY + (r() - 0.5) * h * 0.03, h: hh,
         pose: pose, flip: !facing, seed: (seed || 7) * 31 + i * 7,
         hold: r() < 0.45 ? 'glass' : null,
-        anim: pose === 'laugh' ? 'ww-laugh' : (i === talker ? 'ww-talk' : 'ww-idle'),
+        anim: anim,
+        headAnim: opts.lively ? (r() < 0.55 ? 'ww-nod' : 'ww-nod-slow') : null,
+        armAnim: opts.lively && (i === talker || r() < 0.4) ? 'ww-arm-talk' : null,
+        delay: opts.lively ? -((seed || 7) * 0.7 + i * 1.9) % 6 : null,
+        headDelay: opts.lively ? -((seed || 7) * 0.3 + i * 1.3) % 5 : null,
         flat: opts.flat, cloth: opts.cloth
       });
     }

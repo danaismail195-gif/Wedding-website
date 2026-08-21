@@ -1,25 +1,35 @@
 /* ==========================================================================
    audio.js — the music, played in the browser
    --------------------------------------------------------------------------
-   One instrumental piece, written for this site and synthesised on the fly:
-   a nylon-string guitar over a warm string pad and a soft upright bass,
-   through a hall. No vocals. No sea, no wind, no birds, no weather of any
-   kind — the ambience track that used to run underneath all of this is gone
-   and nothing environmental replaces it.
+   A piano trio: felt piano, walking upright bass, brushes. Swung eighths,
+   jazz turnarounds, major keys, and nothing environmental anywhere in it —
+   no sea, no wind, no birds, no weather.
 
-   Why it is synthesised rather than a licensed recording: a real track has
-   to be bought, hosted and paid for, and the two links that came back with
-   the feedback were YouTube, which cannot be downloaded and re-hosted. This
-   plays the same music every visit, weighs nothing, and starts instantly.
-   To swap in a real recording later, delete the scheduler and point `music`
-   at an <audio> element — the mixing, ducking and per-room levels below all
+   Why it is synthesised. The reference that came back with this round was an
+   mp3 ripped from YouTube of a commercially released piano record. That
+   cannot go on a public website: it is somebody's recording and somebody's
+   copyright, and the rip itself breaks YouTube's terms. What is here instead
+   is an original piece written in the same room as that idea — light, swung,
+   warm, played rather than performed. To use a real recording, buy one
+   (Epidemic Sound, Artlist, Musicbed all licence this kind of thing for a
+   website), drop the file in, delete the sequencer, and point the buses at an
+   <audio> element: the mixing, the per-room levels and the ducking below all
    keep working unchanged.
 
-   The piece: an Andalusian cadence (i - VII - VI - V), the four chords the
-   whole Mediterranean is built on, taken slowly. Each room shifts the key,
-   the tempo and the balance of the three instruments, so walking from the
-   terrace to the after-party feels like the same band playing a different
-   part of the evening rather than a different playlist.
+   How it is put together:
+     · Harmony  — jazz turnarounds (I VI- ii- V, ii- V I, a blues) with the
+                  key, the tempo and the changes set per room by MOODS.
+     · Piano    — additive, five slightly stretched partials with a hammer
+                  click on the front. Right hand takes a line through the
+                  changes; left hand comps rootless voicings off the beat.
+     · Bass     — walks. Root on the downbeat, chord tones through the bar,
+                  a leading note into whatever comes next. This is most of
+                  what makes it read as jazz rather than as a synth patch.
+     · Brushes  — 2 and 4, and a ride figure. Quiet: they are the floor of
+                  the mix, not a feature.
+     · Swing    — every off-beat eighth lands late, two thirds of the way
+                  through the beat. Take that out and the whole thing turns
+                  back into a music box.
 
    Nothing starts until the guest presses "Begin the walk", because that
    click is the browser's price of admission for sound.
@@ -27,56 +37,59 @@
 (function (global) {
   'use strict';
 
-  var ctx = null, master = null, verbSend = null;
-  var bus = {};                       // guitar | pad | bass | sparkle
+  var ctx = null, master = null, verb = null;
+  var bus = {};                       // piano | bass | drums
   var started = false, muted = true;
   var sceneId = 'hub', level = 0.5;
-  /* Make-up gain. The per-room numbers below are a *balance* between the
-     three instruments, kept in the 0–1 range where they are easy to read;
-     this is what turns that balance into a listenable level. Measured
-     offline, the piece peaks around -8 dBFS with this — present, with
-     headroom left for the moments when a chord, a bass note and a bell all
-     land together. */
-  var OUT = 6;
   var timer = null, nextTime = 0, step = 0;
-  var plucks = {};                    // cached plucked-string buffers, by pitch
+  var walk = 0;                       // where the bass currently is, in semitones
 
-  /* --- the piece ------------------------------------------------------- */
+  /* Make-up gain. The per-room numbers below are a *balance* between the
+     three players, kept in the 0–1 range where they are easy to read; this
+     is what turns that balance into a listenable level. */
+  var OUT = 5.5;
 
-  /* Chords as semitones from the room's root. Five voices each: the guitar
-     arpeggiates them, the pad holds the middle three, the bass takes the
-     lowest two octaves down. */
-  var PROGS = {
-    /* i - VII - VI - V. Warm, a little wistful, unmistakably southern. */
-    andalusian: [[0, 3, 7, 12, 15], [-2, 2, 5, 10, 14], [-4, 0, 3, 8, 12], [-5, -1, 2, 7, 11]],
-    /* major and open — for golden hour */
-    golden:     [[0, 4, 7, 11, 16], [-3, 0, 4, 9, 12], [-5, -1, 2, 7, 14], [-7, -3, 0, 4, 11]],
-    /* softer, suspended, for the quiet rooms */
-    lull:       [[0, 4, 7, 11, 14], [-3, 0, 4, 7, 12], [-5, -1, 2, 7, 11], [-7, -3, 0, 5, 9]],
-    /* minor with a seventh — the small hours */
-    nocturne:   [[0, 3, 7, 10, 14], [-4, 0, 3, 7, 12], [-5, -2, 2, 7, 10], [-7, -4, 0, 5, 8]]
+  /* --- the changes ------------------------------------------------------
+     Each chord is [root offset in semitones, quality]. Qualities are the
+     four that carry every standard ever written. */
+  var QUALITY = {
+    maj7: [0, 4, 7, 11, 14],
+    min7: [0, 3, 7, 10, 14],
+    dom7: [0, 4, 7, 10, 14],
+    min6: [0, 3, 7, 9, 14]
   };
 
-  /* Which figure the guitar plays over each chord. Indices into the chord;
-     -1 is a rest, and the rests are what stop it sounding like an exercise. */
-  var FIGURES = [
-    [0, 2, 3, -1, 1, 2, 4, -1],
-    [0, 2, 4, 2, -1, 3, 1, -1],
-    [0, 3, 2, 4, -1, 2, -1, 1],
-    [0, 2, 3, 2, 4, -1, 1, -1]
+  var PROGS = {
+    /* I  VI-  ii-  V — the turnaround the whole songbook runs on */
+    turnaround: [[0, 'maj7'], [-3, 'min7'], [2, 'min7'], [-5, 'dom7']],
+    /* I  IV  ii-  V — brighter, more open */
+    sunny:      [[0, 'maj7'], [5, 'maj7'], [2, 'min7'], [-5, 'dom7']],
+    /* ii-  V  I  I — the cadence, taken slowly */
+    bossa:      [[2, 'min7'], [-5, 'dom7'], [0, 'maj7'], [0, 'maj7']],
+    /* a short blues, for the small hours */
+    blues:      [[0, 'dom7'], [5, 'dom7'], [0, 'dom7'], [-5, 'dom7']]
+  };
+
+  /* Which eighths the right hand plays on, and which it leaves alone. The
+     rests are what stop it sounding like an exercise; the swing is what
+     stops it sounding like a clock. */
+  var LINES = [
+    [1, 0, 1, 1, 0, 1, 1, 0],
+    [1, 1, 0, 1, 0, 0, 1, 1],
+    [1, 0, 1, 0, 1, 1, 0, 1],
+    [0, 1, 1, 0, 1, 0, 1, 1]
   ];
 
-  /* One mix per place. `root` is the key in Hz, `bpm` the pulse, and the
-     three levels are the balance of the band. Everything here is music. */
+  /* One mix per place. Same band, different room. */
   var MOODS = {
-    hub:        { root: 220.00, prog: 'andalusian', bpm: 62, guitar: .30, pad: .13, bass: .16, sparkle: .11 },
-    welcome:    { root: 196.00, prog: 'lull',       bpm: 56, guitar: .27, pad: .16, bass: .17, sparkle: .09 },
-    wedding:    { root: 246.94, prog: 'golden',     bpm: 66, guitar: .31, pad: .15, bass: .15, sparkle: .14 },
-    afterparty: { root: 164.81, prog: 'nocturne',   bpm: 96, guitar: .24, pad: .17, bass: .20, sparkle: .08, pulse: true },
-    explore:    { root: 233.08, prog: 'andalusian', bpm: 72, guitar: .30, pad: .12, bass: .15, sparkle: .13 },
-    stay:       { root: 207.65, prog: 'lull',       bpm: 58, guitar: .27, pad: .15, bass: .16, sparkle: .10 },
-    travel:     { root: 220.00, prog: 'golden',     bpm: 68, guitar: .28, pad: .13, bass: .15, sparkle: .12 },
-    rsvp:       { root: 174.61, prog: 'andalusian', bpm: 54, guitar: .28, pad: .17, bass: .18, sparkle: .12 }
+    hub:        { root: 261.63, prog: 'turnaround', bpm: 116, swing: .30, piano: .30, bass: .22, drums: .11 },
+    welcome:    { root: 233.08, prog: 'sunny',      bpm: 104, swing: .32, piano: .29, bass: .23, drums: .10 },
+    wedding:    { root: 293.66, prog: 'sunny',      bpm: 124, swing: .28, piano: .32, bass: .21, drums: .12 },
+    afterparty: { root: 233.08, prog: 'blues',      bpm: 138, swing: .30, piano: .27, bass: .28, drums: .16 },
+    explore:    { root: 277.18, prog: 'turnaround', bpm: 122, swing: .29, piano: .30, bass: .22, drums: .12 },
+    stay:       { root: 246.94, prog: 'bossa',      bpm: 106, swing: .26, piano: .28, bass: .21, drums: .09 },
+    travel:     { root: 261.63, prog: 'sunny',      bpm: 118, swing: .30, piano: .29, bass: .22, drums: .11 },
+    rsvp:       { root: 220.00, prog: 'bossa',      bpm: 100, swing: .32, piano: .30, bass: .22, drums: .09 }
   };
 
   function mood() { return MOODS[sceneId] || MOODS.hub; }
@@ -87,11 +100,9 @@
     param.setValueAtTime(param.value, t());
     param.linearRampToValueAtTime(to, t() + (secs || 1.2));
   }
+  function pick(a) { return a[(Math.random() * a.length) | 0]; }
 
-  /* --- instruments ------------------------------------------------------ */
-
-  /* A hall, made out of decaying noise. Cheap, and it is what stops a
-     synthesised guitar sounding like a ringtone. */
+  /* --- the room --------------------------------------------------------- */
   function impulse(seconds, decay) {
     var len = Math.floor(ctx.sampleRate * seconds);
     var buf = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -102,158 +113,181 @@
     return buf;
   }
 
-  /* A plucked nylon string, by Karplus–Strong: a short burst of noise fed
-     back through its own delay line, losing its edges a little on every
-     lap. That averaging is the whole trick — it is why this sounds like
-     gut and wood instead of like an oscillator. Buffers are rendered once
-     per pitch and kept. */
-  function pluckBuffer(freq) {
-    var key = Math.round(freq * 4);
-    if (plucks[key]) return plucks[key];
-    var sr = ctx.sampleRate;
-    var n = Math.max(8, Math.round(sr / freq));
-    var len = Math.floor(sr * 1.9);
-    var buf = ctx.createBuffer(1, len, sr);
-    var d = buf.getChannelData(0);
-    var i, last = 0;
-    /* the pluck itself: noise, rolled off so it reads as a fingertip
-       rather than a plectrum */
-    for (i = 0; i < n; i++) {
-      var white = Math.random() * 2 - 1;
-      last = last * 0.55 + white * 0.45;
-      d[i] = last;
+  var noiseBuf = null;
+  function noise() {
+    if (!noiseBuf) {
+      var len = Math.floor(ctx.sampleRate * 2);
+      noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+      var d = noiseBuf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     }
-    /* The averaging of two neighbouring samples one period back is what
-       rounds a string off as it rings — the highs go first, exactly as they
-       do on gut. `rho` is the loss per *sample*, worked back from how long
-       the note should take to die away; applying a per-period figure once
-       per sample instead would silence the string in a few milliseconds. */
-    var damp = 0.5 - Math.min(0.06, freq / 14000);   // higher strings ring less
-    var rho = Math.exp(-1 / (1.7 * sr));
-    for (i = n; i < len; i++) {
-      d[i] = (d[i - n] * damp + d[i - n + 1] * (1 - damp)) * rho;
-    }
-    /* fade the tail so a note never clicks off */
-    var fade = Math.floor(sr * 0.25);
-    for (i = len - fade; i < len; i++) d[i] *= (len - i) / fade;
-    plucks[key] = buf;
-    return buf;
-  }
-
-  function pluck(freq, when, gainVal, target) {
     var src = ctx.createBufferSource();
-    src.buffer = pluckBuffer(freq);
-    var g = ctx.createGain();
-    g.gain.value = gainVal;
-    var body = ctx.createBiquadFilter();       // the box the string is on
-    body.type = 'lowpass';
-    body.frequency.value = 2600;
-    body.Q.value = 0.6;
-    src.connect(body).connect(g).connect(target || bus.guitar);
-    src.start(when);
-    src.stop(when + 2.1);
+    src.buffer = noiseBuf;
+    src.loop = true;
+    return src;
   }
 
-  /* The pad: three voices, barely detuned, with a long way in and a longer
-     way out. It is the room the guitar is played in. */
-  function padChord(notes, root, when, dur) {
-    var g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, when);
-    g.gain.linearRampToValueAtTime(0.16, when + dur * 0.45);
-    g.gain.linearRampToValueAtTime(0.0001, when + dur * 1.15);
-    var filt = ctx.createBiquadFilter();
-    filt.type = 'lowpass'; filt.frequency.value = 1250; filt.Q.value = 0.3;
-    filt.connect(g).connect(bus.pad);
-    for (var i = 1; i <= 3; i++) {
-      var o = ctx.createOscillator();
-      o.type = i === 2 ? 'sine' : 'triangle';
-      o.frequency.value = semis(root, notes[i]) * (i === 3 ? 1.004 : 1);
-      o.connect(filt);
-      o.start(when);
-      o.stop(when + dur * 1.2);
-    }
-  }
+  /* --- the piano --------------------------------------------------------
+     Five partials, stretched very slightly sharp the way real strings are,
+     each dying faster than the one below it — which is why a piano note
+     gets warmer as it fades instead of just getting quieter. The hammer is
+     a few milliseconds of filtered noise on the front. */
+  var PARTIALS = [1, 2.004, 3.012, 4.028, 5.05];
+  var PART_AMP = [1, 0.46, 0.24, 0.12, 0.06];
 
-  /* A soft upright bass — a sine with a fingered attack. */
-  function bassNote(freq, when, dur) {
-    var o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = 'sine';
-    o.frequency.value = freq;
-    g.gain.setValueAtTime(0.0001, when);
-    g.gain.linearRampToValueAtTime(0.5, when + 0.05);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-    o.connect(g).connect(bus.bass);
-    o.start(when); o.stop(when + dur + 0.05);
-  }
+  function piano(freq, when, vel, dur) {
+    var out = ctx.createGain();
+    out.gain.value = vel;
+    var tone = ctx.createBiquadFilter();
+    tone.type = 'lowpass';
+    tone.frequency.value = Math.min(7000, 1400 + freq * 4.2);
+    tone.Q.value = 0.5;
+    tone.connect(out).connect(bus.piano);
 
-  /* A struck bell, two partials — the celesta at the top of a phrase. */
-  function sparkle(freq, when) {
-    [1, 2.02].forEach(function (mult, i) {
+    for (var i = 0; i < PARTIALS.length; i++) {
+      var f = freq * PARTIALS[i];
+      if (f > 12000) break;
       var o = ctx.createOscillator(), g = ctx.createGain();
       o.type = 'sine';
-      o.frequency.value = freq * mult;
+      o.frequency.value = f;
+      var life = dur * (1 - i * 0.14);
       g.gain.setValueAtTime(0.0001, when);
-      g.gain.linearRampToValueAtTime(i ? 0.10 : 0.24, when + 0.015);
-      g.gain.exponentialRampToValueAtTime(0.0001, when + 3.4);
-      o.connect(g).connect(bus.sparkle);
-      o.start(when); o.stop(when + 3.5);
-    });
+      g.gain.linearRampToValueAtTime(PART_AMP[i] * 0.34, when + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, when + Math.max(0.12, life));
+      o.connect(g).connect(tone);
+      o.start(when);
+      o.stop(when + dur + 0.12);
+    }
+    /* the hammer */
+    var n = noise(), ng = ctx.createGain(), nf = ctx.createBiquadFilter();
+    nf.type = 'bandpass'; nf.frequency.value = Math.min(5200, freq * 5); nf.Q.value = 0.8;
+    ng.gain.setValueAtTime(0.05 * vel, when);
+    ng.gain.exponentialRampToValueAtTime(0.0001, when + 0.045);
+    n.connect(nf).connect(ng).connect(bus.piano);
+    n.start(when); n.stop(when + 0.06);
   }
 
-  /* The after-party only: the floor, felt more than heard. Still an
-     instrument — a muted kick on the beat, not a room recording. */
-  function kick(when) {
-    var o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = 'sine';
-    o.frequency.setValueAtTime(104, when);
-    o.frequency.exponentialRampToValueAtTime(46, when + 0.12);
+  /* A chord under the hand — rootless, because the bass has the root. */
+  function comp(chord, root, when, vel) {
+    for (var i = 1; i < 4; i++) {
+      piano(semis(root, chord[i] - 12), when + i * 0.004, vel * (i === 1 ? 1 : 0.82), 0.9);
+    }
+  }
+
+  /* --- the bass ---------------------------------------------------------
+     Upright: a sine with a fast finger attack and a little body above it. */
+  function bass(freq, when, dur) {
+    var o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
+    var lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 620; lp.Q.value = 0.7;
+    o.type = 'sine'; o.frequency.value = freq;
+    o2.type = 'triangle'; o2.frequency.value = freq * 2.001;
+    var g2 = ctx.createGain(); g2.gain.value = 0.16;
     g.gain.setValueAtTime(0.0001, when);
-    g.gain.linearRampToValueAtTime(0.34, when + 0.012);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + 0.30);
-    o.connect(g).connect(bus.bass);
-    o.start(when); o.stop(when + 0.34);
+    g.gain.linearRampToValueAtTime(0.55, when + 0.022);
+    g.gain.exponentialRampToValueAtTime(0.06, when + dur * 0.7);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    o.connect(g); o2.connect(g2).connect(g);
+    g.connect(lp).connect(bus.bass);
+    o.start(when); o2.start(when);
+    o.stop(when + dur + 0.05); o2.stop(when + dur + 0.05);
+  }
+
+  /* --- brushes ----------------------------------------------------------
+     Short and rhythmic, never a wash: these are drums, not weather. */
+  function brush(when, vel) {
+    var n = noise(), g = ctx.createGain(), bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = 0.7;
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.linearRampToValueAtTime(vel, when + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + 0.16);
+    n.connect(bp).connect(g).connect(bus.drums);
+    n.start(when); n.stop(when + 0.2);
+  }
+
+  function ride(when, vel) {
+    var n = noise(), g = ctx.createGain(), hp = ctx.createBiquadFilter();
+    hp.type = 'highpass'; hp.frequency.value = 6200;
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.linearRampToValueAtTime(vel, when + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + 0.09);
+    n.connect(hp).connect(g).connect(bus.drums);
+    n.start(when); n.stop(when + 0.12);
   }
 
   /* --- the sequencer ----------------------------------------------------
-     Eighth notes, scheduled a little ahead of the clock rather than played
-     from a timer, so the pulse does not stumble when the browser is busy
-     drawing a 3400px-wide parallax layer. */
-  function scheduleStep(i, when) {
+     Eighth notes, scheduled ahead of the clock rather than played from a
+     timer, so the pulse does not stumble when the browser is busy drawing a
+     3400px-wide parallax layer. */
+  function chordTones(spec) {
+    var q = QUALITY[spec[1]] || QUALITY.maj7;
+    return q.map(function (n) { return n + spec[0]; });
+  }
+
+  function scheduleStep(i, when, eighth) {
     var m = mood();
-    var prog = PROGS[m.prog] || PROGS.andalusian;
+    var prog = PROGS[m.prog] || PROGS.turnaround;
     var bar = Math.floor(i / 8) % prog.length;
-    var chord = prog[bar];
     var beat = i % 8;
+    var chord = chordTones(prog[bar]);
+    var next = chordTones(prog[(bar + 1) % prog.length]);
 
-    if (beat === 0) {
-      padChord(chord, m.root, when, (60 / m.bpm) * 4);
-      bassNote(semis(m.root, chord[0] - 24), when, 1.9);
-      if (i % 32 === 24) sparkle(semis(m.root, chord[4] + 12), when + 0.02);
+    /* --- bass: walks in quarters, leading into the next chord --------- */
+    if (beat % 2 === 0) {
+      var quarter = beat / 2, note;
+      if (quarter === 0) { note = chord[0]; walk = note; }
+      else if (quarter === 3) {
+        /* approach the next root by a semitone, from whichever side is nearer */
+        note = next[0] + (Math.random() < 0.5 ? 1 : -1);
+      } else {
+        var opts = [chord[1], chord[2], chord[3], chord[0] + 12];
+        note = opts.reduce(function (best, n) {
+          return Math.abs(n - walk) < Math.abs(best - walk) && n !== walk ? n : best;
+        }, opts[0]);
+        walk = note;
+      }
+      bass(semis(m.root, note - 24), when, 60 / m.bpm * 0.92);
     }
-    if (beat === 4) bassNote(semis(m.root, chord[1] - 24), when, 1.2);
-    if (m.pulse && beat % 2 === 0) kick(when);
 
-    var fig = FIGURES[bar % FIGURES.length];
-    var v = fig[beat];
-    if (v >= 0) {
-      /* humanise: a real hand is never exactly on the beat, and never
-         plays two notes at the same weight */
-      var slip = (Math.random() - 0.5) * 0.018;
-      var vel = 0.34 + Math.random() * 0.12 - (beat % 2 ? 0.08 : 0);
-      pluck(semis(m.root, chord[v] + 12), when + slip, vel);
-      if (beat === 0 && Math.random() < 0.4) {
-        pluck(semis(m.root, chord[v] + 24), when + slip + 0.035, vel * 0.45);
+    /* --- left hand: rootless voicings, off the beat ------------------- */
+    if (beat === 3 || (beat === 6 && Math.random() < 0.75)) {
+      comp(chord, m.root, when, 0.20 + Math.random() * 0.06);
+    }
+    if (beat === 0 && bar === 0) comp(chord, m.root, when, 0.22);
+
+    /* --- right hand: a line through the changes ----------------------- */
+    var line = LINES[(Math.floor(i / 8) + bar) % LINES.length];
+    if (line[beat]) {
+      /* strong beats land on a chord tone, weak ones may pass through */
+      var strong = beat === 0 || beat === 4;
+      var deg = strong ? chord[1 + ((Math.random() * 3) | 0)]
+                       : chord[(Math.random() * 5) | 0] + pick([0, 0, 0, 1, -1, 2]);
+      var oct = Math.random() < 0.22 ? 12 : 0;
+      piano(semis(m.root, deg + 12 + oct), when, (strong ? 0.30 : 0.21) + Math.random() * 0.07,
+        eighth * (strong ? 3.2 : 1.9));
+      /* now and then, two notes together — the right hand has five fingers */
+      if (strong && Math.random() < 0.35) {
+        piano(semis(m.root, deg + 12 + oct + pick([3, 4, 5, 7])), when + 0.006, 0.16, eighth * 2.4);
       }
     }
+
+    /* --- brushes: 2 and 4, with a ride keeping the swing -------------- */
+    if (beat === 2 || beat === 6) brush(when, 0.16);
+    if (beat === 0 || beat === 4) ride(when, 0.10);
+    if (beat === 3 || beat === 7) ride(when, 0.065);
   }
 
   function tick() {
     if (!ctx || ctx.state !== 'running' || muted) { nextTime = 0; return; }
-    var beatSecs = (60 / mood().bpm) / 2;
+    var m = mood();
+    var beatSecs = 60 / m.bpm;
+    var eighth = beatSecs / 2;
     if (!nextTime) nextTime = t() + 0.12;
     while (nextTime < t() + 0.7) {
-      scheduleStep(step, nextTime);
-      nextTime += beatSecs;
+      /* swing: the off-beat eighth lands late, two thirds through the beat */
+      var late = (step % 2) ? (m.swing * beatSecs - eighth) : 0;
+      scheduleStep(step, nextTime + late, eighth);
+      nextTime += eighth;
       step++;
     }
   }
@@ -269,13 +303,13 @@
     master.gain.value = 0;
     master.connect(ctx.destination);
 
-    var verb = ctx.createConvolver();
-    verb.buffer = impulse(2.8, 2.6);
-    verbSend = ctx.createGain();
-    verbSend.gain.value = 0.6;
-    verb.connect(verbSend).connect(master);
+    verb = ctx.createConvolver();
+    verb.buffer = impulse(1.9, 3.2);          // a club, not a cathedral
+    var verbGain = ctx.createGain();
+    verbGain.gain.value = 0.34;
+    verb.connect(verbGain).connect(master);
 
-    ['guitar', 'pad', 'bass', 'sparkle'].forEach(function (name) {
+    ['piano', 'bass', 'drums'].forEach(function (name) {
       var g = ctx.createGain();
       g.gain.value = 0;
       g.connect(master);
@@ -291,10 +325,9 @@
   function applyScene(secs) {
     if (!started) return;
     var m = mood();
-    ramp(bus.guitar.gain, m.guitar, secs || 2.2);
-    ramp(bus.pad.gain, m.pad, secs || 2.2);
+    ramp(bus.piano.gain, m.piano, secs || 2.2);
     ramp(bus.bass.gain, m.bass, secs || 2.2);
-    ramp(bus.sparkle.gain, m.sparkle, secs || 2.2);
+    ramp(bus.drums.gain, m.drums, secs || 2.2);
   }
 
   global.WW = global.WW || {};
@@ -315,7 +348,7 @@
     scene: function (id) {
       var was = sceneId;
       sceneId = MOODS[id] ? id : 'hub';
-      /* start the new key at the top of its phrase, not halfway through */
+      /* come in at the top of the form, not halfway through a bar */
       if (sceneId !== was) step = 0;
       applyScene(2.4);
     },
