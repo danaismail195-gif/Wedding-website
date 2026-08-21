@@ -119,8 +119,9 @@ assets/js/scenes.js      the eight illustrated places (hub + seven rooms)
 assets/js/art.js         the drawing kit: cliffs, houses, olive trees, lanterns
 assets/js/app.js         the camera, transitions, RSVP form
 assets/js/tween.js       a small animation engine (replaces GSAP)
-assets/js/audio.js       sea, wind, birdsong and a soft instrumental bed,
-                         generated live; starts with "Begin the walk"
+assets/js/audio.js       the music: a nylon-string guitar, a warm pad and a
+                         soft bass, played live in the browser. No nature
+                         sounds. Starts with "Begin the walk"
 BRIEF.md                 the original project brief
 ```
 
@@ -140,7 +141,9 @@ follows, illustrations included.
 - **Skip ahead:** the dots along the bottom jump to any doorway; the "Previous /
   Next" links inside a room walk on without going outside first.
 - **RSVP from anywhere:** the glowing lantern, bottom-right.
-- **Sound:** off by default. The speaker button top-right turns on wind and sea.
+- **Music:** the speaker button top-right turns it on or off, and remembers the
+  choice. It is an instrumental piece — guitar, strings and bass — that changes
+  key and tempo from room to room. Nothing environmental: no waves, no wind.
 
 ---
 

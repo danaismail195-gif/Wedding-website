@@ -1,45 +1,85 @@
 /* ==========================================================================
-   audio.js — the ambience, synthesised in the browser
+   audio.js — the music, played in the browser
    --------------------------------------------------------------------------
-   No .mp3 files to host, licence or wait for. Four buses — sea, wind, birds
-   and a soft instrumental bed — mixed differently for each place in the
-   world. Nothing starts until the guest presses "Begin the walk", because
-   that click is the browser's price of admission for sound.
+   One instrumental piece, written for this site and synthesised on the fly:
+   a nylon-string guitar over a warm string pad and a soft upright bass,
+   through a hall. No vocals. No sea, no wind, no birds, no weather of any
+   kind — the ambience track that used to run underneath all of this is gone
+   and nothing environmental replaces it.
 
-   The music is deliberately not a song: a slow, wide arpeggio through a long
-   reverb, so it sits underneath the site rather than playing at you. If you
-   would rather have a real licensed recording, replace the `music` bus with
-   an <audio> element and leave the sea, wind and birds exactly as they are.
+   Why it is synthesised rather than a licensed recording: a real track has
+   to be bought, hosted and paid for, and the two links that came back with
+   the feedback were YouTube, which cannot be downloaded and re-hosted. This
+   plays the same music every visit, weighs nothing, and starts instantly.
+   To swap in a real recording later, delete the scheduler and point `music`
+   at an <audio> element — the mixing, ducking and per-room levels below all
+   keep working unchanged.
+
+   The piece: an Andalusian cadence (i - VII - VI - V), the four chords the
+   whole Mediterranean is built on, taken slowly. Each room shifts the key,
+   the tempo and the balance of the three instruments, so walking from the
+   terrace to the after-party feels like the same band playing a different
+   part of the evening rather than a different playlist.
+
+   Nothing starts until the guest presses "Begin the walk", because that
+   click is the browser's price of admission for sound.
    ========================================================================== */
 (function (global) {
   'use strict';
 
-  var ctx = null, master = null, verb = null;
-  var bus = {};                       // sea | wind | birds | music
+  var ctx = null, master = null, verbSend = null;
+  var bus = {};                       // guitar | pad | bass | sparkle
   var started = false, muted = true;
-  var birdTimer = null, arpTimer = null, pulseTimer = null, bellTimer = null;
   var sceneId = 'hub', level = 0.5;
+  /* Make-up gain. The per-room numbers below are a *balance* between the
+     three instruments, kept in the 0–1 range where they are easy to read;
+     this is what turns that balance into a listenable level. Measured
+     offline, the piece peaks around -8 dBFS with this — present, with
+     headroom left for the moments when a chord, a bass note and a bell all
+     land together. */
+  var OUT = 6;
+  var timer = null, nextTime = 0, step = 0;
+  var plucks = {};                    // cached plucked-string buffers, by pitch
 
-  /* --- the mix for each place ----------------------------------------- */
+  /* --- the piece ------------------------------------------------------- */
+
+  /* Chords as semitones from the room's root. Five voices each: the guitar
+     arpeggiates them, the pad holds the middle three, the bass takes the
+     lowest two octaves down. */
+  var PROGS = {
+    /* i - VII - VI - V. Warm, a little wistful, unmistakably southern. */
+    andalusian: [[0, 3, 7, 12, 15], [-2, 2, 5, 10, 14], [-4, 0, 3, 8, 12], [-5, -1, 2, 7, 11]],
+    /* major and open — for golden hour */
+    golden:     [[0, 4, 7, 11, 16], [-3, 0, 4, 9, 12], [-5, -1, 2, 7, 14], [-7, -3, 0, 4, 11]],
+    /* softer, suspended, for the quiet rooms */
+    lull:       [[0, 4, 7, 11, 14], [-3, 0, 4, 7, 12], [-5, -1, 2, 7, 11], [-7, -3, 0, 5, 9]],
+    /* minor with a seventh — the small hours */
+    nocturne:   [[0, 3, 7, 10, 14], [-4, 0, 3, 7, 12], [-5, -2, 2, 7, 10], [-7, -4, 0, 5, 8]]
+  };
+
+  /* Which figure the guitar plays over each chord. Indices into the chord;
+     -1 is a rest, and the rests are what stop it sounding like an exercise. */
+  var FIGURES = [
+    [0, 2, 3, -1, 1, 2, 4, -1],
+    [0, 2, 4, 2, -1, 3, 1, -1],
+    [0, 3, 2, 4, -1, 2, -1, 1],
+    [0, 2, 3, 2, 4, -1, 1, -1]
+  ];
+
+  /* One mix per place. `root` is the key in Hz, `bpm` the pulse, and the
+     three levels are the balance of the band. Everything here is music. */
   var MOODS = {
-    hub:        { sea: .40, wind: .15, birds: .30, music: .10, scale: 'day',   step: 2.10, bells: true },
-    welcome:    { sea: .20, wind: .10, birds: .04, music: .13, scale: 'dusk',  step: 2.60 },
-    wedding:    { sea: .18, wind: .12, birds: .16, music: .15, scale: 'gold',  step: 1.85 },
-    afterparty: { sea: .00, wind: .04, birds: .00, music: .13, scale: 'night', step: 0.95, pulse: true },
-    explore:    { sea: .34, wind: .16, birds: .26, music: .09, scale: 'day',   step: 2.20 },
-    stay:       { sea: .22, wind: .12, birds: .22, music: .10, scale: 'day',   step: 2.45, bells: true },
-    travel:     { sea: .26, wind: .18, birds: .14, music: .09, scale: 'day',   step: 2.30 },
-    rsvp:       { sea: .22, wind: .10, birds: .08, music: .14, scale: 'dusk',  step: 2.70 }
+    hub:        { root: 220.00, prog: 'andalusian', bpm: 62, guitar: .30, pad: .13, bass: .16, sparkle: .11 },
+    welcome:    { root: 196.00, prog: 'lull',       bpm: 56, guitar: .27, pad: .16, bass: .17, sparkle: .09 },
+    wedding:    { root: 246.94, prog: 'golden',     bpm: 66, guitar: .31, pad: .15, bass: .15, sparkle: .14 },
+    afterparty: { root: 164.81, prog: 'nocturne',   bpm: 96, guitar: .24, pad: .17, bass: .20, sparkle: .08, pulse: true },
+    explore:    { root: 233.08, prog: 'andalusian', bpm: 72, guitar: .30, pad: .12, bass: .15, sparkle: .13 },
+    stay:       { root: 207.65, prog: 'lull',       bpm: 58, guitar: .27, pad: .15, bass: .16, sparkle: .10 },
+    travel:     { root: 220.00, prog: 'golden',     bpm: 68, guitar: .28, pad: .13, bass: .15, sparkle: .12 },
+    rsvp:       { root: 174.61, prog: 'andalusian', bpm: 54, guitar: .28, pad: .17, bass: .18, sparkle: .12 }
   };
 
-  /* Pentatonic sets — no semitone clashes, so any order sounds intentional. */
-  var SCALES = {
-    day:   { root: 261.63, steps: [0, 2, 4, 7, 9, 12, 16], type: 'triangle', tone: 1400 },
-    gold:  { root: 293.66, steps: [0, 4, 7, 9, 12, 14, 16], type: 'triangle', tone: 1700 },
-    dusk:  { root: 220.00, steps: [0, 3, 5, 7, 10, 12, 15], type: 'sine',     tone: 1100 },
-    night: { root: 110.00, steps: [0, 3, 5, 7, 10, 15, 22], type: 'sawtooth', tone: 620 }
-  };
-
+  function mood() { return MOODS[sceneId] || MOODS.hub; }
   function t() { return ctx.currentTime; }
   function semis(root, n) { return root * Math.pow(2, n / 12); }
   function ramp(param, to, secs) {
@@ -48,20 +88,10 @@
     param.linearRampToValueAtTime(to, t() + (secs || 1.2));
   }
 
-  /* --- building blocks -------------------------------------------------- */
-  function noiseBuffer(seconds) {
-    var len = Math.floor(ctx.sampleRate * seconds);
-    var buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0), last = 0;
-    for (var i = 0; i < len; i++) {
-      var white = Math.random() * 2 - 1;
-      last = (last + 0.02 * white) / 1.02;      // brown-ish: softer, less hissy
-      d[i] = last * 3.2;
-    }
-    return buf;
-  }
+  /* --- instruments ------------------------------------------------------ */
 
-  /* A hall, made out of decaying noise. Cheap, and it is what stops the
-     music sounding like a ringtone. */
+  /* A hall, made out of decaying noise. Cheap, and it is what stops a
+     synthesised guitar sounding like a ringtone. */
   function impulse(seconds, decay) {
     var len = Math.floor(ctx.sampleRate * seconds);
     var buf = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -72,121 +102,160 @@
     return buf;
   }
 
-  function noiseLayer(target, seconds, type, freq, q, lfoRate, lfoDepth) {
+  /* A plucked nylon string, by Karplus–Strong: a short burst of noise fed
+     back through its own delay line, losing its edges a little on every
+     lap. That averaging is the whole trick — it is why this sounds like
+     gut and wood instead of like an oscillator. Buffers are rendered once
+     per pitch and kept. */
+  function pluckBuffer(freq) {
+    var key = Math.round(freq * 4);
+    if (plucks[key]) return plucks[key];
+    var sr = ctx.sampleRate;
+    var n = Math.max(8, Math.round(sr / freq));
+    var len = Math.floor(sr * 1.9);
+    var buf = ctx.createBuffer(1, len, sr);
+    var d = buf.getChannelData(0);
+    var i, last = 0;
+    /* the pluck itself: noise, rolled off so it reads as a fingertip
+       rather than a plectrum */
+    for (i = 0; i < n; i++) {
+      var white = Math.random() * 2 - 1;
+      last = last * 0.55 + white * 0.45;
+      d[i] = last;
+    }
+    /* The averaging of two neighbouring samples one period back is what
+       rounds a string off as it rings — the highs go first, exactly as they
+       do on gut. `rho` is the loss per *sample*, worked back from how long
+       the note should take to die away; applying a per-period figure once
+       per sample instead would silence the string in a few milliseconds. */
+    var damp = 0.5 - Math.min(0.06, freq / 14000);   // higher strings ring less
+    var rho = Math.exp(-1 / (1.7 * sr));
+    for (i = n; i < len; i++) {
+      d[i] = (d[i - n] * damp + d[i - n + 1] * (1 - damp)) * rho;
+    }
+    /* fade the tail so a note never clicks off */
+    var fade = Math.floor(sr * 0.25);
+    for (i = len - fade; i < len; i++) d[i] *= (len - i) / fade;
+    plucks[key] = buf;
+    return buf;
+  }
+
+  function pluck(freq, when, gainVal, target) {
     var src = ctx.createBufferSource();
-    src.buffer = noiseBuffer(seconds);
-    src.loop = true;
+    src.buffer = pluckBuffer(freq);
+    var g = ctx.createGain();
+    g.gain.value = gainVal;
+    var body = ctx.createBiquadFilter();       // the box the string is on
+    body.type = 'lowpass';
+    body.frequency.value = 2600;
+    body.Q.value = 0.6;
+    src.connect(body).connect(g).connect(target || bus.guitar);
+    src.start(when);
+    src.stop(when + 2.1);
+  }
+
+  /* The pad: three voices, barely detuned, with a long way in and a longer
+     way out. It is the room the guitar is played in. */
+  function padChord(notes, root, when, dur) {
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.linearRampToValueAtTime(0.16, when + dur * 0.45);
+    g.gain.linearRampToValueAtTime(0.0001, when + dur * 1.15);
     var filt = ctx.createBiquadFilter();
-    filt.type = type; filt.frequency.value = freq; filt.Q.value = q;
-    var swell = ctx.createGain();
-    swell.gain.value = 1;
-    var lfo = ctx.createOscillator();
-    lfo.frequency.value = lfoRate;
-    var lfoGain = ctx.createGain();
-    lfoGain.gain.value = lfoDepth;
-    lfo.connect(lfoGain).connect(swell.gain);
-    src.connect(filt).connect(swell).connect(target);
-    src.start(); lfo.start();
+    filt.type = 'lowpass'; filt.frequency.value = 1250; filt.Q.value = 0.3;
+    filt.connect(g).connect(bus.pad);
+    for (var i = 1; i <= 3; i++) {
+      var o = ctx.createOscillator();
+      o.type = i === 2 ? 'sine' : 'triangle';
+      o.frequency.value = semis(root, notes[i]) * (i === 3 ? 1.004 : 1);
+      o.connect(filt);
+      o.start(when);
+      o.stop(when + dur * 1.2);
+    }
   }
 
-  /* --- birds ------------------------------------------------------------ */
-  function chirp(when, pitch) {
-    var o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+  /* A soft upright bass — a sine with a fingered attack. */
+  function bassNote(freq, when, dur) {
+    var o = ctx.createOscillator(), g = ctx.createGain();
     o.type = 'sine';
-    f.type = 'bandpass'; f.frequency.value = pitch; f.Q.value = 4;
-    o.frequency.setValueAtTime(pitch * 0.84, when);
-    o.frequency.exponentialRampToValueAtTime(pitch * 1.26, when + 0.042);
-    o.frequency.exponentialRampToValueAtTime(pitch * 0.9, when + 0.115);
-    g.gain.setValueAtTime(0.0001, when);
-    g.gain.linearRampToValueAtTime(0.3, when + 0.012);
-    g.gain.exponentialRampToValueAtTime(0.0008, when + 0.16);
-    o.connect(f).connect(g).connect(bus.birds);
-    o.start(when); o.stop(when + 0.22);
-  }
-
-  function birdBurst() {
-    if (!muted && ctx && ctx.state === 'running') {
-      var when = t() + 0.06;
-      var n = 1 + Math.floor(Math.random() * 3);
-      var base = 1450 + Math.random() * 1600;
-      for (var i = 0; i < n; i++) {
-        chirp(when + i * (0.085 + Math.random() * 0.13), base * (1 + (Math.random() - 0.5) * 0.2));
-      }
-    }
-    birdTimer = setTimeout(birdBurst, 1700 + Math.random() * 6800);
-  }
-
-  /* --- the instrumental bed --------------------------------------------- */
-  var arpStep = 0;
-  function note(freq, when, dur, type, tone, gainVal) {
-    var o = ctx.createOscillator(), o2 = ctx.createOscillator();
-    var g = ctx.createGain(), f = ctx.createBiquadFilter();
-    o.type = type; o2.type = type;
     o.frequency.value = freq;
-    o2.frequency.value = freq * 1.005;         // a whisper of detune
-    f.type = 'lowpass'; f.frequency.value = tone; f.Q.value = 0.4;
     g.gain.setValueAtTime(0.0001, when);
-    g.gain.linearRampToValueAtTime(gainVal, when + 0.35);
+    g.gain.linearRampToValueAtTime(0.5, when + 0.05);
     g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-    o.connect(f); o2.connect(f);
-    f.connect(g).connect(bus.music);
-    o.start(when); o2.start(when + 0.01);
-    o.stop(when + dur + 0.1); o2.stop(when + dur + 0.1);
+    o.connect(g).connect(bus.bass);
+    o.start(when); o.stop(when + dur + 0.05);
   }
 
-  function arpTick() {
-    var mood = MOODS[sceneId] || MOODS.hub;
-    var sc = SCALES[mood.scale];
-    if (!muted && ctx && ctx.state === 'running') {
-      var when = t() + 0.05;
-      /* wander through the scale rather than running up and down it */
-      arpStep += (Math.random() < 0.62 ? 1 : -1) * (1 + (Math.random() < 0.25 ? 1 : 0));
-      if (arpStep < 0) arpStep += sc.steps.length;
-      var idx = arpStep % sc.steps.length;
-      note(semis(sc.root, sc.steps[idx]), when, 3.4, sc.type, sc.tone, 0.16);
-      /* every so often, a low note underneath to hold it together */
-      if (Math.random() < 0.3) {
-        note(semis(sc.root, sc.steps[0] - 12), when + 0.08, 5.5, 'sine', 700, 0.13);
-      }
-    }
-    arpTimer = setTimeout(arpTick, ((MOODS[sceneId] || MOODS.hub).step || 2.1) * 1000 * (0.85 + Math.random() * 0.3));
-  }
-
-  /* A bell from a campanile somewhere across the water. */
-  function bell() {
-    var mood = MOODS[sceneId] || MOODS.hub;
-    if (mood.bells && !muted && ctx && ctx.state === 'running') {
-      var base = [392, 440, 523.25, 587.33][Math.floor(Math.random() * 4)];
-      [1, 2.01].forEach(function (mult, i) {
-        var o = ctx.createOscillator(), g = ctx.createGain();
-        o.type = 'sine';
-        o.frequency.value = base * mult;
-        g.gain.setValueAtTime(0, t());
-        g.gain.linearRampToValueAtTime(i ? 0.010 : 0.024, t() + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, t() + 4.5);
-        o.connect(g).connect(bus.music);
-        o.start(); o.stop(t() + 4.6);
-      });
-    }
-    bellTimer = setTimeout(bell, 22000 + Math.random() * 34000);
-  }
-
-  /* The after-party gets a pulse under the floor — felt more than heard. */
-  function pulse() {
-    var mood = MOODS[sceneId] || MOODS.hub;
-    if (mood.pulse && !muted && ctx && ctx.state === 'running') {
-      var when = t() + 0.04;
+  /* A struck bell, two partials — the celesta at the top of a phrase. */
+  function sparkle(freq, when) {
+    [1, 2.02].forEach(function (mult, i) {
       var o = ctx.createOscillator(), g = ctx.createGain();
       o.type = 'sine';
-      o.frequency.setValueAtTime(96, when);
-      o.frequency.exponentialRampToValueAtTime(44, when + 0.13);
+      o.frequency.value = freq * mult;
       g.gain.setValueAtTime(0.0001, when);
-      g.gain.linearRampToValueAtTime(0.30, when + 0.012);
-      g.gain.exponentialRampToValueAtTime(0.0001, when + 0.34);
-      o.connect(g).connect(bus.music);
-      o.start(when); o.stop(when + 0.4);
+      g.gain.linearRampToValueAtTime(i ? 0.10 : 0.24, when + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, when + 3.4);
+      o.connect(g).connect(bus.sparkle);
+      o.start(when); o.stop(when + 3.5);
+    });
+  }
+
+  /* The after-party only: the floor, felt more than heard. Still an
+     instrument — a muted kick on the beat, not a room recording. */
+  function kick(when) {
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(104, when);
+    o.frequency.exponentialRampToValueAtTime(46, when + 0.12);
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.linearRampToValueAtTime(0.34, when + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + 0.30);
+    o.connect(g).connect(bus.bass);
+    o.start(when); o.stop(when + 0.34);
+  }
+
+  /* --- the sequencer ----------------------------------------------------
+     Eighth notes, scheduled a little ahead of the clock rather than played
+     from a timer, so the pulse does not stumble when the browser is busy
+     drawing a 3400px-wide parallax layer. */
+  function scheduleStep(i, when) {
+    var m = mood();
+    var prog = PROGS[m.prog] || PROGS.andalusian;
+    var bar = Math.floor(i / 8) % prog.length;
+    var chord = prog[bar];
+    var beat = i % 8;
+
+    if (beat === 0) {
+      padChord(chord, m.root, when, (60 / m.bpm) * 4);
+      bassNote(semis(m.root, chord[0] - 24), when, 1.9);
+      if (i % 32 === 24) sparkle(semis(m.root, chord[4] + 12), when + 0.02);
     }
-    pulseTimer = setTimeout(pulse, 520);
+    if (beat === 4) bassNote(semis(m.root, chord[1] - 24), when, 1.2);
+    if (m.pulse && beat % 2 === 0) kick(when);
+
+    var fig = FIGURES[bar % FIGURES.length];
+    var v = fig[beat];
+    if (v >= 0) {
+      /* humanise: a real hand is never exactly on the beat, and never
+         plays two notes at the same weight */
+      var slip = (Math.random() - 0.5) * 0.018;
+      var vel = 0.34 + Math.random() * 0.12 - (beat % 2 ? 0.08 : 0);
+      pluck(semis(m.root, chord[v] + 12), when + slip, vel);
+      if (beat === 0 && Math.random() < 0.4) {
+        pluck(semis(m.root, chord[v] + 24), when + slip + 0.035, vel * 0.45);
+      }
+    }
+  }
+
+  function tick() {
+    if (!ctx || ctx.state !== 'running' || muted) { nextTime = 0; return; }
+    var beatSecs = (60 / mood().bpm) / 2;
+    if (!nextTime) nextTime = t() + 0.12;
+    while (nextTime < t() + 0.7) {
+      scheduleStep(step, nextTime);
+      nextTime += beatSecs;
+      step++;
+    }
   }
 
   /* --- wiring ----------------------------------------------------------- */
@@ -200,39 +269,32 @@
     master.gain.value = 0;
     master.connect(ctx.destination);
 
-    /* a little of everything goes through the hall */
-    verb = ctx.createConvolver();
-    verb.buffer = impulse(2.6, 2.4);
-    var verbGain = ctx.createGain();
-    verbGain.gain.value = 0.55;
-    verb.connect(verbGain).connect(master);
+    var verb = ctx.createConvolver();
+    verb.buffer = impulse(2.8, 2.6);
+    verbSend = ctx.createGain();
+    verbSend.gain.value = 0.6;
+    verb.connect(verbSend).connect(master);
 
-    ['sea', 'wind', 'birds', 'music'].forEach(function (name) {
+    ['guitar', 'pad', 'bass', 'sparkle'].forEach(function (name) {
       var g = ctx.createGain();
       g.gain.value = 0;
       g.connect(master);
-      if (name !== 'sea') g.connect(verb);
+      if (name !== 'bass') g.connect(verb);   // the bass stays dry, or it fogs
       bus[name] = g;
     });
 
-    noiseLayer(bus.sea, 4, 'lowpass', 420, 0.7, 0.06, 0.35);    // surf on the rocks
-    noiseLayer(bus.wind, 6, 'bandpass', 900, 0.5, 0.033, 0.22); // wind in the olives
-
     started = true;
     applyScene(0.1);
-    birdBurst();
-    arpTick();
-    bell();
-    pulse();
+    timer = setInterval(tick, 60);
   }
 
   function applyScene(secs) {
     if (!started) return;
-    var mood = MOODS[sceneId] || MOODS.hub;
-    ramp(bus.sea.gain, mood.sea, secs || 2.2);
-    ramp(bus.wind.gain, mood.wind, secs || 2.2);
-    ramp(bus.birds.gain, mood.birds, secs || 2.2);
-    ramp(bus.music.gain, mood.music, secs || 2.2);
+    var m = mood();
+    ramp(bus.guitar.gain, m.guitar, secs || 2.2);
+    ramp(bus.pad.gain, m.pad, secs || 2.2);
+    ramp(bus.bass.gain, m.bass, secs || 2.2);
+    ramp(bus.sparkle.gain, m.sparkle, secs || 2.2);
   }
 
   global.WW = global.WW || {};
@@ -242,7 +304,8 @@
       if (!ctx) return;
       if (ctx.state === 'suspended') ctx.resume();
       muted = false;
-      ramp(master.gain, level, 2.6);
+      nextTime = 0;
+      ramp(master.gain, level * OUT, 2.6);
     },
     off: function () {
       muted = true;
@@ -250,13 +313,16 @@
     },
     /* which part of the world we are standing in */
     scene: function (id) {
+      var was = sceneId;
       sceneId = MOODS[id] ? id : 'hub';
+      /* start the new key at the top of its phrase, not halfway through */
+      if (sceneId !== was) step = 0;
       applyScene(2.4);
     },
     /* quieter inside a room, so the copy is the thing you notice */
     duck: function (isRoom) {
       level = isRoom ? 0.34 : 0.5;
-      if (!muted && ctx) ramp(master.gain, level, 1.2);
+      if (!muted && ctx) ramp(master.gain, level * OUT, 1.2);
     }
   };
 })(window);

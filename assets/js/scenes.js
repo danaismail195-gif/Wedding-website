@@ -131,13 +131,29 @@
       ' q ' + f(10 * s) + ' ' + f(90 * s) + ' ' + f(22 * s) + ' ' + f(96 * s) +
       ' l ' + f(48 * s) + ' 0 q ' + f(12 * s) + ' -' + f(6 * s) + ' ' + f(22 * s) + ' -' + f(96 * s) + ' Z" fill="' + P.terracotta + '"/>';
     g += '<rect x="' + f(x - 52 * s) + '" y="' + f(baseY - 106 * s) + '" width="' + f(104 * s) + '" height="' + f(14 * s) + '" rx="' + f(5 * s) + '" fill="' + P.terraDeep + '"/>';
+    /* The plant used to be a handful of ellipses scattered above the rim,
+       which is why it looked like it had come loose the moment it moved.
+       Now every leaf grows on a stem out of the mouth of the urn, and the
+       whole spray turns about that same point — so it can lean into the
+       breeze and still, unmistakably, be growing in the pot. */
     var r = rand(x | 0), leaves = '';
-    for (var i = 0; i < 9; i++) {
-      var lx = x + (r() - 0.5) * 78 * s, ly = baseY - (108 + r() * 52) * s;
-      leaves += '<ellipse cx="' + f(lx) + '" cy="' + f(ly) + '" rx="' + f((16 + r() * 10) * s) + '" ry="' + f((7 + r() * 5) * s) +
-        '" fill="' + (i % 2 ? '#6E7F52' : '#87975F') + '" transform="rotate(' + ((r() * 120 - 60) | 0) + ' ' + f(lx) + ' ' + f(ly) + ')"/>';
+    var rimY = baseY - 104 * s, n = 11;
+    for (var i = 0; i < n; i++) {
+      var spread = (i - (n - 1) / 2) / ((n - 1) / 2);          // -1 … 1
+      var ang = -Math.PI / 2 + spread * 1.16 + (r() - 0.5) * 0.16;
+      var len = (40 + (1 - Math.abs(spread)) * 34 + r() * 16) * s;
+      var tipX = x + Math.cos(ang) * len, tipY = rimY + Math.sin(ang) * len;
+      var midX = x + Math.cos(ang) * len * 0.62, midY = rimY + Math.sin(ang) * len * 0.62;
+      leaves += '<path d="M ' + f(x) + ' ' + f(rimY) + ' Q ' + f(midX + Math.cos(ang) * 4 * s) + ' ' + f(midY) +
+        ' ' + f(tipX) + ' ' + f(tipY) + '" fill="none" stroke="#5E6E46" stroke-width="' + f(2.6 * s) + '" stroke-linecap="round"/>';
+      leaves += '<ellipse cx="' + f(midX) + '" cy="' + f(midY) + '" rx="' + f((15 + r() * 7) * s) + '" ry="' + f((6.5 + r() * 3) * s) +
+        '" fill="' + (i % 2 ? '#6E7F52' : '#87975F') +
+        '" transform="rotate(' + f(ang * 180 / Math.PI) + ' ' + f(midX) + ' ' + f(midY) + ')"/>';
+      leaves += '<ellipse cx="' + f(tipX) + '" cy="' + f(tipY) + '" rx="' + f((11 + r() * 6) * s) + '" ry="' + f((5 + r() * 2.6) * s) +
+        '" fill="' + (i % 2 ? '#7C8B5E' : '#96A46B') +
+        '" transform="rotate(' + f(ang * 180 / Math.PI) + ' ' + f(tipX) + ' ' + f(tipY) + ')"/>';
     }
-    return g + '<g class="ww-sway" style="transform-origin:' + f(x) + 'px ' + f(baseY - 100 * s) + 'px">' + leaves + '</g>';
+    return g + '<g class="ww-sway" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(rimY) + 'px">' + leaves + '</g>';
   }
 
   /* ======================================================================
@@ -153,14 +169,18 @@
         ' L ' + f(x + w) + ' ' + f(y + h) + ' Z';
     }
 
+    /* Light at the lintel, deeper towards the threshold — the way a lit room
+       looks from outside. The lower half of every one of these is dark
+       enough to carry the ivory "Enter" that sits at the middle of the
+       opening, which is what lets one colour of type work on all seven. */
     var interiors = {
-      welcome:    ['#F6D9A8', '#C4643C'],
-      wedding:    ['#FFE9BE', '#D98A5E'],
+      welcome:    ['#F6D9A8', '#A84F2C'],
+      wedding:    ['#FFE9BE', '#B96A3E'],
       afterparty: ['#B98CC9', '#3A2550'],
-      explore:    ['#BFE4E2', '#4FA3A5'],
-      stay:       ['#F3D9B2', '#A9613C'],
-      travel:     ['#D8E8EF', '#6E93A6'],
-      rsvp:       ['#FFE7B4', '#C4643C']
+      explore:    ['#BFE4E2', '#2F7B7E'],
+      stay:       ['#F3D9B2', '#8A4A2C'],
+      travel:     ['#D8E8EF', '#4E7185'],
+      rsvp:       ['#FFE7B4', '#A85232']
     };
     var pair = interiors[id] || interiors.welcome;
 
@@ -233,7 +253,7 @@
       g += shutter(ax + aw + 10, ay + 34, 0.85);
       g += '<rect x="' + f(cx - 30) + '" y="' + f(baseY - 118) + '" width="60" height="118" rx="4" fill="rgba(59,42,34,.28)"/>';
       g += '<circle cx="' + f(cx + 18) + '" cy="' + f(baseY - 60) + '" r="4" fill="' + P.gold + '"/>';
-      g += '<path class="ww-swing" style="transform-origin:' + f(cx + 60) + 'px ' + f(ay + 20) + 'px" d="M ' + f(cx + 60) + ' ' + f(ay + 20) + ' l 0 26 m -5 0 a 5 6 0 1 0 10 0 a 5 6 0 1 0 -10 0 m 5 6 l 0 12 l 5 0 m -5 6 l 4 0" stroke="' + P.gold + '" stroke-width="2.6" fill="none"/>';
+      g += '<path class="ww-swing" style="transform-box:view-box;transform-origin:' + f(cx + 60) + 'px ' + f(ay + 20) + 'px" d="M ' + f(cx + 60) + ' ' + f(ay + 20) + ' l 0 26 m -5 0 a 5 6 0 1 0 10 0 a 5 6 0 1 0 -10 0 m 5 6 l 0 12 l 5 0 m -5 6 l 4 0" stroke="' + P.gold + '" stroke-width="2.6" fill="none"/>';
     } else if (id === 'travel') {
       /* iron gate bars + a ferry on the water beyond */
       g += '<rect x="' + f(ax + 4) + '" y="' + f(baseY - 76) + '" width="' + f(aw - 8) + '" height="76" fill="#7FA3B0" opacity=".8"/>';
@@ -242,19 +262,21 @@
       g += '<g class="ww-plane-door">' + A.airplane(cx - 6, ay + 74, 0.62, '#4E6E80') + '</g>';
       g += '<ellipse cx="' + f(cx + 34) + '" cy="' + f(ay + 40) + '" rx="26" ry="9" fill="#FFFFFF" opacity=".5"/>';
       g += '<ellipse cx="' + f(cx - 30) + '" cy="' + f(ay + 128) + '" rx="20" ry="7" fill="#FFFFFF" opacity=".38"/>';
-      g += '<path class="ww-spin-slow" style="transform-origin:' + f(cx) + 'px ' + f(ay - 58) + 'px" d="M ' + f(cx - 26) + ' ' + f(ay - 58) + ' l 40 0 l -8 -7 l 20 7 l -20 7 l 8 -7 Z" fill="#7A6247"/>';
+      g += '<path class="ww-spin-slow" style="transform-box:view-box;transform-origin:' + f(cx) + 'px ' + f(ay - 58) + 'px" d="M ' + f(cx - 26) + ' ' + f(ay - 58) + ' l 40 0 l -8 -7 l 20 7 l -20 7 l 8 -7 Z" fill="#7A6247"/>';
       g += '<rect x="' + f(cx - 2) + '" y="' + f(ay - 58) + '" width="4" height="34" fill="#7A6247"/>';
     } else if (id === 'rsvp') {
       /* a mailbox and a wax seal, glowing gold */
-      g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 110) + '" r="60" fill="' + P.gold + '" opacity=".28"/>';
+      g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 72) + '" r="56" fill="' + P.gold + '" opacity=".28"/>';
       g += '<rect x="' + f(cx + 46) + '" y="' + f(baseY - 116) + '" width="9" height="116" fill="#7A6247"/>';
       g += '<rect x="' + f(cx + 24) + '" y="' + f(baseY - 156) + '" width="54" height="42" rx="8" fill="' + P.terracotta + '"/>';
       g += '<rect x="' + f(cx + 30) + '" y="' + f(baseY - 148) + '" width="42" height="5" rx="2" fill="rgba(59,42,34,.45)"/>';
       /* envelope hovering in the doorway */
-      g += '<g class="ww-hover-bob" style="transform-origin:' + f(cx) + 'px ' + f(ay + 120) + 'px">' +
-        '<rect x="' + f(cx - 40) + '" y="' + f(ay + 96) + '" width="80" height="54" rx="5" fill="#FFF6E4"/>' +
-        '<path d="M ' + f(cx - 40) + ' ' + f(ay + 100) + ' l 40 32 l 40 -32" fill="none" stroke="' + P.terraDeep + '" stroke-width="3"/>' +
-        '<circle cx="' + f(cx) + '" cy="' + f(ay + 138) + '" r="11" fill="' + P.terracotta + '"/>' +
+      /* The envelope hangs in the upper half of the arch: the "Enter" now sits
+         at the middle of the opening and the two were on top of each other. */
+      g += '<g class="ww-hover-bob" style="transform-box:view-box;transform-origin:' + f(cx) + 'px ' + f(ay + 80) + 'px">' +
+        '<rect x="' + f(cx - 36) + '" y="' + f(ay + 52) + '" width="72" height="48" rx="5" fill="#FFF6E4"/>' +
+        '<path d="M ' + f(cx - 36) + ' ' + f(ay + 56) + ' l 36 29 l 36 -29" fill="none" stroke="' + P.terraDeep + '" stroke-width="3"/>' +
+        '<circle cx="' + f(cx) + '" cy="' + f(ay + 90) + '" r="10" fill="' + P.terracotta + '"/>' +
         '</g>';
     }
 
@@ -331,36 +353,44 @@
       A.stringLights(-40, 210, 1640, 250, 100, 11, 7) +
       A.stringLights(-40, 300, 1640, 176, 132, 9, 8) +
       (function () {
-        /* chairs behind, then the table, then chairs in front */
+        /* Chairs behind, then the table, then chairs in front. Nobody eats
+           alone here: there are exactly as many guests as there are seats,
+           on both sides, and the table was widened to hold them. The guest
+           who used to stand on their own at the right-hand end is gone —
+           they read as an offcut rather than part of the party. */
         var g = '';
-        for (var b = 0; b < 6; b++) {
-          var bx = 120 + b * 158;
+        var BACK = 7, FRONT = 6;
+        var backX  = function (i) { return 120 + i * 158 + 29; };
+        var frontX = function (i) { return 210 + i * 196; };
+        for (var b = 0; b < BACK; b++) {
+          var bx = backX(b) - 29;
           g += '<rect x="' + bx + '" y="666" width="58" height="14" rx="4" fill="#5C4436"/>';
           g += '<path d="M ' + bx + ' 666 l 0 -74 q 29 -14 58 0 l 0 74 Z" fill="#6B5039"/>';
         }
         /* the guests already sitting down, drawn before the table so it
-           covers their laps exactly as a real table would */
-        for (var d = 0; d < 6; d++) {
-          var dx = 120 + d * 158 + 29;
-          g += A.person({ x: dx, baseY: 710, h: 236 + (d % 3) * 11, pose: 'table',
+           covers their laps exactly as a real table would. They lean and
+           turn towards each other rather than facing front in a row. */
+        for (var d = 0; d < BACK; d++) {
+          var lean = d % 3;
+          g += A.person({ x: backX(d), baseY: 710, h: 232 + (d % 3) * 12,
+            pose: lean === 2 ? 'tableUp' : 'table',
             seed: 200 + d * 13, flip: d % 2 === 1, shadow: false,
-            hold: d % 3 === 0 ? 'glass' : null,
+            hold: lean === 1 ? 'glass' : null,
             anim: d % 2 ? 'ww-talk' : 'ww-idle' });
         }
-        g += '<rect x="40" y="742" width="1140" height="26" rx="6" fill="#F2E7D2"/>';
-        g += '<rect x="40" y="768" width="1140" height="14" fill="#CBB795"/>';
+        g += '<rect x="40" y="742" width="1240" height="26" rx="6" fill="#F2E7D2"/>';
+        g += '<rect x="40" y="768" width="1240" height="14" fill="#CBB795"/>';
         for (var i = 0; i < 7; i++) {
-          var x = 96 + i * 168;
+          var x = 96 + i * 184;
           g += '<rect x="' + x + '" y="782" width="14" height="86" rx="3" fill="#6B5744"/>';
         }
-        /* place settings, with something on them */
-        for (var p2 = 0; p2 < 7; p2++) {
-          var px = 110 + p2 * 160;
-          g += A.plate(px, 757, 1, 300 + p2 * 7);
+        /* a place setting in front of every guest at the far side */
+        for (var p2 = 0; p2 < BACK; p2++) {
+          g += A.plate(backX(p2), 757, 0.92, 300 + p2 * 7);
         }
-        /* candles down the middle */
+        /* candles down the middle, between the settings */
         for (var c = 0; c < 6; c++) {
-          var cxp = 170 + c * 172;
+          var cxp = 200 + c * 172;
           g += '<rect x="' + cxp + '" y="694" width="13" height="50" rx="3" fill="#F8F1E0"/>';
           g += '<circle class="ww-flicker" cx="' + (cxp + 6.5) + '" cy="688" r="7" fill="#FFE9B0" style="animation-delay:' + (-c * 0.6) + 's"/>';
           g += '<circle class="ww-flicker" cx="' + (cxp + 6.5) + '" cy="688" r="21" fill="#F0B45C" opacity=".22" style="animation-delay:' + (-c * 0.6) + 's"/>';
@@ -368,20 +398,16 @@
         /* a carafe and glasses, because someone always pours early */
         g += '<path d="M 560 742 l 0 -34 q 0 -14 12 -20 l 0 -12 l 20 0 l 0 12 q 12 6 12 20 l 0 34 Z" fill="#D8C9A8" opacity=".9"/>';
         g += '<path d="M 700 742 l 0 -22 q -9 -8 -9 -20 l 26 0 q 0 12 -9 20 l 0 22 Z" fill="#EFE7D4" opacity=".85"/>';
-        g += '<path d="M 940 742 l 0 -22 q -9 -8 -9 -20 l 26 0 q 0 12 -9 20 l 0 22 Z" fill="#EFE7D4" opacity=".85"/>';
-        /* front-row chairs, seen from behind — with three guests in them */
-        for (var fch = 0; fch < 5; fch++) {
-          var fx = 200 + fch * 214;
-          if (fch === 0 || fch === 2 || fch === 4) {
-            g += A.person({ x: fx + 40, baseY: 884, h: 300, pose: 'table', back: true,
-              seed: 400 + fch * 11, shadow: false, anim: fch === 2 ? 'ww-talk' : 'ww-idle' });
-          }
+        g += '<path d="M 1080 742 l 0 -34 q 0 -14 12 -20 l 0 -12 l 20 0 l 0 12 q 12 6 12 20 l 0 34 Z" fill="#D8C9A8" opacity=".9"/>';
+        /* front-row chairs, seen from behind — one guest in every one */
+        for (var fch = 0; fch < FRONT; fch++) {
+          var fx = frontX(fch) - 40;
+          g += A.person({ x: frontX(fch), baseY: 884, h: 292 + (fch % 3) * 10,
+            pose: 'table', back: true,
+            seed: 400 + fch * 11, shadow: false, anim: fch % 2 ? 'ww-talk' : 'ww-idle' });
           g += '<path d="M ' + fx + ' 960 l 0 -84 q 40 -16 80 0 l 0 84 Z" fill="#4E382A"/>';
           g += '<rect x="' + (fx - 6) + '" y="868" width="92" height="14" rx="6" fill="#5E452F"/>';
         }
-        /* one guest still on their feet at the end of the table, pouring */
-        g += A.person({ x: 1256, baseY: 806, h: 236, pose: 'toast', flip: true,
-          seed: 517, hold: 'glass', anim: 'ww-talk' });
         return g;
       })() + '</g>'
     )});
@@ -466,20 +492,26 @@
           cloth: '#3B4A56', dress: false, anim: 'ww-talk' });
 
         /* --- the guests who are not sitting down ----------------------- */
-        g += A.chatGroup(150, 884, 126, 711);              /* near the terrace edge */
-        g += A.chatGroup(880, 878, 116, 719, { n: 3 });    /* by the aisle */
-        g += A.chatGroup(1420, 882, 120, 723, { n: 2 });   /* off to the right */
+        /* Feet on the terrace, and above y=866: the room is drawn at 1600x900
+           but the camera crops a little off the bottom on a laptop, and a
+           guest standing at 890 loses their shoes to it. */
+        g += A.chatGroup(150, 856, 126, 711);              /* near the terrace edge */
+        g += A.chatGroup(880, 850, 116, 719, { n: 3 });    /* by the aisle */
+        g += A.chatGroup(1420, 854, 120, 723, { n: 2 });   /* off to the right */
 
         /* someone photographing the arch, someone raising a glass */
-        g += A.person({ x: 470, baseY: 890, h: 124, pose: 'photo', hold: 'camera',
+        g += A.person({ x: 436, baseY: 860, h: 124, pose: 'photo', hold: 'camera',
           seed: 727, anim: 'ww-idle' });
-        g += A.person({ x: 1010, baseY: 892, h: 122, pose: 'toast', hold: 'glass',
+        g += A.person({ x: 1010, baseY: 862, h: 122, pose: 'toast', hold: 'glass',
           flip: true, seed: 733, anim: 'ww-talk' });
+        g += A.person({ x: 1064, baseY: 866, h: 126, pose: 'listen', seed: 737,
+          anim: 'ww-idle' });
 
-        /* two more drifting across the open terrace */
-        g += A.person({ x: 726, baseY: 896, h: 128, pose: 'walk', seed: 739, anim: 'ww-stroll' });
-        g += A.person({ x: 772, baseY: 899, h: 122, pose: 'walk', seed: 743, anim: 'ww-stroll',
-          delay: -2.6 });
+        /* The two who used to drift across the middle of the aisle are gone:
+           they stood directly below the arch, between the guest and the
+           couple, and read as two strangers wandering through the ceremony.
+           The terrace beneath the arch is left clear, which is also how a
+           real aisle looks. */
         return g;
       })()
     )});
@@ -534,23 +566,28 @@
         }
         return g;
       })() +
-      A.dancer(230, 830, 210, '#0C1119', 0) +
-      A.dancer(390, 848, 190, '#0C1119', -0.9) +
-      A.dancer(560, 836, 220, '#0C1119', -1.7) +
-      A.dancer(720, 852, 176, '#0C1119', -0.4) +
-      A.dancer(880, 840, 200, '#0C1119', -2.2) +
+      /* One long dancefloor, not a crowd and then a stranger: the DJ used to
+         stand 470 units clear of the nearest dancer, which read as somebody
+         who had wandered off. The decks have come in to meet the floor, and
+         the dancers spread to meet them. */
+      A.dancer(236, 830, 210, '#0C1119', 0) +
+      A.dancer(392, 848, 190, '#0C1119', -0.9) +
+      A.dancer(556, 836, 220, '#0C1119', -1.7) +
+      A.dancer(714, 852, 176, '#0C1119', -0.4) +
+      A.dancer(872, 840, 200, '#0C1119', -2.2) +
       /* two hanging back at the edge of it all, drinks in hand */
       A.person({ x: 96, baseY: 862, h: 188, flat: '#0C1119', pose: 'chat', hold: 'glass',
         seed: 811, anim: 'ww-talk' }) +
       A.person({ x: 158, baseY: 868, h: 178, flat: '#0C1119', pose: 'listen', flip: true,
         seed: 817, anim: 'ww-idle' }) +
       /* the DJ — drawn first, so the decks stand in front of them */
-      A.person({ x: 1351, baseY: 862, h: 200, flat: '#0C1119', pose: 'dance', seed: 823,
+      A.dancer(1026, 846, 194, '#0C1119', -1.4) +
+      A.person({ x: 1178, baseY: 862, h: 200, flat: '#0C1119', pose: 'dance', seed: 823,
         anim: 'ww-dance', delay: -1.1 }) +
-      '<rect x="1276" y="806" width="150" height="58" rx="4" fill="#0C1119"/>' +
-      '<rect x="1290" y="798" width="122" height="10" rx="3" fill="#161E2C"/>' +
-      '<circle class="ww-twinkle" cx="1318" cy="818" r="7" fill="#C98CE0" opacity=".8"/>' +
-      '<circle class="ww-twinkle" cx="1384" cy="818" r="7" fill="#F0B45C" opacity=".8" style="animation-delay:-1.4s"/>'
+      '<rect x="1103" y="806" width="150" height="58" rx="4" fill="#0C1119"/>' +
+      '<rect x="1117" y="798" width="122" height="10" rx="3" fill="#161E2C"/>' +
+      '<circle class="ww-twinkle" cx="1145" cy="818" r="7" fill="#C98CE0" opacity=".8"/>' +
+      '<circle class="ww-twinkle" cx="1211" cy="818" r="7" fill="#F0B45C" opacity=".8" style="animation-delay:-1.4s"/>'
     )});
     L.push({ depth: 1.3, svg: wrap(ROOM_W, ROOM_H,
       A.lantern(150, 200, 2.2, 0) + A.lantern(430, 130, 1.7, 0) + A.lantern(1290, 176, 2, 0) + A.lantern(1520, 120, 1.5, 0) +
@@ -609,7 +646,7 @@
   };
 
   function mapPin(x, y, n, delay) {
-    return '<g class="ww-hover-bob" style="transform-origin:' + f(x) + 'px ' + f(y) + 'px;animation-delay:' + f(-delay) + 's">' +
+    return '<g class="ww-hover-bob" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(y) + 'px;animation-delay:' + f(-delay) + 's">' +
       '<ellipse cx="' + f(x) + '" cy="' + f(y + 4) + '" rx="9" ry="3.5" fill="rgba(59,42,34,.25)"/>' +
       '<path d="M ' + f(x) + ' ' + f(y) + ' c -16 -20 -22 -30 -22 -42 a 22 22 0 0 1 44 0 c 0 12 -6 22 -22 42 Z" fill="' + P.terracotta + '"/>' +
       '<circle cx="' + f(x) + '" cy="' + f(y - 42) + '" r="12" fill="#FFF3DE"/>' +
@@ -665,7 +702,7 @@
             g += '<path d="M ' + lx1 + ' 470 Q ' + ((lx1 + lx2) / 2) + ' 500 ' + lx2 + ' 476" fill="none" stroke="rgba(59,42,34,.35)" stroke-width="1.6"/>';
             for (var k = 0; k < 3; k++) {
               var lx = lx1 + (k + 0.5) * ((lx2 - lx1) / 3);
-              g += '<rect class="ww-sway" style="transform-origin:' + f(lx) + 'px 486px;animation-delay:' + (-k * 0.7) + 's" x="' + f(lx - 9) + '" y="486" width="18" height="26" rx="2" fill="' + ['#F4E7D3', '#DCC7AE', '#C9D6DA'][k % 3] + '"/>';
+              g += '<rect class="ww-sway" style="transform-box:view-box;transform-origin:' + f(lx) + 'px 486px;animation-delay:' + (-k * 0.7) + 's" x="' + f(lx - 9) + '" y="486" width="18" height="26" rx="2" fill="' + ['#F4E7D3', '#DCC7AE', '#C9D6DA'][k % 3] + '"/>';
             }
           }
         }
@@ -697,7 +734,7 @@
     L.push({ depth: 0.5, svg: wrap(ROOM_W, ROOM_H,
       A.water(0, 560, ROOM_W, 260, '#6FA5A8', '#356B72', 131, '#FFFFFF') +
       /* the ferry */
-      '<g class="ww-bob" style="transform-origin:700px 660px">' +
+      '<g class="ww-bob" style="transform-box:view-box;transform-origin:700px 660px">' +
       '<path d="M 610 660 l 190 0 l -14 30 l -162 0 Z" fill="#F0E5D0"/>' +
       '<rect x="640" y="632" width="120" height="28" fill="#FFFFFF"/>' +
       '<rect x="656" y="638" width="14" height="12" fill="#4E6E80"/><rect x="682" y="638" width="14" height="12" fill="#4E6E80"/>' +
@@ -779,7 +816,7 @@
         g += '<rect x="716" y="680" width="10" height="58" fill="#6B5744"/><rect x="894" y="680" width="10" height="58" fill="#6B5744"/>';
         g += '<rect x="756" y="650" width="86" height="20" rx="3" fill="#FFF6E4"/>';
         g += '<path d="M 799 650 l 0 20" stroke="' + P.stoneDeep + '" stroke-width="2"/>';
-        g += '<path class="ww-sway" style="transform-origin:860px 654px" d="M 860 654 l 26 -46 l 7 4 l -26 46 Z" fill="#F4E7D3"/>';
+        g += '<path class="ww-sway" style="transform-box:view-box;transform-origin:860px 654px" d="M 860 654 l 26 -46 l 7 4 l -26 46 Z" fill="#F4E7D3"/>';
         for (var c = 0; c < 3; c++) {
           var cxp = 722 + c * 78;
           g += '<rect x="' + cxp + '" y="636" width="9" height="32" fill="#F6EEDC"/>';

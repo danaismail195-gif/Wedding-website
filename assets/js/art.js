@@ -139,7 +139,7 @@
     var d = 'M ' + f(x) + ' ' + f(baseY) +
       ' C ' + f(x - wq) + ' ' + f(baseY - h * 0.34) + ', ' + f(x - wq * 0.82) + ' ' + f(baseY - h * 0.78) + ', ' + f(x) + ' ' + f(baseY - h) +
       ' C ' + f(x + wq * 0.82) + ' ' + f(baseY - h * 0.78) + ', ' + f(x + wq) + ' ' + f(baseY - h * 0.34) + ', ' + f(x) + ' ' + f(baseY) + ' Z';
-    return '<g class="' + (cls || '') + '" style="transform-origin:' + f(x) + 'px ' + f(baseY) + 'px">' +
+    return '<g class="' + (cls || '') + '" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(baseY) + 'px">' +
       '<rect x="' + f(x - h * 0.012) + '" y="' + f(baseY - h * 0.1) + '" width="' + f(h * 0.024) + '" height="' + f(h * 0.1) + '" fill="' + P.espLight + '" opacity=".7"/>' +
       '<path d="' + d + '" fill="' + fill + '"/></g>';
   }
@@ -158,7 +158,7 @@
       var rx = (26 + r() * 17) * s, ry = (17 + r() * 11) * s;
       g += '<ellipse cx="' + f(bx) + '" cy="' + f(by) + '" rx="' + f(rx) + '" ry="' + f(ry) + '" fill="' + (i % 2 ? leaf2 : leaf) + '" opacity="' + (0.82 + r() * 0.18).toFixed(2) + '"/>';
     }
-    return '<g class="ww-sway" style="transform-origin:' + f(x) + 'px ' + f(baseY) + 'px;animation-delay:' + (-r() * 6).toFixed(1) + 's">' + g + '</g>';
+    return '<g class="ww-sway" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(baseY) + 'px;animation-delay:' + (-r() * 6).toFixed(1) + 's">' + g + '</g>';
   }
 
   /* Water: flat colour plus drifting glints. */
@@ -227,7 +227,7 @@
     g += '<circle class="ww-flicker" cx="' + f(x) + '" cy="' + f(y + 4 * s) + '" r="' + f(30 * s) + '" fill="url(#' + id + ')"/>';
     g += '<path d="M ' + f(x - 7 * s) + ' ' + f(y - 10 * s) + ' l ' + f(14 * s) + ' 0 l ' + f(2.5 * s) + ' ' + f(21 * s) + ' l -' + f(19 * s) + ' 0 Z" fill="rgba(59,42,34,.72)"/>';
     g += '<path d="M ' + f(x - 4.5 * s) + ' ' + f(y - 7 * s) + ' l ' + f(9 * s) + ' 0 l ' + f(1.6 * s) + ' ' + f(15 * s) + ' l -' + f(12 * s) + ' 0 Z" fill="' + P.goldLight + '" class="ww-flicker"/>';
-    return '<g class="ww-swing" style="transform-origin:' + f(x) + 'px ' + f(cordTo != null ? cordTo : y - 46 * s) + 'px">' + g + '</g>';
+    return '<g class="ww-swing" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(cordTo != null ? cordTo : y - 46 * s) + 'px">' + g + '</g>';
   }
 
   /* A sagging run of festoon bulbs. */
@@ -265,7 +265,7 @@
 
   /* Little boat on the bay. */
   function boat(x, y, s, hull, sail) {
-    return '<g class="ww-bob" style="transform-origin:' + f(x) + 'px ' + f(y) + 'px;animation-delay:' + f(-x % 5) + 's">' +
+    return '<g class="ww-bob" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(y) + 'px;animation-delay:' + f(-x % 5) + 's">' +
       (sail ? '<path d="M ' + f(x) + ' ' + f(y - 2 * s) + ' L ' + f(x) + ' ' + f(y - 30 * s) + ' L ' + f(x + 17 * s) + ' ' + f(y - 3 * s) + ' Z" fill="' + sail + '"/>' : '') +
       '<path d="M ' + f(x - 16 * s) + ' ' + f(y) + ' q ' + f(16 * s) + ' ' + f(9 * s) + ' ' + f(34 * s) + ' 0 Z" fill="' + (hull || P.espresso) + '"/></g>';
   }
@@ -277,7 +277,7 @@
       /* only some of the grass moves — nobody counts, and the layer repaints
          a third as often */
       var sway = i % 3 === 0;
-      g += '<path' + (sway ? ' class="ww-sway"' : '') + ' style="transform-origin:' + f(gx) + 'px ' + f(y) + 'px;animation-delay:' + (-r() * 5).toFixed(1) + 's" d="M ' + f(gx) + ' ' + f(y) +
+      g += '<path' + (sway ? ' class="ww-sway"' : '') + ' style="transform-box:view-box;transform-origin:' + f(gx) + 'px ' + f(y) + 'px;animation-delay:' + (-r() * 5).toFixed(1) + 's" d="M ' + f(gx) + ' ' + f(y) +
            ' q ' + f((r() - 0.5) * 10) + ' -' + f(hgt * 0.6) + ' ' + f((r() - 0.5) * 14) + ' -' + f(hgt) + '" fill="none" stroke="' + (color || P.oliveDeep) + '" stroke-width="1.7" stroke-linecap="round"/>';
     }
     return g;
@@ -299,21 +299,29 @@
       g += '<ellipse cx="' + f(lx) + '" cy="' + f(ly + (r() - 0.5) * 26 * s) + '" rx="' + f((16 + r() * 9) * s) + '" ry="' + f((5 + r() * 2.6) * s) +
            '" fill="' + (i % 3 ? leaf : leaf2) + '" transform="rotate(' + ang + ' ' + f(lx) + ' ' + f(ly) + ')" opacity=".93"/>';
     }
-    return '<g class="ww-sway-slow" style="transform-origin:' + f(x) + 'px ' + f(y) + 'px">' + g + '</g>';
+    return '<g class="ww-sway-slow" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(y) + 'px">' + g + '</g>';
   }
 
   /* ======================================================================
-     PEOPLE — flat, hand-made, deliberately a bit wonky, but properly built.
-     Every limb is a round-capped polyline that STARTS at the shoulder or
-     hip it belongs to, so an arm can never float free of its body. Poses
-     are described in fractions of the figure's height, which keeps the
-     proportions honest at any scale.
+     PEOPLE — flat vector figures, in the spirit of the reference artwork:
+     solid colour with no outlines, chunky rounded limbs, generous hair,
+     the smallest possible face. Deliberately a bit wonky, but properly
+     built: every limb is a round-capped polyline that STARTS at the
+     shoulder or hip it belongs to, so an arm can never float free of its
+     body. Poses are fractions of the figure's height, which keeps the
+     proportions honest at any scale — a 96-tall guest in a chair is put
+     together exactly like a 300-tall one at the table.
      ====================================================================== */
 
-  var SKINS   = ['#EFC49F', '#E2AC81', '#C98A5E', '#A06A43', '#7A4E32', '#5B3826'];
+  var SKINS   = ['#F2C79E', '#E6B183', '#CE8F60', '#A97148', '#835434', '#63401F'];
   var CLOTHES = ['#C4643C', '#7A97A8', '#7C8B5E', '#E4A853', '#9B4A2A', '#5A4260',
-                 '#4E6E80', '#D98A5E', '#F4E7D3', '#3B2A22'];
-  var HAIRS   = ['#3B2A22', '#5C4436', '#241A16', '#6B5744', '#2A2430', '#8A6A46', '#B08A55'];
+                 '#4E6E80', '#7E9E8E', '#F2E4CC', '#3B5068', '#B8574B', '#6E8C6A',
+                 '#C98A9B', '#D9B45C'];
+  var PANTS   = ['#3B4A5A', '#5C4436', '#4E6E80', '#7C8B5E', '#9B4A2A', '#2A2430',
+                 '#6B5744', '#5A4260', '#8A6A46'];
+  var HAIRS   = ['#3B2A22', '#241A16', '#5C4436', '#6B5744', '#2A2430', '#8A6A46',
+                 '#B08A55', '#A85331', '#D9B071', '#4A3B52'];
+  var HAIR_STYLES = ['crop', 'bob', 'long', 'bun', 'curls', 'pony', 'wave', 'part'];
 
   /* round-capped, round-joined polyline — the only way limbs are drawn */
   function limbPath(pts, w, color, extra) {
@@ -348,6 +356,9 @@
     /* drawn up to a table: legs straight down, where the tabletop hides them */
     table:  { armNear: [[.062, .100], [.140, .150]], armFar: [[-.058, .100], [-.120, .152]],
               legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
+    /* leaning in over the table, one hand up mid-sentence */
+    tableUp:{ armNear: [[.080, .060], [.150, -.010]], armFar: [[-.058, .100], [-.120, .152]],
+              legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
     dance:  { armNear: [[.110, -.010], [.170, -.150]], armFar: [[-.115, .060], [-.205, .015]],
               legNear: [[.075, .200], [.120, .450]], legFar: [[-.080, .195], [-.135, .450]] },
     dance2: { armNear: [[.125, .045], [.215, -.035]], armFar: [[-.095, -.020], [-.140, -.160]],
@@ -357,11 +368,18 @@
   /* Small things people hold. Drawn at the hand, so they never drift off. */
   function prop(kind, hx, hy, s, tint) {
     if (kind === 'glass') {
-      return '<path d="M ' + f(hx - 3.6 * s) + ' ' + f(hy - 2 * s) +
-        ' l ' + f(7.2 * s) + ' 0 l -' + f(1.1 * s) + ' ' + f(5.2 * s) + ' l -' + f(5 * s) + ' 0 Z" fill="#FBF4E8" opacity=".92"/>' +
-        '<path d="M ' + f(hx - 2.9 * s) + ' ' + f(hy - 1.2 * s) + ' l ' + f(5.8 * s) + ' 0 l -' + f(.7 * s) + ' ' + f(3 * s) +
-        ' l -' + f(4.4 * s) + ' 0 Z" fill="' + (tint || '#E8B25E') + '" opacity=".85"/>' +
-        '<rect x="' + f(hx - .5 * s) + '" y="' + f(hy + 3 * s) + '" width="' + f(1.2 * s) + '" height="' + f(3.4 * s) + '" fill="#FBF4E8" opacity=".8"/>';
+      /* a proper stemmed glass: bowl, stem, foot — it reads as a glass even
+         when the whole figure is 90px tall */
+      return '<path d="M ' + f(hx - 3.4 * s) + ' ' + f(hy - 3.4 * s) +
+        ' L ' + f(hx + 3.4 * s) + ' ' + f(hy - 3.4 * s) +
+        ' Q ' + f(hx + 3.1 * s) + ' ' + f(hy + 2.2 * s) + ' ' + f(hx) + ' ' + f(hy + 2.6 * s) +
+        ' Q ' + f(hx - 3.1 * s) + ' ' + f(hy + 2.2 * s) + ' ' + f(hx - 3.4 * s) + ' ' + f(hy - 3.4 * s) + ' Z" fill="#FBF4E8" opacity=".95"/>' +
+        '<path d="M ' + f(hx - 3.15 * s) + ' ' + f(hy - 1.2 * s) +
+        ' L ' + f(hx + 3.15 * s) + ' ' + f(hy - 1.2 * s) +
+        ' Q ' + f(hx + 2.9 * s) + ' ' + f(hy + 2.0 * s) + ' ' + f(hx) + ' ' + f(hy + 2.4 * s) +
+        ' Q ' + f(hx - 2.9 * s) + ' ' + f(hy + 2.0 * s) + ' ' + f(hx - 3.15 * s) + ' ' + f(hy - 1.2 * s) + ' Z" fill="' + (tint || '#E8B25E') + '" opacity=".9"/>' +
+        '<rect x="' + f(hx - .55 * s) + '" y="' + f(hy + 2.4 * s) + '" width="' + f(1.1 * s) + '" height="' + f(3.4 * s) + '" fill="#FBF4E8" opacity=".9"/>' +
+        '<ellipse cx="' + f(hx) + '" cy="' + f(hy + 6 * s) + '" rx="' + f(2.6 * s) + '" ry="' + f(.8 * s) + '" fill="#FBF4E8" opacity=".9"/>';
     }
     if (kind === 'camera') {
       return '<rect x="' + f(hx - 5.5 * s) + '" y="' + f(hy - 4 * s) + '" width="' + f(11 * s) + '" height="' + f(8 * s) +
@@ -380,33 +398,114 @@
     return '';
   }
 
+  /* --- hair -------------------------------------------------------------
+     Two pieces: what sits behind the head, and what sits over the brow.
+     Drawing it in two halves is what stops a fringe ever coming apart from
+     the skull when a figure is flipped or leaning. */
+  /* Hair that falls past the jaw is drawn before the body, so it hangs
+     behind the shoulders instead of lying across the chest like a bib. */
+  function hairBehind(style, hx, hy, R, dir, hair) {
+    if (style === 'long') {
+      return '<path d="M ' + f(hx - R * 1.16) + ' ' + f(hy - R * 0.3) +
+        ' q -' + f(R * 0.26) + ' ' + f(R * 1.8) + ' ' + f(R * 0.06) + ' ' + f(R * 2.36) +
+        ' l ' + f(R * 2.28) + ' 0' +
+        ' q ' + f(R * 0.32) + ' -' + f(R * 0.56) + ' ' + f(R * 0.06) + ' -' + f(R * 2.36) + ' Z" fill="' + hair + '"/>';
+    }
+    if (style === 'wave') {
+      return '<path d="M ' + f(hx - R * 1.2) + ' ' + f(hy - R * 0.3) +
+        ' q -' + f(R * 0.34) + ' ' + f(R * 1.5) + ' -' + f(R * 0.02) + ' ' + f(R * 2.1) +
+        ' q ' + f(R * 0.42) + ' -' + f(R * 0.3) + ' ' + f(R * 0.66) + ' ' + f(R * 0.16) +
+        ' q ' + f(R * 0.4) + ' ' + f(R * 0.28) + ' ' + f(R * 0.8) + ' -' + f(R * 0.1) +
+        ' q ' + f(R * 0.4) + ' ' + f(R * 0.3) + ' ' + f(R * 0.72) + ' -' + f(R * 0.14) +
+        ' q ' + f(R * 0.26) + ' -' + f(R * 1.1) + ' -' + f(R * 0.16) + ' -' + f(R * 1.96) + ' Z" fill="' + hair + '"/>';
+    }
+    if (style === 'pony') {
+      return '<path d="M ' + f(hx - R * 0.9 * dir) + ' ' + f(hy - R * 0.5) +
+        ' q -' + f(R * 1.1 * dir) + ' ' + f(R * 0.5) + ' -' + f(R * 0.86 * dir) + ' ' + f(R * 1.9) +
+        ' q ' + f(R * 0.44 * dir) + ' ' + f(R * 0.2) + ' ' + f(R * 0.72 * dir) + ' -' + f(R * 0.22) +
+        ' q -' + f(R * 0.16 * dir) + ' -' + f(R * 1.1) + ' ' + f(R * 0.5 * dir) + ' -' + f(R * 1.6) + ' Z" fill="' + hair + '"/>';
+    }
+    return '';
+  }
+
+  function hairBack(style, hx, hy, R, dir, hair) {
+    var g = '';
+    var cap = '<circle cx="' + f(hx) + '" cy="' + f(hy - R * 0.14) + '" r="' + f(R * 1.07) + '" fill="' + hair + '"/>';
+    if (style === 'bob') {
+      g += '<path d="M ' + f(hx - R * 1.14) + ' ' + f(hy - R * 0.3) +
+        ' l 0 ' + f(R * 1.24) + ' q ' + f(R * 0.5) + ' ' + f(R * 0.3) + ' ' + f(R * 0.86) + ' ' + f(R * 0.06) +
+        ' l ' + f(R * 0.84) + ' 0 q ' + f(R * 0.4) + ' ' + f(R * 0.24) + ' ' + f(R * 0.86) + ' -' + f(R * 0.06) +
+        ' l 0 -' + f(R * 1.24) + ' Z" fill="' + hair + '"/>';
+    } else if (style === 'curls') {
+      for (var i = 0; i < 9; i++) {
+        var a = Math.PI * (1.06 + i * (0.88 / 8));
+        g += '<circle cx="' + f(hx + Math.cos(a) * R * 0.92) + '" cy="' + f(hy - R * 0.1 + Math.sin(a) * R * 0.92) +
+          '" r="' + f(R * 0.54) + '" fill="' + hair + '"/>';
+      }
+    }
+    g += cap;
+    if (style === 'bun') {
+      g += '<circle cx="' + f(hx - R * 1.0 * dir) + '" cy="' + f(hy - R * 0.86) + '" r="' + f(R * 0.5) + '" fill="' + hair + '"/>';
+    }
+    return g;
+  }
+
+  function hairFront(style, hx, hy, R, dir, hair) {
+    if (style === 'curls') {
+      return '<circle cx="' + f(hx - R * 0.42) + '" cy="' + f(hy - R * 0.72) + '" r="' + f(R * 0.46) + '" fill="' + hair + '"/>' +
+             '<circle cx="' + f(hx + R * 0.44) + '" cy="' + f(hy - R * 0.76) + '" r="' + f(R * 0.42) + '" fill="' + hair + '"/>';
+    }
+    if (style === 'part') {
+      /* swept to one side, off a parting */
+      return '<path d="M ' + f(hx - R * 1.02) + ' ' + f(hy - R * 0.32) +
+        ' q ' + f(R * 0.2) + ' -' + f(R * 0.86) + ' ' + f(R * 1.06) + ' -' + f(R * 0.82) +
+        ' q ' + f(R * 0.9) + ' ' + f(R * 0.04) + ' ' + f(R * 1.0) + ' ' + f(R * 0.8) +
+        ' q -' + f(R * 0.66) + ' -' + f(R * 0.44) + ' -' + f(R * 1.34) + ' -' + f(R * 0.1) +
+        ' q -' + f(R * 0.4) + ' ' + f(R * 0.26) + ' -' + f(R * 0.72) + ' ' + f(R * 0.44) + ' Z" fill="' + hair + '"/>';
+    }
+    /* the ordinary fringe, sitting on the brow */
+    return '<ellipse cx="' + f(hx + R * 0.06 * dir) + '" cy="' + f(hy - R * 0.62) +
+      '" rx="' + f(R * 1.0) + '" ry="' + f(R * 0.46) + '" fill="' + hair + '"/>';
+  }
+
   /**
-   * person({ x, baseY, h, pose, flip, skin, cloth, hair, dress, flat, hold,
-   *          anim, delay, seed })
-   * baseY is the ground (or the seat front, for `sit`). Returns one <g>.
+   * person({ x, baseY, h, pose, flip, skin, cloth, pants, hair, hairStyle,
+   *          dress, flat, back, hold, holdTint, anim, delay, seed, shadow })
+   * baseY is the ground (or the seat front, for `sit` / `table`).
+   * Returns one <g>, animated by the class in `anim`.
    */
   function person(o) {
     o = o || {};
     var x = o.x || 0, b = o.baseY || 0, h = o.h || 100;
-    var r = rand(o.seed != null ? o.seed : (Math.abs(x * 31 + b * 17 + h) | 0) + 3);
+    /* Scenes seed their guests from a counter (400, 411, 422 …). The plain
+       linear generator turns neighbouring seeds into near-identical streams,
+       which is how a whole row of chairs ended up dressed in the same colour.
+       Scrambling the seed first — and only for people — gives every guest
+       their own wardrobe without disturbing any other procedural artwork. */
+    var seed0 = o.seed != null ? o.seed : (Math.abs(x * 31 + b * 17 + h) | 0) + 3;
+    var r = rand((((seed0 + 1) * 2654435761) ^ 0x9E3779B9) >>> 0);
     var flat  = o.flat || null;
     var skin  = flat || o.skin  || SKINS[(r() * SKINS.length) | 0];
     var cloth = flat || o.cloth || CLOTHES[(r() * CLOTHES.length) | 0];
     var hair  = flat || o.hair  || HAIRS[(r() * HAIRS.length) | 0];
+    var pants = flat || o.pants || PANTS[(r() * PANTS.length) | 0];
+    var hairStyle = o.hairStyle || HAIR_STYLES[(r() * HAIR_STYLES.length) | 0];
     var shoe  = flat || '#3B2A22';
     var dir   = o.flip ? -1 : 1;
     var pose  = POSES[o.pose] || POSES.stand;
     var dress = o.dress != null ? o.dress : (r() < 0.45);
-    var seated = o.pose === 'sit' || o.pose === 'table';
+    var seated = o.pose === 'sit' || o.pose === 'table' || o.pose === 'tableUp';
 
-    /* skeleton */
-    var headR = h * 0.098,
-        headY = b - h * (seated ? 0.440 : 0.895),
-        shY   = b - h * (seated ? 0.300 : 0.745),
-        hipY  = b - h * (seated ? 0.020 : 0.455),
-        shW   = h * 0.104,
-        hipW  = h * 0.080,
-        limbW = h * 0.070;
+    /* skeleton — a shade chunkier than life, which is what makes a flat
+       figure read as drawn rather than as a stick */
+    var headR = h * 0.112,
+        headY = b - h * (seated ? 0.452 : 0.878),
+        shY   = b - h * (seated ? 0.300 : 0.718),
+        hipY  = b - h * (seated ? 0.020 : 0.452),
+        shW   = h * 0.134,
+        hipW  = h * 0.102,
+        limbW = h * 0.084,
+        handR = limbW * 0.46;
 
     /* a little wonkiness, so no two are quite the same */
     var lean = (r() - 0.5) * 2.2;
@@ -432,84 +531,106 @@
 
     var g = '';
 
-    function sleeve(arm) {                     /* the cloth that covers the joint */
-      return limbPath([arm[0], [arm[0][0] + (arm[1][0] - arm[0][0]) * 0.62,
-                                arm[0][1] + (arm[1][1] - arm[0][1]) * 0.62]],
-        limbW * 1.06, flat || shade(cloth, -0.04));
+    /* anything that falls past the jaw hangs behind the whole figure */
+    if (!flat && !o.back) g += hairBehind(hairStyle, x + h * 0.010 * dir, headY, headR, dir, hair);
+
+    /* the cloth that covers the shoulder joint, so an arm never looks
+       pinned on: a sleeve down the first two thirds of the upper arm */
+    function sleeve(arm, len) {
+      return limbPath([arm[0], [arm[0][0] + (arm[1][0] - arm[0][0]) * (len || 0.8),
+                                arm[0][1] + (arm[1][1] - arm[0][1]) * (len || 0.8)]],
+        limbW * 1.02, flat || shade(cloth, -0.05));
+    }
+    function hand(arm, tone) {
+      return '<circle cx="' + f(arm[2][0]) + '" cy="' + f(arm[2][1]) + '" r="' + f(handR) + '" fill="' + (flat || tone) + '"/>';
     }
 
     /* --- far arm and far leg go behind the body ---------------------- */
-    g += limbPath(legFar, limbW, flat || shade(cloth, -0.20));
-    g += limbPath(armFar, limbW * 0.80, flat || shade(skin, -0.10));
-    if (!flat) g += sleeve(armFar);
+    g += limbPath(legFar, limbW, flat || (dress ? shade(skin, -0.14) : shade(pants, -0.14)));
+    g += limbPath(armFar, limbW * 0.82, flat || shade(skin, -0.10));
+    if (!flat) { g += sleeve(armFar); g += hand(armFar, shade(skin, -0.10)); }
 
     /* --- near leg ---------------------------------------------------- */
-    g += limbPath(legNear, limbW, flat || shade(cloth, -0.08));
+    g += limbPath(legNear, limbW, flat || (dress ? skin : pants));
     if (!flat) {
-      g += '<ellipse cx="' + f(legFar[2][0]) + '" cy="' + f(legFar[2][1] + limbW * 0.16) + '" rx="' + f(limbW * 0.70) + '" ry="' + f(limbW * 0.36) + '" fill="' + shade(shoe, 0.12) + '"/>';
-      g += '<ellipse cx="' + f(legNear[2][0]) + '" cy="' + f(legNear[2][1] + limbW * 0.16) + '" rx="' + f(limbW * 0.74) + '" ry="' + f(limbW * 0.38) + '" fill="' + shoe + '"/>';
+      g += '<ellipse cx="' + f(legFar[2][0] + limbW * 0.12 * dir) + '" cy="' + f(legFar[2][1] + limbW * 0.2) + '" rx="' + f(limbW * 0.72) + '" ry="' + f(limbW * 0.34) + '" fill="' + shade(shoe, 0.12) + '"/>';
+      g += '<ellipse cx="' + f(legNear[2][0] + limbW * 0.12 * dir) + '" cy="' + f(legNear[2][1] + limbW * 0.2) + '" rx="' + f(limbW * 0.76) + '" ry="' + f(limbW * 0.36) + '" fill="' + shoe + '"/>';
     }
 
     /* --- neck, drawn first so the collar covers where it joins -------- */
-    g += '<rect x="' + f(x - h * 0.020 + h * 0.006 * dir) + '" y="' + f(headY + headR * 0.42) +
-      '" width="' + f(h * 0.040) + '" height="' + f(h * 0.105) + '" fill="' + (flat || shade(skin, -0.16)) + '"/>';
+    g += '<rect x="' + f(x - h * 0.022 + h * 0.006 * dir) + '" y="' + f(headY + headR * 0.42) +
+      '" width="' + f(h * 0.044) + '" height="' + f(h * 0.105) + '" fill="' + (flat || shade(skin, -0.18)) + '"/>';
 
-    /* --- torso: round shoulders, a little waist ---------------------- */
-    var torso = 'M ' + f(x - shW) + ' ' + f(shY + h * 0.022) +
-      ' C ' + f(x - shW) + ' ' + f(shY - h * 0.030) + ', ' + f(x - shW * 0.44) + ' ' + f(shY - h * 0.046) + ', ' + f(x) + ' ' + f(shY - h * 0.046) +
-      ' C ' + f(x + shW * 0.44) + ' ' + f(shY - h * 0.046) + ', ' + f(x + shW) + ' ' + f(shY - h * 0.030) + ', ' + f(x + shW) + ' ' + f(shY + h * 0.022) +
-      ' L ' + f(x + hipW) + ' ' + f(hipY) + ' Q ' + f(x) + ' ' + f(hipY + h * 0.024) + ' ' + f(x - hipW) + ' ' + f(hipY) + ' Z';
+    /* --- torso: round shoulders, a little waist, a soft hem ---------- */
+    var torso = 'M ' + f(x - shW) + ' ' + f(shY + h * 0.024) +
+      ' C ' + f(x - shW) + ' ' + f(shY - h * 0.034) + ', ' + f(x - shW * 0.42) + ' ' + f(shY - h * 0.050) + ', ' + f(x) + ' ' + f(shY - h * 0.050) +
+      ' C ' + f(x + shW * 0.42) + ' ' + f(shY - h * 0.050) + ', ' + f(x + shW) + ' ' + f(shY - h * 0.034) + ', ' + f(x + shW) + ' ' + f(shY + h * 0.024) +
+      ' L ' + f(x + hipW) + ' ' + f(hipY) + ' Q ' + f(x) + ' ' + f(hipY + h * 0.028) + ' ' + f(x - hipW) + ' ' + f(hipY) + ' Z';
     g += '<path d="' + torso + '" fill="' + cloth + '"/>';
     if (!flat) {
       /* a wedge of shade down the shadowed edge, so the body reads as solid */
-      g += '<path d="M ' + f(x + shW * 0.40 * dir) + ' ' + f(shY - h * 0.018) +
-        ' L ' + f(x + shW * dir) + ' ' + f(shY + h * 0.022) +
+      g += '<path d="M ' + f(x + shW * 0.40 * dir) + ' ' + f(shY - h * 0.020) +
+        ' L ' + f(x + shW * dir) + ' ' + f(shY + h * 0.024) +
         ' L ' + f(x + hipW * dir) + ' ' + f(hipY) +
-        ' L ' + f(x + hipW * 0.40 * dir) + ' ' + f(hipY) + ' Z" fill="' + shade(cloth, -0.18) + '" opacity=".3"/>';
+        ' L ' + f(x + hipW * 0.40 * dir) + ' ' + f(hipY) + ' Z" fill="' + shade(cloth, -0.20) + '" opacity=".12"/>';
+      /* the neckline — a soft curve of shade where the collar sits */
+      g += '<path d="M ' + f(x - shW * 0.40) + ' ' + f(shY - h * 0.048) +
+        ' Q ' + f(x) + ' ' + f(shY + h * 0.010) + ' ' + f(x + shW * 0.40) + ' ' + f(shY - h * 0.048) +
+        ' Q ' + f(x) + ' ' + f(shY - h * 0.022) + ' ' + f(x - shW * 0.40) + ' ' + f(shY - h * 0.048) + ' Z" fill="' + shade(cloth, -0.26) + '" opacity=".38"/>';
     }
     if (dress && !seated) {
-      g += '<path d="M ' + f(x - hipW * 1.06) + ' ' + f(hipY - h * 0.045) +
-        ' L ' + f(x + hipW * 1.06) + ' ' + f(hipY - h * 0.045) +
-        ' L ' + f(x + hipW * 1.95) + ' ' + f(hipY + h * 0.175) +
-        ' Q ' + f(x) + ' ' + f(hipY + h * 0.215) + ' ' + f(x - hipW * 1.95) + ' ' + f(hipY + h * 0.175) + ' Z" fill="' + cloth + '"/>';
-      g += '<path d="M ' + f(x + hipW * 0.35 * dir) + ' ' + f(hipY - h * 0.045) + ' L ' + f(x + hipW * 1.95 * dir) + ' ' + f(hipY + h * 0.175) +
-        ' Q ' + f(x + hipW * 0.9 * dir) + ' ' + f(hipY + h * 0.203) + ' ' + f(x + hipW * 0.22 * dir) + ' ' + f(hipY + h * 0.192) + ' Z" fill="' + shade(cloth, -0.14) + '" opacity=".45"/>';
+      g += '<path d="M ' + f(x - hipW * 1.04) + ' ' + f(hipY - h * 0.048) +
+        ' L ' + f(x + hipW * 1.04) + ' ' + f(hipY - h * 0.048) +
+        ' L ' + f(x + hipW * 1.92) + ' ' + f(hipY + h * 0.178) +
+        ' Q ' + f(x) + ' ' + f(hipY + h * 0.218) + ' ' + f(x - hipW * 1.92) + ' ' + f(hipY + h * 0.178) + ' Z" fill="' + cloth + '"/>';
+      if (!flat) {
+        g += '<path d="M ' + f(x + hipW * 0.35 * dir) + ' ' + f(hipY - h * 0.048) + ' L ' + f(x + hipW * 1.92 * dir) + ' ' + f(hipY + h * 0.178) +
+          ' Q ' + f(x + hipW * 0.9 * dir) + ' ' + f(hipY + h * 0.206) + ' ' + f(x + hipW * 0.22 * dir) + ' ' + f(hipY + h * 0.195) + ' Z" fill="' + shade(cloth, -0.16) + '" opacity=".42"/>';
+      }
     }
 
     /* --- near arm sits on top of the torso, joined at the shoulder ---- */
-    g += limbPath(armNear, limbW * 0.80, flat || shade(skin, 0.04));
-    if (!flat) g += sleeve(armNear);
-    if (o.hold) g += prop(o.hold, armNear[2][0], armNear[2][1], h * 0.011, o.holdTint);
+    g += limbPath(armNear, limbW * 0.82, flat || shade(skin, 0.04));
+    if (!flat) { g += sleeve(armNear); g += hand(armNear, shade(skin, 0.04)); }
+    if (o.hold) g += prop(o.hold, armNear[2][0], armNear[2][1] - handR * 0.5, h * 0.012, o.holdTint);
 
     /* --- head --------------------------------------------------------- */
     var hx = x + h * 0.010 * dir;
-    var style = r();
     if (o.back) {                              /* seen from behind */
-      g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR * 1.04) + '" fill="' + (flat || hair) + '"/>';
-      if (style < 0.4) g += '<circle cx="' + f(hx) + '" cy="' + f(headY - headR * 0.72) + '" r="' + f(headR * 0.46) + '" fill="' + (flat || shade(hair, 0.12)) + '"/>';
-    } else if (!flat) {
-      /* hair behind, face in front: the join can never come apart */
-      if (style < 0.30) {                       /* long hair, down the back */
-        g += '<path d="M ' + f(hx - headR * 1.02) + ' ' + f(headY - headR * 0.1) +
-          ' q -' + f(headR * 0.30) + ' ' + f(headR * 2.4) + ' ' + f(headR * 0.55) + ' ' + f(headR * 2.7) +
-          ' l ' + f(headR * 1.5) + ' 0' +
-          ' q ' + f(headR * 0.85) + ' -' + f(headR * 0.3) + ' ' + f(headR * 0.5) + ' -' + f(headR * 2.7) + ' Z" fill="' + hair + '"/>';
-      } else if (style < 0.44) {                /* a bun */
-        g += '<circle cx="' + f(hx - headR * 1.0 * dir) + '" cy="' + f(headY - headR * 0.62) + '" r="' + f(headR * 0.44) + '" fill="' + hair + '"/>';
+      g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR * 1.06) + '" fill="' + (flat || hair) + '"/>';
+      if (!flat) {
+        if (hairStyle === 'bun') g += '<circle cx="' + f(hx) + '" cy="' + f(headY - headR * 0.82) + '" r="' + f(headR * 0.5) + '" fill="' + shade(hair, 0.1) + '"/>';
+        else if (hairStyle === 'long' || hairStyle === 'wave') {
+          g += '<path d="M ' + f(hx - headR * 1.04) + ' ' + f(headY) +
+            ' q -' + f(headR * 0.2) + ' ' + f(headR * 2.2) + ' ' + f(headR * 0.4) + ' ' + f(headR * 2.4) +
+            ' l ' + f(headR * 1.3) + ' 0 q ' + f(headR * 0.6) + ' -' + f(headR * 0.2) + ' ' + f(headR * 0.4) + ' -' + f(headR * 2.4) + ' Z" fill="' + hair + '"/>';
+        } else if (hairStyle === 'curls') {
+          for (var ci = 0; ci < 7; ci++) {
+            var ca = Math.PI * (1.0 + ci * (1.0 / 6));
+            g += '<circle cx="' + f(hx + Math.cos(ca) * headR * 0.9) + '" cy="' + f(headY + Math.sin(ca) * headR * 0.9) +
+              '" r="' + f(headR * 0.5) + '" fill="' + hair + '"/>';
+          }
+        }
       }
-      g += '<circle cx="' + f(hx) + '" cy="' + f(headY - headR * 0.15) + '" r="' + f(headR * 1.06) + '" fill="' + hair + '"/>';
-    }
-    if (!o.back) g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR) + '" fill="' + skin + '"/>';
-    if (!flat && !o.back) {
-      /* the fringe, sitting on the brow */
-      g += '<ellipse cx="' + f(hx + headR * 0.06 * dir) + '" cy="' + f(headY - headR * 0.60) + '" rx="' + f(headR * 0.99) + '" ry="' + f(headR * 0.46) + '" fill="' + hair + '"/>';
-      /* the smallest possible face */
-      g += '<circle cx="' + f(hx + headR * 0.34 * dir) + '" cy="' + f(headY + headR * 0.02) + '" r="' + f(headR * 0.10) + '" fill="' + shade(skin, -0.5) + '" opacity=".75"/>';
-      g += '<circle cx="' + f(hx - headR * 0.30 * dir) + '" cy="' + f(headY + headR * 0.02) + '" r="' + f(headR * 0.10) + '" fill="' + shade(skin, -0.5) + '" opacity=".55"/>';
-      g += '<path d="M ' + f(hx - headR * 0.16 * dir) + ' ' + f(headY + headR * 0.44) +
-        ' q ' + f(headR * 0.30 * dir) + ' ' + f(headR * (o.pose === 'laugh' ? 0.46 : 0.28)) + ' ' + f(headR * 0.56 * dir) + ' ' + f(headR * 0.02) + '" ' +
-        'fill="none" stroke="' + shade(skin, -0.5) + '" stroke-width="' + f(headR * 0.15) + '" stroke-linecap="round" opacity=".8"/>';
-      g += '<circle cx="' + f(hx + headR * 0.72 * dir) + '" cy="' + f(headY + headR * 0.28) + '" r="' + f(headR * 0.22) + '" fill="#D98A5E" opacity=".28"/>';
+    } else {
+      if (!flat) g += hairBack(hairStyle, hx, headY, headR, dir, hair);
+      g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR) + '" fill="' + skin + '"/>';
+      if (!flat) {
+        g += hairFront(hairStyle, hx, headY, headR, dir, hair);
+        /* ears, eyes, a smile — the smallest possible face */
+        g += '<circle cx="' + f(hx - headR * 0.98 * dir) + '" cy="' + f(headY + headR * 0.12) + '" r="' + f(headR * 0.16) + '" fill="' + shade(skin, -0.12) + '"/>';
+        g += '<circle cx="' + f(hx + headR * 0.36 * dir) + '" cy="' + f(headY + headR * 0.04) + '" r="' + f(headR * 0.125) + '" fill="#3B2A22" opacity=".9"/>';
+        g += '<circle cx="' + f(hx - headR * 0.26 * dir) + '" cy="' + f(headY + headR * 0.04) + '" r="' + f(headR * 0.125) + '" fill="#3B2A22" opacity=".78"/>';
+        if (o.pose === 'laugh') {
+          g += '<ellipse cx="' + f(hx + headR * 0.10 * dir) + '" cy="' + f(headY + headR * 0.48) + '" rx="' + f(headR * 0.26) + '" ry="' + f(headR * 0.22) + '" fill="#7A3B2C" opacity=".85"/>';
+        } else {
+          g += '<path d="M ' + f(hx - headR * 0.20 * dir) + ' ' + f(headY + headR * 0.40) +
+            ' q ' + f(headR * 0.30 * dir) + ' ' + f(headR * 0.34) + ' ' + f(headR * 0.60 * dir) + ' ' + f(headR * 0.02) + '" ' +
+            'fill="none" stroke="#3B2A22" stroke-width="' + f(headR * 0.15) + '" stroke-linecap="round" opacity=".85"/>';
+        }
+        g += '<circle cx="' + f(hx + headR * 0.70 * dir) + '" cy="' + f(headY + headR * 0.30) + '" r="' + f(headR * 0.20) + '" fill="#D9714E" opacity=".26"/>';
+        g += '<circle cx="' + f(hx - headR * 0.60 * dir) + '" cy="' + f(headY + headR * 0.32) + '" r="' + f(headR * 0.17) + '" fill="#D9714E" opacity=".18"/>';
+      }
     }
 
     /* --- ground shadow ------------------------------------------------ */
@@ -517,9 +638,20 @@
       ? '<ellipse cx="' + f(x) + '" cy="' + f(b + limbW * 0.3) + '" rx="' + f(h * 0.15) + '" ry="' + f(h * 0.032) + '" fill="rgba(59,42,34,.20)"/>'
       : '';
 
+    /* --- how it moves --------------------------------------------------
+       The animation origin is the ground under the figure, in the layer's
+       own coordinates (`transform-box: view-box` — the stylesheet's default
+       of fill-box would measure from the corner of each figure's own box,
+       which is what used to make one guest wave about while their neighbour
+       barely twitched). The travel is a fraction of the figure's height, so
+       a small guest at the back of the terrace and a large one at the table
+       move by the same amount *of themselves*: one scene, one intensity. */
     var cls = o.anim !== false ? (o.anim || 'ww-idle') : '';
     var delay = o.delay != null ? o.delay : -(r() * 6);
-    return shadow + '<g class="' + cls + '" style="transform-origin:' + f(x) + 'px ' + f(b) + 'px;' +
+    var vars = '--ww-amp-y:' + f(-h * 0.009) + 'px;--ww-amp-x:' + f(h * 0.10) + 'px;' +
+               '--ww-lift:' + f(-h * 0.030) + 'px;';
+    return shadow + '<g class="' + cls + '" style="transform-box:view-box;transform-origin:' +
+      f(x) + 'px ' + f(b) + 'px;' + vars +
       (cls ? 'animation-delay:' + f(delay) + 's;' : '') + '">' +
       (lean ? '<g transform="rotate(' + f(lean) + ' ' + f(x) + ' ' + f(b) + ')">' + g + '</g>' : g) +
       '</g>';

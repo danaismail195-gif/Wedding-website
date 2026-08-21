@@ -145,27 +145,28 @@ svg { display: block; }
 .entrance:hover .entrance-label, .entrance:focus-visible .entrance-label,
 .entrance.is-near .entrance-label { opacity: 1; transform: translate(-50%, 0); }
 
-/* the small permanent "this is a door you can walk through" cue */
+/* The word sits inside the archway itself, at the centre of the opening
+   (the arch is drawn from y=190 to y=440 of a 460-tall box, so its middle
+   is at 69% down). No chip, no orange: a terracotta pill under every door
+   read as seven pieces of interface competing with the illustration. What
+   is left is warm ivory type with a soft shadow, which is legible over all
+   seven interiors — the pale teal of Explore and the deep plum of the
+   After-Party alike — and belongs to the artwork rather than sitting on
+   top of it. The text-indent cancels the trailing letter-space, so the
+   word is optically centred and not pushed a hair to the left. */
 .entrance-cta {
-  position: absolute; left: 50%; bottom: 1.5%;
-  transform: translate(-50%, 0);
-  display: inline-flex; align-items: center; gap: .5em;
-  padding: .42em .95em .46em; border-radius: 999px;
-  font-size: .56em; letter-spacing: .2em; text-transform: uppercase;
-  color: var(--terra-deep); background: rgba(251,244,232,.92);
-  border: 1px solid rgba(155,74,42,.3);
-  box-shadow: 0 6px 18px -9px rgba(59,42,34,.6);
+  position: absolute; left: 50%; top: 69%;
+  transform: translate(-50%, -50%);
+  font-size: .62em; letter-spacing: .34em; text-indent: .34em;
+  text-transform: uppercase; font-weight: 400;
+  color: #FBF3E4; opacity: .9;
+  text-shadow: 0 1px 3px rgba(38,24,16,.7), 0 0 14px rgba(38,24,16,.55);
   white-space: nowrap; pointer-events: none;
-  transition: background .35s var(--ease), color .35s var(--ease), transform .35s var(--ease);
-}
-.entrance-cta::before {
-  content: ""; width: .5em; height: .5em; border-radius: 50%;
-  background: var(--gold); box-shadow: 0 0 0 .16em rgba(228,168,83,.35);
+  transition: opacity .35s var(--ease), letter-spacing .35s var(--ease);
 }
 .entrance:hover .entrance-cta, .entrance:focus-visible .entrance-cta,
 .entrance.is-near .entrance-cta {
-  background: var(--terracotta); color: var(--cream-2); border-color: var(--terracotta);
-  transform: translate(-50%, -3px);
+  opacity: 1; letter-spacing: .44em; text-indent: .44em;
 }
 /* labels sit above the archway, clear of the path map at the bottom */
 .entrance-label {
@@ -365,11 +366,20 @@ svg { display: block; }
 }
 .top-bar {
   position: absolute; top: 0; left: 0; right: 0; z-index: 40;
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: flex-end;
   padding: 1.4rem clamp(1.1rem, 3vw, 2.4rem);
   pointer-events: none;
 }
-.brand { pointer-events: auto; text-align: left; transition: opacity .5s var(--ease); }
+/* The names are the masthead of the whole site, so they sit centred at the
+   top on every screen — no corner, no plaque, no panel. Absolute rather
+   than in the flex row, so the sound button can keep the right-hand end
+   without pulling the names off centre. */
+.brand {
+  position: absolute; left: 50%; top: 1.4rem;
+  transform: translateX(-50%);
+  text-align: center; pointer-events: auto;
+  transition: opacity .5s var(--ease);
+}
 /* inside a room the way back owns the top of the screen, so the names step
    aside — the room has its own title, and nobody is lost */
 #room.is-open ~ .top-bar .brand { opacity: 0; pointer-events: none; }
@@ -543,11 +553,17 @@ svg { display: block; }
 }
 #stage.is-moving .mote { animation-play-state: paused; }
 
-.ww-sway      { animation: ww-sway 6.5s ease-in-out infinite; transform-box: fill-box; }
-.ww-sway-slow { animation: ww-sway 13s ease-in-out infinite; transform-box: fill-box; }
+/* Foliage sways about the point where it is rooted — the mouth of the urn,
+   the fork of the branch — which art.js and scenes.js pass in as an inline
+   transform-origin together with `transform-box: view-box`. Without that box
+   the origin was measured from the corner of the leaves' own bounding box,
+   several hundred units away, and a 1.4deg turn threw them clean off the
+   pot. Anchored properly, a small angle is all a light breeze needs. */
+.ww-sway      { animation: ww-sway 7.5s ease-in-out infinite; transform-box: fill-box; }
+.ww-sway-slow { animation: ww-sway 14s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-sway {
-  0%, 100% { transform: rotate(-1.4deg); }
-  50%      { transform: rotate(1.4deg); }
+  0%, 100% { transform: rotate(-2deg); }
+  50%      { transform: rotate(2deg); }
 }
 .ww-swing { animation: ww-swing 5.4s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-swing {
@@ -581,12 +597,12 @@ svg { display: block; }
 @keyframes ww-pulse { 0%, 100% { opacity: .78; transform: scale(1); } 50% { opacity: 1; transform: scale(1.06); } }
 .ww-glow-soft { animation: ww-glow 7.5s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-glow { 0%, 100% { opacity: .45; } 50% { opacity: .78; } }
-.ww-dance { animation: ww-dance 1.9s ease-in-out infinite; transform-box: fill-box; }
+.ww-dance { animation: ww-dance 2.1s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-dance {
-  0%, 100% { transform: translateY(0) rotate(-3deg) scaleY(1); }
-  25%      { transform: translateY(-9px) rotate(0deg) scaleY(1.03); }
-  50%      { transform: translateY(0) rotate(3deg) scaleY(1); }
-  75%      { transform: translateY(-6px) rotate(0deg) scaleY(1.02); }
+  0%, 100% { transform: translateY(0) rotate(-2.4deg); }
+  25%      { transform: translateY(var(--ww-lift, -6px)) rotate(0deg); }
+  50%      { transform: translateY(0) rotate(2.4deg); }
+  75%      { transform: translateY(calc(var(--ww-lift, -6px) * .7)) rotate(0deg); }
 }
 .ww-fly { animation: ww-fly 46s linear infinite; transform-box: fill-box; }
 @keyframes ww-fly { from { transform: translate(-10%, 14px); } to { transform: translate(120%, -34px); } }
@@ -594,17 +610,34 @@ svg { display: block; }
 @keyframes ww-flap { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.4); } }
 .ww-spin-slow { animation: ww-spin 22s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-spin { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+/* The people. Every figure carries --ww-amp-y / --ww-amp-x, set by art.js as
+   a fraction of that figure's own height, and pivots on the ground beneath
+   it (transform-box: view-box, set inline). That is what makes one scene
+   read as one scene: a 96-tall guest at the back of the terrace and a
+   300-tall one at the table breathe by the same amount *of themselves*,
+   instead of the small one twitching while the large one heaves. Keep these
+   amplitudes small — the brief is "everyone is in the same room", not
+   "everyone is performing". */
 .ww-idle { animation: ww-idle 5.6s ease-in-out infinite; transform-box: fill-box; }
-@keyframes ww-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.6px); } }
-.ww-talk { animation: ww-talk 3.6s ease-in-out infinite; transform-box: fill-box; }
-@keyframes ww-talk { 0%, 100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
-.ww-laugh { animation: ww-laugh 2.9s ease-in-out infinite; transform-box: fill-box; }
-@keyframes ww-laugh {
-  0%, 100% { transform: rotate(-1.6deg) translateY(0); }
-  50%      { transform: rotate(2.2deg) translateY(-2.5px); }
+@keyframes ww-idle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(var(--ww-amp-y, -1.6px)); }
 }
-.ww-stroll { animation: ww-stroll 19s ease-in-out infinite; transform-box: fill-box; }
-@keyframes ww-stroll { 0%, 100% { transform: translateX(-26px); } 50% { transform: translateX(34px); } }
+.ww-talk { animation: ww-talk 4.4s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-talk {
+  0%, 100% { transform: rotate(-.9deg); }
+  50%      { transform: rotate(.9deg); }
+}
+.ww-laugh { animation: ww-laugh 3.8s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-laugh {
+  0%, 100% { transform: rotate(-1deg) translateY(0); }
+  50%      { transform: rotate(1.2deg) translateY(var(--ww-amp-y, -1.6px)); }
+}
+.ww-stroll { animation: ww-stroll 22s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-stroll {
+  0%, 100% { transform: translateX(calc(var(--ww-amp-x, 26px) * -1)); }
+  50%      { transform: translateX(var(--ww-amp-x, 26px)); }
+}
 .ww-plane-door { animation: ww-plane-door 15s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-plane-door {
   0%   { transform: translate(-26px, 16px); opacity: 0; }
@@ -667,6 +700,7 @@ svg { display: block; }
   .beacon .t { font-size: .64rem; letter-spacing: .18em; }
   .facts li { grid-template-columns: 1fr; gap: .25rem; }
   .top-bar { padding: 1rem 1.1rem; }
+  .brand { top: 1rem; }
   .hint { bottom: 4.2rem; font-size: .58rem; letter-spacing: .2em; }
   .pathmap { gap: 0; padding: .4rem .5rem; }
   .dot { width: 30px; height: 30px; }
@@ -682,20 +716,11 @@ svg { display: block; }
 @media (min-width: 901px) {
   .panel { border-left: 1px solid rgba(59,42,34,.1); }
 
-  /* The names used to sit in the top-left corner, where the foreground
-     olive branch hangs into the frame and ate them. Centre them, and give
-     them a plaque so they never have to compete with the artwork. */
-  .brand {
-    position: absolute; left: 50%; top: 0;
-    transform: translateX(-50%); text-align: center;
-    padding: .85rem 2.2rem .95rem; border-radius: 0 0 18px 18px;
-    background: linear-gradient(180deg, rgba(251,244,232,.94), rgba(251,244,232,.6));
-    border: 1px solid rgba(59,42,34,.09); border-top: 0;
-    box-shadow: 0 14px 34px -22px rgba(59,42,34,.65);
-    transition: transform .8s var(--ease);
-  }
-  .brand .n { font-size: clamp(1.3rem, 2.1vw, 1.7rem); text-shadow: none; }
-  .brand .d { font-size: .62rem; text-shadow: none; letter-spacing: .3em; }
+  /* Nothing but type. The plaque that used to sit behind the names read as
+     a separate piece of UI stuck onto the picture; the soft cream glow in
+     §9 is enough to hold them clear of the sky. */
+  .brand .n { font-size: clamp(1.3rem, 2.1vw, 1.7rem); }
+  .brand .d { font-size: .62rem; letter-spacing: .3em; }
 
   /* one clear way back, top left, where a back control belongs */
   .back-btn { top: 1.25rem; bottom: auto; }

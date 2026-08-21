@@ -9,8 +9,9 @@
 >    **Publishing** below — nobody on this machine can `git push`.
 > 4. Test locally before touching anything else. See **Testing** below.
 >
-> Last worked on: **21 August 2026**. Live site verified current on that date
-> (byte-identical to the local build).
+> Last worked on: **21 August 2026** (second round — see *What changed in the
+> second August 2026 round*). **The live site is now behind this folder again:
+> the rebuilt `UPLOAD-THIS-ONE-FILE/index.html` has not been uploaded yet.**
 
 ## What this is
 An illustrated wedding website the guest **walks through** rather than scrolls.
@@ -34,7 +35,7 @@ behind.** This is the single most confusing thing about this project.
 
 | | What it holds |
 |---|---|
-| **Live `index.html`** on GitHub | The current single-file build. Up to date. Uploaded by hand through the GitHub web UI on 21 Aug 2026. |
+| **Live `index.html`** on GitHub | The single-file build as of the *first* 21 Aug 2026 pass. **Now out of date** — the feedback round below has been built into `UPLOAD-THIS-ONE-FILE/index.html` but not uploaded. |
 | **Everything else** in the GitHub repo | Stale. Loose `app.js`, `content.js`, `main.css`, `scenes.js`, `tween.js`, `art.js`, `audio.js` sit at the repo root, left over from an old flattened upload. Nothing loads them — the live `index.html` is self-contained — so they are harmless, just misleading. There is no `assets/` folder on GitHub at all. |
 | **This local repo** | The truth. Real sources in `assets/`, full history, plus `HANDOVER.md` and `build.py` that GitHub has never seen. |
 
@@ -93,7 +94,7 @@ plus a real `assets/` folder. Relative paths mean it works fine under the
 | `assets/js/scenes.js` | The 8 places: `hub()` (the promenade), `entranceArt(id)` (the 7 doorways), `rooms.*` (7 environments). All procedural SVG. |
 | `assets/js/app.js` | Camera, pan/drag, transitions, room rendering, RSVP form, deep links. |
 | `assets/js/tween.js` | Tiny animation engine (replaces GSAP). |
-| `assets/js/audio.js` | Sea, wind, birdsong and a soft instrumental bed, synthesised in-browser. One mix per place (`MOODS`). Starts on "Begin the walk"; the choice is remembered. |
+| `assets/js/audio.js` | **The music.** A nylon-string guitar (Karplus–Strong), a string pad and a soft bass, synthesised in-browser and sequenced live. One key, tempo and mix per place (`MOODS`). No sea, wind or birdsong — those buses are gone. Starts on "Begin the walk"; the choice is remembered. |
 | `assets/css/main.css` | Design tokens at `:root`, layout, all ambient keyframes. |
 | `the-journey.html` | Single-file build (same content, no `assets/` needed). Generated — never edit it by hand. |
 | `build.py` | Regenerates both single-file builds from `assets/`. Run after every change. |
@@ -187,6 +188,110 @@ browser's price of admission for audio) and the guest's choice is remembered in
 > Artlist or similar); then drop the file in and point the `music` bus at an
 > `<audio>` element. The sea, wind and birds can stay exactly as they are.
 
+## What changed in the second August 2026 round
+
+A written feedback pass on the header, the doorway labels, the plants, the
+people in three scenes, and the music. The art direction is unchanged; every
+item below is either a fix or a refinement inside the existing style.
+
+**The names.** Centred at the top on every screen, and the plaque behind them
+on desktop is gone — it read as a piece of interface pasted onto the picture.
+They are plain type now, held off the sky by the soft cream glow that was
+already in §9 of `main.css`. `.brand` is positioned absolutely inside
+`.top-bar` so the sound button can keep the right-hand end without dragging
+the names off centre.
+
+**"Enter" moved onto the doorway.** It used to be a terracotta pill under each
+arch: seven of them along the promenade, all competing with the artwork, and
+the orange was the first thing the eye went to. It is now warm ivory type
+inside the opening, at the middle of the arch (69% of the 460-tall entrance
+box), with a soft dark halo and no chip at all. To make one ink work on all
+seven interiors, the door gradients were deepened towards the threshold —
+which also looks more like a lit room seen from outside. Two pieces of art
+moved out of the way of the word: the RSVP envelope now hangs in the upper
+half of its arch, and the Travel aeroplane already crossed above it.
+
+**The plants stopped running away.** This was one bug, and it was in the
+stylesheet: every ambient class carried `transform-box: fill-box`, while
+`art.js` and `scenes.js` pass a `transform-origin` in the layer's own
+coordinates. So the urn's leaves were rotating about a point measured from
+the corner of their own bounding box — roughly 1300 units below where they
+actually grow — and a 1.4° sway threw them a whole leaf-cluster clear of the
+pot. Every inline origin now sets `transform-box: view-box` alongside it, and
+the urn's spray was redrawn so each leaf grows on a stem out of the mouth of
+the pot. Measured: the leaves travel about 3.6px on a phone across the whole
+sway, and the base never moves.
+
+**One intensity for everyone.** The same `fill-box` bug was why some guests at
+the wedding barely twitched while others swayed about: a figure's rotation was
+pivoting on a point hundreds of units away, and *how far* away depended on
+where in the scene they happened to be standing. Figures now pivot on the
+ground beneath their own feet, and every figure carries `--ww-amp-y` /
+`--ww-amp-x`, set by `art.js` as a fraction of its own height — so a 96-tall
+guest at the back and a 300-tall one at the table breathe by the same amount
+*of themselves*. Amplitudes were pulled down at the same time (`ww-talk` from
+±1.2° to ±0.9°, `ww-laugh` slower and shallower). If you add a figure
+animation, scale it from those two variables or it will not match.
+
+**The people were redrawn**, following the reference illustration that came
+with the feedback: chunkier proportions, a bigger head, thicker limbs with
+hands on the ends of them, eight hair styles (`crop`, `bob`, `long`, `bun`,
+`curls`, `pony`, `wave`, `part`) and a face with eyes, a smile and a little
+blush. Hair that falls past the jaw is drawn *before* the body so it hangs
+behind the shoulders instead of lying across the chest. Trousers are their own
+colour now, not a darker shade of the shirt.
+
+  One subtlety worth keeping: scenes seed their guests from a counter (400,
+  411, 422 …), and the plain linear generator in `rand()` turns neighbouring
+  seeds into near-identical streams — which is how a whole row of chairs ended
+  up dressed in the same colour. `person()` scrambles its seed before use. Only
+  people do this; the ridges, houses and olive groves are untouched, so the
+  world still looks the way it did.
+
+**Welcome Dinner.** Every seat has somebody in it — seven along the far side,
+six on the near side, and the table was widened to 1240 to hold them. The
+guest who stood on their own at the right-hand end has gone; they read as an
+offcut rather than as part of the party. Guests lean and turn towards each
+other (`tableUp` is a new pose) instead of facing front in a row.
+
+**The Wedding.** The two figures who drifted across the middle of the aisle,
+directly below the arch and between the guest and the couple, are gone — the
+aisle is clear, which is also what a real one looks like. The couple stay
+under the arch; that is the ceremony. Everyone else was lifted about 30 units
+so their feet clear the bottom of the camera crop (the room is drawn 1600x900,
+but a laptop crops roughly the last 33 units), and one more guest joined the
+group on the right so nobody stands alone.
+
+**The After-Party.** The DJ was 470 units clear of the nearest dancer, which
+read as somebody who had wandered off on their own. The decks came in to meet
+the floor (now at x=1103 instead of 1276), a sixth dancer fills the space
+between, and the whole thing reads as one crowd.
+
+**The music is new, and it is only music.** `audio.js` was rewritten. The sea,
+wind and birdsong buses are deleted — the feedback asked for no environmental
+sound at all, and there is none. In their place: a piece built on the
+Andalusian cadence (i–VII–VI–V), played by a nylon-string guitar, a three-voice
+string pad and a soft bass through a synthesised hall. Each room shifts the
+key, the tempo and the balance — the same band, a different part of the
+evening. The guitar is Karplus–Strong (a noise burst fed back through its own
+delay line), which is what makes it sound like gut and wood rather than an
+oscillator. The after-party keeps a muted kick on the beat; it is an
+instrument, not a room recording.
+
+  Levels were checked rather than guessed: rendered offline, the piece peaks
+  around -4 dBFS on the loudest room and -6 dBFS elsewhere, with nothing
+  clipping. `OUT` in `audio.js` is the single make-up gain if it needs to be
+  louder or quieter overall; the per-room numbers next to it are a *balance*
+  between the three instruments, not a volume.
+
+> **Still true, and worth repeating to Dana:** the two tracks in the original
+> feedback were YouTube links. They cannot be downloaded and re-hosted — it is
+> against YouTube's terms and the recordings are somebody's copyright. If she
+> wants a specific recording, it needs a licence (Epidemic Sound, Artlist or
+> similar); then drop the file in, delete the scheduler, and point the music
+> bus at an `<audio>` element. The mixing, the per-room levels and the ducking
+> all keep working.
+
 ## Deliberate decisions worth knowing
 - **2.5D parallax, not Three.js** — the brief recommended this for reliability on phones.
 - **Procedural SVG instead of an illustrator's files** — one consistent hand, nothing to commission. To swap in real artwork later, replace a layer's `svg` with `<img>` at the same viewBox proportions.
@@ -231,10 +336,21 @@ drift. That drift was the root cause of three separate complaints.
   itself as a bow tie → the torso outline uses unflipped hips
 - Programmatic `.focus()` after a mouse click painted a focus ring around the
   whole panel/doorway → focus is only restored for keyboard users
+- `transform-box: fill-box` in the stylesheet against user-space
+  `transform-origin` values in the JS: leaves swung clear of their pots and
+  figures animated by wildly different amounts depending on where they stood →
+  every inline origin now carries `transform-box: view-box` with it. **If you
+  add an animated element with an explicit origin, it needs both.**
+- Nearby integer seeds (400, 411, 422 …) through the linear `rand()` produced
+  near-identical colour choices → `person()` scrambles its seed first
 
 ## Not done / open
 
-- **Ten local commits have never reached GitHub** (count as of 21 Aug 2026;
+- **The feedback round is not live yet.** `python3 build.py` has been run and
+  `UPLOAD-THIS-ONE-FILE/index.html` is current; it still has to be dragged into
+  github.com → Add file ▸ Upload files. Until then the live site shows the
+  orange "Enter" chips, the plaque behind the names, and the old ambience.
+- **Twelve local commits have never reached GitHub** (count as of 21 Aug 2026;
   `git log --oneline origin/main..main` is the live answer). No credentials on
   this machine. See **Publishing**. Until someone pushes, this folder is the
   only copy of the real sources and of the history — *it is not backed up
