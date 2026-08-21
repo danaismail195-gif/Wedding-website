@@ -1,5 +1,17 @@
 # Handover — "The Journey" wedding website
 
+> **New Claude Code session? Start here.**
+> 1. Read this file, then `BRIEF.md` for the original intent.
+> 2. The real sources are in `assets/` — **that is what you edit**.
+> 3. The live site is a separate self-contained bundle. Changing `assets/` does
+>    nothing to it until you run `python3 build.py` and the rebuilt
+>    `UPLOAD-THIS-ONE-FILE/index.html` is uploaded to GitHub by hand. See
+>    **Publishing** below — nobody on this machine can `git push`.
+> 4. Test locally before touching anything else. See **Testing** below.
+>
+> Last worked on: **21 August 2026**. Live site verified current on that date
+> (byte-identical to the local build).
+
 ## What this is
 An illustrated wedding website the guest **walks through** rather than scrolls.
 A stone promenade above the Bay of Kotor with **seven doorways** along it, in the
@@ -8,37 +20,70 @@ dedicated illustrated room with the details. Built from `BRIEF.md` (still in the
 folder — read it for the original intent).
 
 - **Folder:** `/Users/dana/Downloads/wedding-website`
-- **Live:** https://danaismail195-gif.github.io/Wedding-website/ ← note the **capital W**, the URL is case-sensitive
+- **Live:** https://danaismail195-gif.github.io/Wedding-website/ ← note the **capital W**. The lowercase URL 404s; I checked.
 - **Also live (identical):** `.../Wedding-website/the-journey.html`
-- **Private preview:** https://claude.ai/code/artifact/49a2e1ea-4a10-4582-9f78-b0e18646e9c1
 - **Repo:** github.com/danaismail195-gif/Wedding-website (public, GitHub Pages on `main` / root)
-- Local git repo exists with full history. No remote configured.
+- The site is `noindex` + `robots.txt` — public but unlisted, and it will never
+  appear in a Google search. Guests reach it only by the link. Delete both if
+  that is not what you want.
 
-## ⚠️ Read this before changing anything
-The **live** `index.html` is a *single self-contained build* — the CSS and all six
-JavaScript files are baked inside it (~190KB). This was a workaround: GitHub's
-web uploader flattened the `assets/` folder, so the normal `index.html` couldn't
-find its files.
+## ⚠️ Publishing: read this before you change anything
+
+**The live site and the git repository are not the same thing, and the repo is
+behind.** This is the single most confusing thing about this project.
+
+| | What it holds |
+|---|---|
+| **Live `index.html`** on GitHub | The current single-file build. Up to date. Uploaded by hand through the GitHub web UI on 21 Aug 2026. |
+| **Everything else** in the GitHub repo | Stale. Loose `app.js`, `content.js`, `main.css`, `scenes.js`, `tween.js`, `art.js`, `audio.js` sit at the repo root, left over from an old flattened upload. Nothing loads them — the live `index.html` is self-contained — so they are harmless, just misleading. There is no `assets/` folder on GitHub at all. |
+| **This local repo** | The truth. Real sources in `assets/`, full history, plus `HANDOVER.md` and `build.py` that GitHub has never seen. |
 
 **Consequence: editing `assets/js/content.js` does NOT change the live site.**
-The live copy has its own inlined duplicate.
+The live copy is a separate inlined bundle.
 
-The correct workflow is:
-1. Edit the real source in `assets/js/*` and `assets/css/main.css`
-2. Rebuild the single file: `python3 build.py`
-3. Upload the rebuilt `index.html` to GitHub
+### To change anything the guest sees
+1. Edit the real sources in `assets/js/*` and `assets/css/main.css`
+2. `python3 build.py`
+3. Upload `UPLOAD-THIS-ONE-FILE/index.html` to the repo root via
+   github.com → **Add file ▸ Upload files** → drag it in → **Commit changes**
+4. Wait a minute for Pages, then hard-reload (⌘⇧R). Browser cache is the usual
+   reason a change "did not work".
 
-Better long-term fix: publish via **GitHub Desktop** instead of the web uploader
-(it preserves folders), then delete the loose `app.js`, `main.css` etc. currently
-sitting at the repo root and let `index.html` use `assets/` normally. See `PUBLISH.md`.
+`build.py` writes `UPLOAD-THIS-ONE-FILE/index.html` (the one to upload) and
+`the-journey.html`, and exits non-zero if a script or the stylesheet failed to
+make it into the bundle. `the-journey.html` is generated — never hand-edit it.
 
-Rebuild command (regenerates both single-file builds from source):
+### Why not just `git push`?
+Because nobody on this machine can authenticate to GitHub. As of 21 Aug 2026
+there is **no `gh` CLI, no SSH key, no stored credential, and GitHub Desktop is
+not installed** — a push dies with `could not read Username for
+'https://github.com'`. That is why the hand-upload route above exists.
+
+Everything else is already prepared for the day someone can push:
+
+- `origin` is set to `https://github.com/danaismail195-gif/Wedding-website.git`
+- The two histories were unrelated (the repo was born from web uploads), so the
+  remote history has been merged in with `-s ours` — our tree wins, their
+  history is recorded. **`git push origin main` fast-forwards cleanly. No
+  `--force` is needed and none should ever be used.**
+
+⚠️ **Every hand-upload creates a new commit on `origin/main` and breaks that
+fast-forward again.** After any web upload, before pushing, redo:
+
 ```
-python3 build.py
+git fetch origin
+git merge origin/main -s ours -m "Merge the manual upload"
+git push origin main          # needs credentials
 ```
-It writes `UPLOAD-THIS-ONE-FILE/index.html` (upload this one) and
-`the-journey.html`, and fails loudly if a script or the stylesheet did not make
-it into the bundle. **Run it after every change to `assets/`.**
+
+To get credentials: install GitHub Desktop (it preserves folders and pushes in
+one click) or create a personal access token and push once from Terminal —
+macOS keychain remembers it afterwards.
+
+**That push is worth doing.** It replaces the flattened root with `index.html`
+plus a real `assets/` folder. Relative paths mean it works fine under the
+`/Wedding-website/` sub-path, the loose duplicates disappear, and the whole
+"rebuild and re-upload" dance goes away for good.
 
 ## How the code is organised
 | File | What it does |
@@ -146,7 +191,31 @@ browser's price of admission for audio) and the guest's choice is remembered in
 - **2.5D parallax, not Three.js** — the brief recommended this for reliability on phones.
 - **Procedural SVG instead of an illustrator's files** — one consistent hand, nothing to commission. To swap in real artwork later, replace a layer's `svg` with `<img>` at the same viewBox proportions.
 - **A `noindex` tag + `robots.txt`** keep it out of Google. It's public but unlisted. Delete both if you want it findable.
-- Mobile gets a tighter camera crop, an illustration band above a content sheet, lighter transitions, fewer particles. `prefers-reduced-motion` fully supported.
+- Mobile gets a tighter camera crop, artwork over the top two thirds with a
+  draggable bottom sheet under it, lighter transitions, fewer particles.
+  `prefers-reduced-motion` fully supported.
+
+## Testing
+
+`file://` will not do — the browser blocks the sub-resources. Serve the folder:
+
+```
+python3 -m http.server 8912          # then open http://localhost:8912/index.html
+```
+
+Two traps that cost real time last session:
+
+- **The preview browser caches hard.** Editing a file and reloading can still
+  run the old JavaScript, which looks exactly like "my change did nothing".
+  Serving on a **fresh port number** each time is the reliable fix; a
+  `Cache-Control: no-store` header on its own was not enough.
+- **Test the bundle too, not just `index.html`.** Load `the-journey.html` after
+  `python3 build.py` — that file is what the live site actually is. A change
+  that works in `index.html` but never got rebuilt is invisible to guests.
+
+Worth checking after any change to the camera or the doorways: park the cursor
+at the far-left edge of the hub for two seconds and confirm the doorways do not
+drift. That drift was the root cause of three separate complaints.
 
 ## Bugs already found and fixed (don't reintroduce)
 - `pointer-events: none` on `.layer` also killed the doorway buttons → `.entrance { pointer-events: auto }`
@@ -163,11 +232,24 @@ browser's price of admission for audio) and the guest's choice is remembered in
 - Programmatic `.focus()` after a mouse click painted a focus ring around the
   whole panel/doorway → focus is only restored for keyboard users
 
-## Not done
-- **Vercel.** The connector is authenticated (team "DNA") and deployments are
-  publicly reachable, but its API only accepts file contents pasted inline, and
-  hand-copying 155KB was judged too error-prone. **Now that the GitHub repo exists,
-  `create_git_project` can link it to Vercel in one call with no payload** — that's
-  the clean way to get a `vercel.app` URL or a custom domain.
-- Loose `app.js`, `main.css`, `scenes.js` etc. at the repo root are leftovers from
-  the flattened upload. Unused and harmless; delete when convenient.
+## Not done / open
+
+- **Ten local commits have never reached GitHub** (count as of 21 Aug 2026;
+  `git log --oneline origin/main..main` is the live answer). No credentials on
+  this machine. See **Publishing**. Until someone pushes, this folder is the
+  only copy of the real sources and of the history — *it is not backed up
+  anywhere.* Worth saying out loud to Dana.
+- **The repo's loose root files are stale duplicates.** The push fixes them; a
+  hand-upload does not. Harmless meanwhile — nothing loads them.
+- **The RSVP form still goes nowhere.** `content.js` → `rsvpEndpoint`. One
+  Formspree URL turns it on. This is the highest-value five minutes left on the
+  project: right now a guest can fill it in, be thanked, and have their reply
+  saved only to their own browser where nobody will ever read it.
+- **Every date, venue and hotel is invented.** Montenegro is a stand-in.
+- **Vercel.** The connector is authenticated (team "DNA"). Its API only takes
+  inline file contents, so pasting a 190KB bundle is a bad idea — but
+  `create_git_project` can link the existing GitHub repo in one call with no
+  payload, which is the clean way to a `vercel.app` URL or a custom domain.
+  Note it would deploy *the repo*, which is behind the live site until a push
+  happens.
+- **The real music.** See the note above about the two YouTube links.
