@@ -223,17 +223,69 @@
       g += '<circle class="ww-flicker" cx="' + f(cx - 16) + '" cy="' + f(baseY - 74) + '" r="6" fill="#FFF0C6"/>';
       g += '<circle class="ww-flicker" cx="' + f(cx + 18) + '" cy="' + f(baseY - 78) + '" r="5" fill="#FFF0C6" style="animation-delay:-1.3s"/>';
     } else if (id === 'wedding') {
-      /* olive garland over the arch */
+      /* Through this arch you can see the ceremony terrace: the bay at
+         golden hour, a stone floor with petals on it, and the two of them
+         standing hand in hand. It used to be a flat slab of teal with a
+         hard edge across it and a cypress that read as a dark leaf.
+         Everything inside is clipped to the opening, so the sea and the
+         floor can run right to the jambs without spilling onto the stone. */
+      var wClip = A.uid('wed');
+      /* The horizon sits below the "Enter", not behind it: the word lives at
+         the middle of the opening and needs the plain warm gradient behind
+         it, and the couple's heads want sky around them rather than a band
+         of water cutting across at eye level. */
+      var seaY = baseY - 100, sillY = baseY - 44;
+      var rw = rand(59);
+      var inner = '';
+
+      /* the far shore, two headlands deep */
+      inner += '<ellipse cx="' + f(ax + 30) + '" cy="' + f(seaY + 3) + '" rx="50" ry="24" fill="#9DB6C4"/>';
+      inner += '<ellipse cx="' + f(ax + 108) + '" cy="' + f(seaY + 4) + '" rx="58" ry="16" fill="#88A5B6"/>';
+      /* the bay */
+      inner += '<rect x="' + f(ax - 8) + '" y="' + f(seaY) + '" width="' + f(aw + 16) + '" height="' + f(sillY - seaY) + '" fill="#6E9FA0"/>';
+      inner += '<rect x="' + f(ax - 8) + '" y="' + f(seaY) + '" width="' + f(aw + 16) + '" height="3" fill="#FFF0C6" opacity=".75"/>';
+      /* the path the low sun lays across the water */
+      for (var wg = 0; wg < 5; wg++) {
+        inner += '<rect class="ww-twinkle" x="' + f(cx - 8 - wg * 5) + '" y="' + f(seaY + 9 + wg * 8) + '" width="' + f(18 + wg * 7) + '" height="2.4" rx="1.2" fill="#FFF3D6" opacity=".6" style="animation-delay:' + (-wg * 0.7) + 's"/>';
+      }
+      /* the parapet, and the floor they are standing on */
+      inner += '<rect x="' + f(ax - 8) + '" y="' + f(sillY - 7) + '" width="' + f(aw + 16) + '" height="8" fill="#DFCBA6"/>';
+      inner += '<rect x="' + f(ax - 8) + '" y="' + f(sillY) + '" width="' + f(aw + 16) + '" height="' + f(baseY - sillY + 6) + '" fill="#E9D3A8"/>';
+      inner += '<rect x="' + f(ax - 8) + '" y="' + f(sillY + 1) + '" width="' + f(aw + 16) + '" height="3" fill="#F6EAD0" opacity=".85"/>';
+      /* the threshold stays warm, so this door glows from inside like the rest */
+      inner += '<rect x="' + f(ax - 8) + '" y="' + f(baseY - 16) + '" width="' + f(aw + 16) + '" height="22" fill="#C98A55" opacity=".45"/>';
+      /* petals, because somebody has already come up the aisle */
+      for (var pw = 0; pw < 14; pw++) {
+        inner += '<ellipse cx="' + f(ax + 8 + rw() * (aw - 16)) + '" cy="' + f(sillY + 9 + rw() * 32) + '" rx="' + f(2.2 + rw() * 1.8) + '" ry="' + f(1.1 + rw()) +
+          '" fill="' + (pw % 2 ? '#F0D2C4' : '#E8BCA8') + '" opacity=".95"/>';
+      }
+      inner += A.cypress(ax + 14, sillY + 5, 52, 'rgba(62,74,50,.62)');
+
+      /* --- the two of them ------------------------------------------------
+         Placed so the hands meet: a figure's hand reaches 0.233 of its own
+         height forward of centre in this pose, so the gap between them is
+         that, doubled. Move one and you have to move the other. */
+      inner += A.person({ x: cx - 20, baseY: baseY - 3, h: 96, pose: 'listen',
+        seed: 901, cloth: '#FBF4E8', dress: true, hair: '#3B2A22',
+        hairStyle: 'bun', skin: '#E6B183', holdFar: 'bouquet',
+        anim: 'ww-idle', shadow: false });
+      inner += A.person({ x: cx + 20, baseY: baseY - 3, h: 102, pose: 'listen',
+        flip: true, seed: 907, cloth: '#3B4A56', pants: '#2F3D49', dress: false,
+        hairStyle: 'crop', skin: '#CE8F60', anim: 'ww-idle', delay: -2.4,
+        shadow: false });
+      /* one shadow under the pair of them, rather than two */
+      inner += '<ellipse cx="' + f(cx) + '" cy="' + f(baseY - 2) + '" rx="44" ry="6" fill="rgba(90,68,44,.18)"/>';
+
+      g += '<defs><clipPath id="' + wClip + '"><path d="' + archShape(ax, ay, aw, ah) + '"/></clipPath></defs>';
+      g += '<g clip-path="url(#' + wClip + ')">' + inner + '</g>';
+
+      /* olive garland over the arch, drawn last so it sits on the stone */
       for (var i = 0; i < 22; i++) {
         var t = i / 21, gx = ax - 12 + t * (aw + 24);
         var gy = ay + 22 - Math.sin(t * Math.PI) * 44;
         g += '<ellipse cx="' + f(gx) + '" cy="' + f(gy) + '" rx="' + f(9 + r() * 4) + '" ry="' + f(3.4 + r() * 1.6) +
              '" fill="' + (i % 3 ? P.oliveDeep : P.olive) + '" transform="rotate(' + ((r() * 140 - 70) | 0) + ' ' + f(gx) + ' ' + f(gy) + ')"/>';
       }
-      /* the bay, seen through the doorway */
-      g += '<rect x="' + f(ax + 4) + '" y="' + f(baseY - 96) + '" width="' + f(aw - 8) + '" height="96" fill="#6E9FA0" opacity=".85"/>';
-      g += '<rect x="' + f(ax + 4) + '" y="' + f(baseY - 96) + '" width="' + f(aw - 8) + '" height="4" fill="#FFF0C6" opacity=".7"/>';
-      g += A.cypress(ax + 22, baseY, 92, 'rgba(59,55,34,.55)');
     } else if (id === 'afterparty') {
       g += A.lantern(ax - 20, ay + 66, 1.1, ay - 22);
       g += A.lantern(ax + aw + 20, ay + 82, 1.1, ay - 16);

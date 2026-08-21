@@ -254,7 +254,24 @@ guest who stood on their own at the right-hand end has gone; they read as an
 offcut rather than as part of the party. Guests lean and turn towards each
 other (`tableUp` is a new pose) instead of facing front in a row.
 
-**The Wedding.** Four figures came out of the middle of this scene. Two were
+**The Wedding doorway** (the arch on the promenade, not the room) was rebuilt.
+It used to be the garland, a flat slab of teal with a hard edge across it, and
+a cypress that read as a dark leaf. Now you look through it onto the ceremony
+terrace at golden hour: two headlands, the bay with the sun's path on it, a
+parapet, a stone floor with petals down it — and **the couple, hand in hand**,
+she in cream with a bouquet, he in navy. The whole interior is clipped to the
+arch (`clipPath`) so the sea and the floor can run to the jambs without
+spilling onto the stone.
+
+  Two numbers hold that composition together. The horizon sits at
+  `baseY - 100` so it falls *below* the "Enter" — the word needs the plain
+  warm gradient behind it, and the couple's heads want sky around them rather
+  than a band of water at eye level. And the couple are placed at `cx ± 20`
+  because a figure's hand reaches 0.233 of its own height forward in the
+  `listen` pose: move one of them and you have to move the other, or the hands
+  come apart.
+
+**The Wedding room.** Four figures came out of the middle of this scene. Two were
 drifting across the aisle on a `ww-stroll`, directly between the guest and the
 arch. The other two were the couple themselves — a white dress and a dark suit
 under the arch — and **removing them was Dana's call, made explicitly**: at

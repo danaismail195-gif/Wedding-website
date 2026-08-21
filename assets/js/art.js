@@ -395,6 +395,23 @@
     if (kind === 'plate') {
       return '<ellipse cx="' + f(hx) + '" cy="' + f(hy) + '" rx="' + f(6.5 * s) + '" ry="' + f(2.4 * s) + '" fill="#FFFAF0"/>';
     }
+    if (kind === 'bouquet') {
+      /* held low, the way people actually carry one: stems down through the
+         fist, blooms above it */
+      var bq = '<path d="M ' + f(hx - 1.4 * s) + ' ' + f(hy + 1 * s) + ' l ' + f(2.4 * s) + ' ' + f(6 * s) +
+        '" stroke="#6E7F52" stroke-width="' + f(1.6 * s) + '" stroke-linecap="round" fill="none"/>';
+      var petals = ['#F6E4D2', '#F0CBBC', '#FBF4E8', '#E8BCA8'];
+      for (var bi = 0; bi < 5; bi++) {
+        var ba = Math.PI * (0.86 + bi * 0.32);
+        bq += '<ellipse cx="' + f(hx + Math.cos(ba) * 2.6 * s) + '" cy="' + f(hy - 1.2 * s + Math.sin(ba) * 2.2 * s) +
+          '" rx="' + f(2.5 * s) + '" ry="' + f(2.1 * s) + '" fill="' + petals[bi % 4] + '"/>';
+      }
+      bq += '<ellipse cx="' + f(hx - 3.4 * s) + '" cy="' + f(hy + 0.6 * s) + '" rx="' + f(3 * s) + '" ry="' + f(1.3 * s) +
+        '" fill="' + (tint || '#7C8B5E') + '" transform="rotate(-24 ' + f(hx - 3.4 * s) + ' ' + f(hy + 0.6 * s) + ')"/>';
+      bq += '<ellipse cx="' + f(hx + 3.4 * s) + '" cy="' + f(hy + 1 * s) + '" rx="' + f(2.8 * s) + '" ry="' + f(1.2 * s) +
+        '" fill="' + (tint || '#7C8B5E') + '" transform="rotate(26 ' + f(hx + 3.4 * s) + ' ' + f(hy + 1 * s) + ')"/>';
+      return bq;
+    }
     return '';
   }
 
@@ -470,7 +487,10 @@
 
   /**
    * person({ x, baseY, h, pose, flip, skin, cloth, pants, hair, hairStyle,
-   *          dress, flat, back, hold, holdTint, anim, delay, seed, shadow })
+   *          dress, flat, back, hold, holdTint, holdFar, holdFarTint,
+   *          anim, delay, seed, shadow })
+   * `hold` goes in the near hand, `holdFar` in the hand on the far side —
+   * which is how somebody can hold a bouquet and a hand at the same time.
    * baseY is the ground (or the seat front, for `sit` / `table`).
    * Returns one <g>, animated by the class in `anim`.
    */
@@ -549,6 +569,7 @@
     g += limbPath(legFar, limbW, flat || (dress ? shade(skin, -0.14) : shade(pants, -0.14)));
     g += limbPath(armFar, limbW * 0.82, flat || shade(skin, -0.10));
     if (!flat) { g += sleeve(armFar); g += hand(armFar, shade(skin, -0.10)); }
+    if (o.holdFar) g += prop(o.holdFar, armFar[2][0], armFar[2][1] - handR * 0.5, h * 0.012, o.holdFarTint);
 
     /* --- near leg ---------------------------------------------------- */
     g += limbPath(legNear, limbW, flat || (dress ? skin : pants));
