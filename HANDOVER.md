@@ -254,13 +254,17 @@ guest who stood on their own at the right-hand end has gone; they read as an
 offcut rather than as part of the party. Guests lean and turn towards each
 other (`tableUp` is a new pose) instead of facing front in a row.
 
-**The Wedding.** The two figures who drifted across the middle of the aisle,
-directly below the arch and between the guest and the couple, are gone — the
-aisle is clear, which is also what a real one looks like. The couple stay
-under the arch; that is the ceremony. Everyone else was lifted about 30 units
-so their feet clear the bottom of the camera crop (the room is drawn 1600x900,
-but a laptop crops roughly the last 33 units), and one more guest joined the
-group on the right so nobody stands alone.
+**The Wedding.** Four figures came out of the middle of this scene. Two were
+drifting across the aisle on a `ww-stroll`, directly between the guest and the
+arch. The other two were the couple themselves — a white dress and a dark suit
+under the arch — and **removing them was Dana's call, made explicitly**: at
+150px tall they could not carry being "the couple", and the scene is stronger
+as the ceremony space before everyone is called in. The arch stands dressed,
+the petals are down, the aisle is open. Do not put figures back under it
+without asking. Everyone else was lifted about 30 units so their feet clear
+the bottom of the camera crop (the room is drawn 1600x900, but a laptop crops
+roughly the last 33 units), and one more guest joined the group on the right
+so nobody stands alone.
 
 **The After-Party.** The DJ was 470 units clear of the nearest dancer, which
 read as somebody who had wandered off on their own. The decks came in to meet

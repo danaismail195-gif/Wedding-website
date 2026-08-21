@@ -485,11 +485,13 @@
             '" fill="' + (p % 2 ? '#F0D2C4' : '#E8BCA8') + '" opacity=".9"/>';
         }
 
-        /* --- the two of them, under the arch --------------------------- */
-        g += A.person({ x: 596, baseY: 806, h: 150, pose: 'listen', seed: 701,
-          cloth: '#FBF4E8', dress: true, anim: 'ww-idle' });
-        g += A.person({ x: 652, baseY: 806, h: 156, pose: 'chat', flip: true, seed: 707,
-          cloth: '#3B4A56', dress: false, anim: 'ww-talk' });
+        /* --- under the arch, nobody -----------------------------------
+           The two figures who used to stand here — drawn as the couple, in a
+           white dress and a dark suit — are gone at Dana's request. The arch
+           now stands dressed and waiting with the aisle open in front of it,
+           which is what the place looks like before everyone is called in,
+           and it stops two small figures having to carry the weight of being
+           "the couple" at 150px tall. */
 
         /* --- the guests who are not sitting down ----------------------- */
         /* Feet on the terrace, and above y=866: the room is drawn at 1600x900
