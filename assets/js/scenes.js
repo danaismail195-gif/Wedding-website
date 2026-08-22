@@ -578,81 +578,102 @@
            and it stops two small figures having to carry the weight of being
            "the couple" at 150px tall. */
 
-        /* --- the guests, scattered -------------------------------------
-           Twelve of them standing about on bare terrace, turned every which
-           way: pairs angled towards each other, two with their backs to us
-           watching the arch, the photographer side-on to it.
+        /* --- the guests ------------------------------------------------
+           Nineteen of them, gathered right across the terrace and through
+           the aisle, turned every which way: the pairs face each other,
+           three have their backs to us watching the arch, and the
+           photographer is side-on to it. The brief was a crowd standing
+           together — close, filling the width, no dead ground anywhere.
 
            **Nobody touches anybody**, and that is why this is one flat list
-           instead of `chatGroup`. A chat group packs its figures 0.42 of a
+           rather than `chatGroup`. A chat group packs its figures 0.42 of a
            height apart, which is narrower than their shoulders — so inside a
            knot people always overlapped, however carefully the knots
            themselves were spaced. Spacing the groups was fixing the wrong
            thing.
 
-           A standing figure's widest point is about **0.22 of its own
-           height** either side of its x: a gown's hem reaches 0.20h, and a
-           hand with a glass in it in the `chat` pose 0.211h. The spans below
-           are worked out at **0.24h** for margin, and the smallest gap
-           between any two of them is 40 units. Left to right:
+           **How wide a figure actually is, because this is easy to get
+           wrong.** A limb in `person()` hangs off the *shoulder*, at x ±
+           0.132h — the numbers in the POSES table are measured from there,
+           not from the figure's centre line. So a `chat` arm, whose hand
+           sits .170h out along the pose, reaches 0.132 + 0.170 + a hand
+           radius of 0.036 = **0.338h**, and 0.379h with a glass in it. An
+           earlier pass here assumed 0.235h, was wrong by a third of a
+           figure, and only escaped because the gaps happened to be wide.
 
-             64–128 · 173–217 · 287–339 · 380–446 · 490–534
-             [ the aisle, 545–745, left clear ]
-             755–801 · 841–897 · 993–1035 · 1090–1152
-             1257–1308 · 1370–1430 · 1513–1558
+           The extents are therefore **per pose and per side**, and a flipped
+           figure has them the other way round:
 
-           **The gaps are deliberately uneven** — 40 units in one place, 105
-           in another. Even spacing is what made twelve people standing on a
-           strip of terrace read as a row rather than as a scattered crowd;
-           the tight pairs read as two people talking, the wide gaps as open
-           terrace. If you add a guest, take one of the wide gaps and keep
-           0.24h clear either side of them. Do not tuck somebody in beside an
-           existing figure — that is the whole bug.
+             chat   .223 / .338 (.379 with a glass)   laugh  .308 / .248
+             toast  .226 / .303 (.344 with a glass)   photo  .273 / .278
+             listen .238 / .283    wave .223 / .283   stand  .230 / .238
+
+           with a floor of 0.20h either side for a gown's hem, 0.15h for the
+           ground shadow and 0.14h for the head and hair. The spans below are
+           built from those, and the closest any two drawn figures come is
+           **17 units** — a real, visible sliver, with nothing touching. Gaps
+           run 17 to 31, unevenly, so the crowd breaks into knots rather than
+           reading as railings.
+
+           If you add somebody, work their span out the same way. Do not
+           eyeball it, do not use a single symmetric margin, and do not tuck
+           somebody in behind an existing figure — the terrace is only about
+           fifty units deep, far too little for a nearer figure to read as
+           *in front of* another rather than stuck to it.
 
            **Depth is carried by size, not by y.** 88–96 at the back against
            124–136 at the front, and baseY moves with the height, never on
-           its own. There is only about fifty units of walkable terrace
-           between the parapet and the bottom crop, so size is doing almost
-           all of the work; a figure moved up the screen without being shrunk
-           just floats.
+           its own. The sizes deliberately alternate along the row instead of
+           receding left to right, which is what stops it looking like a
+           queue.
 
            **Feet at y=860 or above.** Measured on this layer, a laptop sees
            the terrace from room x=59 across to wherever the details panel
            starts (859 at 1280x820, 903 at 1440x900) and down to y=866.7 —
            and a shoe hangs about 0.013h below its baseY, so a baseY of 864
-           put the front row's soles exactly on the line. The left-hand
-           figure starts at x=64 for the same reason: at 38 a third of them
-           was off the side of a laptop. Which guests fall outside the frame
-           changes with the window, and the ones at the far ends drop out on
-           a narrow one — that is fine, a crowd should run past the edges.
+           would put the front row's soles on the line. Which guests fall
+           outside the frame changes with the window, and the ones at the far
+           ends drop out on a narrow one — that is fine, a crowd should run
+           past the edges.
 
-           **Nothing under the arch.** The aisle stays open — Dana's call,
-           and the arch is what the scene is about. The two figures who used
-           to drift across it read as strangers wandering through a ceremony.
+           **The aisle has people in it now.** It used to be held open, with
+           nothing between the guest and the arch; at Dana's request the gap
+           is closed and the crowd runs straight through. Nobody stands
+           directly under the keystone, so the arch still reads.
 
            Everyone is in evening wear (`evening: true`) — gowns to the floor
-           in jewel colours, dark suits with a shirt, lapels and a tie, from
-           the GOWNS and SUITS palettes in art.js. Nothing here sets a colour
-           or a garment on purpose: each figure dresses itself from its seed,
-           which is what keeps the crowd varied. */
+           and dark suits, from the GOWNS and SUITS palettes in art.js, which
+           carry the pinks, reds, oranges, yellows, purples and blues. There
+           is no colour set anywhere in this table on purpose: each figure
+           dresses itself from its seed, and that is what keeps the crowd
+           varied. If the room ever looks drab, widen the palette — do not
+           start pinning colours onto individuals here. */
 
         var GUESTS = [
           /*   x     h   baseY  pose       facing   holding */
-          {  x:   96, h: 132, y: 858, pose: 'chat',   face: 'r',    hold: 'glass' },
-          {  x:  195, h:  90, y: 820, pose: 'listen', face: 'l' },
-          {  x:  313, h: 110, y: 840, pose: 'laugh',  face: 'r' },
-          {  x:  413, h: 136, y: 860, pose: 'toast',  face: 'l',    hold: 'glass' },
-          {  x:  512, h:  92, y: 822, pose: 'stand',  face: 'back' },
-          {  x:  778, h:  96, y: 826, pose: 'listen', face: 'l' },
+          {  x:   45, h: 130, y: 855, pose: 'chat',   face: 'r', hold: 'glass' },
+          {  x:  142, h:  96, y: 825, pose: 'listen', face: 'l' },
+          {  x:  226, h: 112, y: 839, pose: 'laugh',  face: 'r' },
+          {  x:  320, h: 136, y: 860, pose: 'toast',  face: 'l', hold: 'glass' },
+          {  x:  401, h:  92, y: 822, pose: 'stand',  face: 'back' },
+          {  x:  471, h: 120, y: 846, pose: 'chat',   face: 'r' },
+          {  x:  566, h: 100, y: 828, pose: 'listen', face: 'l' },
+          {  x:  638, h: 128, y: 853, pose: 'listen', face: 'back' },
+          {  x:  723, h:  90, y: 820, pose: 'chat',   face: 'r' },
           /* the photographer, side-on to the arch */
-          {  x:  869, h: 118, y: 847, pose: 'photo',  face: 'l',    hold: 'camera', suit: true },
-          {  x: 1014, h:  88, y: 818, pose: 'chat',   face: 'r' },
-          {  x: 1121, h: 130, y: 856, pose: 'listen', face: 'back' },
-          {  x: 1283, h: 106, y: 837, pose: 'toast',  face: 'r',    hold: 'glass' },
-          {  x: 1400, h: 124, y: 853, pose: 'chat',   face: 'l',    hold: 'glass' },
-          {  x: 1535, h:  94, y: 824, pose: 'stand',  face: 'l' }
+          {  x:  810, h: 116, y: 842, pose: 'photo',  face: 'l', hold: 'camera', suit: true },
+          {  x:  891, h: 134, y: 858, pose: 'toast',  face: 'r', hold: 'glass' },
+          {  x:  995, h:  94, y: 823, pose: 'listen', face: 'l' },
+          {  x: 1065, h: 108, y: 836, pose: 'wave',   face: 'r' },
+          {  x: 1160, h: 124, y: 850, pose: 'chat',   face: 'l', hold: 'glass' },
+          {  x: 1233, h:  88, y: 818, pose: 'stand',  face: 'back' },
+          {  x: 1313, h: 126, y: 851, pose: 'laugh',  face: 'r' },
+          {  x: 1402, h: 104, y: 832, pose: 'listen', face: 'l' },
+          {  x: 1472, h: 118, y: 844, pose: 'toast',  face: 'r', hold: 'glass' },
+          {  x: 1561, h:  98, y: 827, pose: 'stand',  face: 'l' }
         ];
-        /* A guest's seed is its **row number in the table above**, fixed
+
+        /* A guest's seed is their **row number in the table above**, fixed
            before the sort. It decides their whole wardrobe, so tying it to
            the draw order instead would mean that changing one person's
            height reshuffles what everybody else is wearing. */
@@ -670,9 +691,12 @@
             seed: gu.seed,
             /* a weight-shift, not a dance — the register the terrace is in */
             anim: gu.pose === 'laugh' ? 'ww-laugh' : 'ww-mingle',
-            headAnim: w % 2 ? 'ww-nod' : 'ww-nod-slow',
-            armAnim: talks ? 'ww-arm-talk' : null,
-            /* everyone on their own clock, or twelve people breathe together */
+            /* Heads and hands only where the guest is close enough to see
+               them. Nineteen figures all nodding is both noise and a lot of
+               separately-animated nodes; the ones at the back keep still. */
+            headAnim: gu.h < 100 ? null : (w % 2 ? 'ww-nod' : 'ww-nod-slow'),
+            armAnim: talks && gu.h >= 110 ? 'ww-arm-talk' : null,
+            /* everyone on their own clock, or nineteen people breathe together */
             delay: -((gu.seed * 0.7) % 6),
             headDelay: -((gu.seed * 0.3) % 5)
           });

@@ -421,45 +421,74 @@ the guests were still touching each other. Spacing the `chatGroup` calls apart
 had never been the fix, because the overlap was *inside* each group: a chat
 group packs its figures 0.42 of a height apart, which is narrower than their
 shoulders are wide. Whatever you do with the groups, the people in them
-overlap.
-
-  So the terrace is now one flat table of twelve figures — `GUESTS` in
-  `rooms.wedding` — each placed by hand, and `chatGroup` is not used here at
-  all. **Nobody touches anybody.** The arithmetic that guarantees it: a
-  standing figure's widest point is about **0.22 of its own height** either
-  side of its x (a gown's hem reaches 0.20h, a hand holding a glass in the
-  `chat` pose 0.211h), the spans are worked out at 0.24h for margin, and the
-  smallest gap between any two of them is 40 units. Every span is listed in
-  the comment above the table. **If you add a guest, take one of the wide
-  gaps** — do not tuck somebody in beside an existing figure.
+overlap. So `rooms.wedding` does not use `chatGroup` at all. The terrace is
+one flat table — `GUESTS` — of figures placed by hand.
 
   **The chairs went too**, at Dana's request, along with the thirteen guests
   sitting in them. Twenty seats in a 1600-wide scene left nowhere for anybody
   to stand, and the rows were the densest thing in the picture. `chair()` is
   still defined at the bottom of `scenes.js`, unused, if they ever come back.
 
-  Three things that are easy to undo by accident:
-  - **The gaps are uneven on purpose** — 40 units in one place, 105 in
-    another. Evenly spaced, twelve people on a strip of terrace read as a
-    *row*; the tight pairs read as two people talking and the wide gaps as
-    open terrace. Tidying the spacing would put the row back.
+**Round six: nineteen guests, closer together, and the whole width in
+colour.** The brief was more people, more colour, everybody gathered rather
+than dotted about, and no dead ground — in particular the empty stretch under
+the arch. All three are done, and the aisle now has four people standing in
+it. Nobody stands directly under the keystone, so the arch still reads.
+
+  **The width arithmetic was wrong, and this is the thing to remember.** A
+  limb in `person()` hangs off the **shoulder**, at x ± 0.132h — the numbers
+  in the `POSES` table are measured from there, not from the figure's centre
+  line. A `chat` arm whose hand sits .170h along the pose therefore reaches
+  0.132 + 0.170 + a 0.036 hand radius = **0.338h**, and 0.379h with a glass in
+  it. Round five had assumed a flat 0.235h either side — wrong by a third of a
+  figure — and got away with it only because the gaps were wide. Tightening
+  the crowd is what exposed it.
+
+  Extents are now worked out **per pose and per side** (a flipped figure has
+  them mirrored), with floors of 0.20h for a gown's hem, 0.15h for the ground
+  shadow and 0.14h for head and hair. The table is written out in the comment
+  above `GUESTS`. Measured on the rendered SVG rather than trusted from the
+  model, the closest any two drawn figures come is **15.7 units** and nothing
+  overlaps. Gaps run 16–35, unevenly, so the row breaks into knots.
+
+  **If you add or move a guest, do the same arithmetic.** One symmetric margin
+  will not do it, and eyeballing it is what put us here twice.
+
+  **The palettes were widened**, in `art.js`: `GOWNS` went from 12 muted jewel
+  tones to 19 that are all actual colours — pink, red, orange, yellow, purple,
+  blue, green, teal, magenta — with ivory the one pale note left. The greyed
+  neutrals were deleted rather than kept, because a scene only draws a dozen
+  gowns and every muted entry spent a draw that could have been a colour.
+  `SUITS` gained burgundy, deep teal, forest, plum, tobacco and royal, so the
+  men are not all charcoal; they stay dark because a pale suit at 120px tall
+  reads as pyjamas. Nineteen guests currently come out in fifteen distinct
+  outfit colours. **Both lists are used only by the wedding room** — nothing
+  else in the site passes `evening: true` — so widening them is safe, and the
+  couple in the Wedding doorway are dressed explicitly and were not touched.
+
+  Three more things that are easy to undo by accident:
+  - **The gaps are uneven on purpose.** Evenly spaced, nineteen people on a
+    strip of terrace read as railings.
   - **Depth is size, and baseY follows it.** 88–96 at the back against
-    124–136 at the front. There is only about fifty units of walkable terrace
-    between the parapet and the bottom crop, so size is doing nearly all the
-    work.
+    124–136 at the front, and the sizes alternate along the row instead of
+    receding left to right, which is what stops it looking like a queue.
+    There is only about fifty units of walkable terrace, so size does nearly
+    all the work.
   - **A guest's seed is their row number**, fixed before the draw order is
     sorted by height. Tie it to the draw order instead and changing one
     person's height reshuffles what everybody else is wearing.
 
-  Measured, on the terrace layer specifically (the parallax means the sky
-  layer answers differently): a laptop sees room x=59 across to where the
-  details panel starts — 859 at 1280x820, 903 at 1440x900 — and down to
-  y=866.7. Feet are at 860 or above, and a shoe hangs about 0.013h below its
-  baseY. Which guests fall outside the frame changes with the window; the
-  ones at the far ends drop out on a narrow one, which is fine.
+  Measured on the terrace layer specifically (parallax means the sky layer
+  answers differently): a laptop sees room x=59 across to where the details
+  panel starts — 859 at 1280x820, 903 at 1440x900 — and down to y=866.7. Feet
+  are at 860 or above, and a shoe hangs about 0.013h below its baseY. Which
+  guests fall outside the frame changes with the window; the ones at the far
+  ends drop out on a narrow one, which is fine — a crowd should run past the
+  edges.
 
-  The arch still has nobody under it and the aisle is still open — Dana's
-  call, unchanged.
+  Heads and hands are animated only on the figures big enough to show it
+  (`h >= 100` for a nod, `h >= 110` for talking hands). Nineteen people all
+  gesturing is both noise and a lot of separately-animated nodes.
 
 ## Deliberate decisions worth knowing
 - **2.5D parallax, not Three.js** — the brief recommended this for reliability on phones.

@@ -323,14 +323,27 @@
                  '#B08A55', '#A85331', '#D9B071', '#4A3B52'];
   var HAIR_STYLES = ['crop', 'bob', 'long', 'bun', 'curls', 'pony', 'wave', 'part'];
 
-  /* Black tie, more or less. Gowns get the jewel and the pale end of the
-     range; suits get the dark end, because a pale suit at 120px tall reads
-     as pyjamas. Pass `evening: true` and a figure dresses itself from these;
-     pass `gown` or `suit` to decide which. */
-  var GOWNS = ['#2E6B57', '#2C4E7A', '#7A2E3E', '#C99A46', '#D9A7A0', '#8E93A8',
-               '#EFE4D2', '#A8556B', '#4A3352', '#2A5560', '#B8894E', '#6E7FA8'];
+  /* Black tie, more or less — but a summer wedding on the Adriatic, so the
+     gowns are the colourful half of the room and they are meant to be seen
+     as colour first. Pink, red, orange, yellow, purple, blue, green and
+     teal all appear. Every entry earns its place as a colour — the greyed
+     neutrals that used to be in here (dusty pink, camel, periwinkle,
+     grey-blue) are gone, because a scene only draws a dozen or so gowns and
+     each muted one spent a draw that could have been a colour. Ivory is the
+     single pale note left, at one chance in nineteen.
+     Suits stay at the dark end — a pale suit at 120px tall reads as
+     pyjamas — but they are no longer all charcoal: burgundy, forest, plum,
+     tobacco and deep teal give the men somewhere to be as well.
+
+     Pass `evening: true` and a figure dresses itself from these; pass
+     `gown` or `suit` to decide which. Only the wedding room uses them. */
+  var GOWNS = ['#E0567B', '#C8324B', '#E0724A', '#EBB13C', '#7B4EA8', '#3D6FD1',
+               '#2E9E8F', '#4E9A4C', '#F49BB4', '#9B2F5E', '#D94F3D', '#5B8FE0',
+               '#2E6B57', '#2C4E7A', '#7A2E3E', '#C99A46', '#4A3352', '#A8556B',
+               '#EFE4D2'];
   var SUITS = ['#2C3A52', '#33302E', '#241E1C', '#3B3A44', '#2F3A34', '#4A3A46',
-               '#243A52', '#3E2E2C', '#453A2E'];
+               '#243A52', '#3E2E2C', '#453A2E', '#6B2436', '#1F5B54', '#2F4A2C',
+               '#4A2F5E', '#7A4A28', '#25406B'];
   var SHIRT = '#F2E9DA';
 
   /* A limb in two pieces: upper arm thicker than forearm, thigh thicker than
