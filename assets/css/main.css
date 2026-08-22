@@ -157,18 +157,27 @@ svg { display: block; }
    is what kept making them look stuck on. The text-indent cancels the
    trailing letter-space, so the word is optically centred and not pushed a
    hair to the left. */
+/* "Enter" sits just under the curve of the arch. The opening is 250 tall
+   starting at y=190 in the 460-tall entrance box, and its semicircle springs
+   at y=254 — so 59% (y=271) is the first clear line below the curve.
+   The ink had to change with the move. The interiors are lit at the lintel
+   and deep at the threshold, so ivory type worked at the old 69% and is
+   invisible this high up: measured against the seven gradients it scored
+   1.5–1.9:1 here. Espresso at 88% gives 5.1–6.1:1 on six of the seven —
+   better than the ivory ever managed even at its old height, where it was
+   running at 1.9–2.6:1 on everything except the After-Party. */
 .entrance-cta {
-  position: absolute; left: 50%; top: 69%;
+  position: absolute; left: 50%; top: 59%;
   transform: translate(-50%, -50%);
   font-size: .56em; letter-spacing: .38em; text-indent: .38em;
   text-transform: uppercase; font-weight: 300;
-  color: #FBF3E4; opacity: .72;
+  color: #3B2A22; opacity: .88;
   white-space: nowrap; pointer-events: none;
   transition: opacity .35s var(--ease), letter-spacing .35s var(--ease);
 }
 .entrance:hover .entrance-cta, .entrance:focus-visible .entrance-cta,
 .entrance.is-near .entrance-cta {
-  opacity: .95; letter-spacing: .46em; text-indent: .46em;
+  opacity: 1; letter-spacing: .46em; text-indent: .46em;
 }
 /* labels sit above the archway, clear of the path map at the bottom */
 .entrance-label {
@@ -204,7 +213,12 @@ svg { display: block; }
   background: var(--night);
 }
 #room.is-open { visibility: visible; opacity: 1; }
-.room-art { position: absolute; inset: -4%; }
+/* The bleed is all on the top and the sides, never the bottom. The layers
+   are sliced bottom-anchored (xMidYMax, see wrapRoom in scenes.js) so the
+   ground line lands exactly on the foot of the frame; a -4% bottom inset
+   pushed it 66 viewBox units below the window and cropped everybody's feet
+   on a wide laptop. The top keeps its bleed for the scale(1.07) entrance. */
+.room-art { position: absolute; inset: -8% -4% 0; }
 .room-layer {
   position: absolute; inset: 0;
   will-change: transform;

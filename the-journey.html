@@ -172,18 +172,27 @@ svg { display: block; }
    is what kept making them look stuck on. The text-indent cancels the
    trailing letter-space, so the word is optically centred and not pushed a
    hair to the left. */
+/* "Enter" sits just under the curve of the arch. The opening is 250 tall
+   starting at y=190 in the 460-tall entrance box, and its semicircle springs
+   at y=254 — so 59% (y=271) is the first clear line below the curve.
+   The ink had to change with the move. The interiors are lit at the lintel
+   and deep at the threshold, so ivory type worked at the old 69% and is
+   invisible this high up: measured against the seven gradients it scored
+   1.5–1.9:1 here. Espresso at 88% gives 5.1–6.1:1 on six of the seven —
+   better than the ivory ever managed even at its old height, where it was
+   running at 1.9–2.6:1 on everything except the After-Party. */
 .entrance-cta {
-  position: absolute; left: 50%; top: 69%;
+  position: absolute; left: 50%; top: 59%;
   transform: translate(-50%, -50%);
   font-size: .56em; letter-spacing: .38em; text-indent: .38em;
   text-transform: uppercase; font-weight: 300;
-  color: #FBF3E4; opacity: .72;
+  color: #3B2A22; opacity: .88;
   white-space: nowrap; pointer-events: none;
   transition: opacity .35s var(--ease), letter-spacing .35s var(--ease);
 }
 .entrance:hover .entrance-cta, .entrance:focus-visible .entrance-cta,
 .entrance.is-near .entrance-cta {
-  opacity: .95; letter-spacing: .46em; text-indent: .46em;
+  opacity: 1; letter-spacing: .46em; text-indent: .46em;
 }
 /* labels sit above the archway, clear of the path map at the bottom */
 .entrance-label {
@@ -219,7 +228,12 @@ svg { display: block; }
   background: var(--night);
 }
 #room.is-open { visibility: visible; opacity: 1; }
-.room-art { position: absolute; inset: -4%; }
+/* The bleed is all on the top and the sides, never the bottom. The layers
+   are sliced bottom-anchored (xMidYMax, see wrapRoom in scenes.js) so the
+   ground line lands exactly on the foot of the frame; a -4% bottom inset
+   pushed it 66 viewBox units below the window and cropped everybody's feet
+   on a wide laptop. The top keeps its bleed for the scale(1.07) entrance. */
+.room-art { position: absolute; inset: -8% -4% 0; }
 .room-layer {
   position: absolute; inset: 0;
   will-change: transform;
@@ -1347,8 +1361,12 @@ svg { display: block; }
     };
   }
 
-  function svgWrap(w, h, inner, extra) {
-    return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="xMidYMid slice" ' +
+  /* `par` is the preserveAspectRatio. The default centres the crop, which is
+     right for the hub. Room layers pass 'xMidYMax slice' so the crop comes
+     off the sky and the ground is never cut — see wrapRoom() in scenes.js. */
+  function svgWrap(w, h, inner, extra, par) {
+    return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="' +
+      (par || 'xMidYMid slice') + '" ' +
       'xmlns="http://www.w3.org/2000/svg" ' + (extra || '') + '>' + inner + '</svg>';
   }
 
@@ -2249,6 +2267,16 @@ svg { display: block; }
   var ROOM_W = 1600, ROOM_H = 900;
 
   function wrap(w, h, inner) { return A.svgWrap(w, h, inner); }
+  /* Room layers are anchored to the BOTTOM of the frame, not the middle.
+     The layers are drawn 1600x900 and CSS slices them to fill the window, so
+     on anything wider than 16:9 the crop has to come out of the height —
+     and centred, it took the difference off the top *and the bottom*. On a
+     2:1 laptop that put the cut at about y=829, which is straight through
+     everybody's shins. Anchoring to yMax spends the whole crop on sky, which
+     is the part nobody misses, and guarantees the ground line is on screen
+     at every aspect ratio. Taller-than-16:9 windows are unaffected: there
+     the width overflows instead and no height is lost either way. */
+  function wrapRoom(w, h, inner) { return A.svgWrap(w, h, inner, null, 'xMidYMax slice'); }
 
   function skyGrad(w, h, stops, yTo) {
     var id = A.uid('sky'), s = '';
@@ -2408,13 +2436,16 @@ svg { display: block; }
     }
 
     /* Light at the lintel, deeper towards the threshold — the way a lit room
-       looks from outside. The lower half of every one of these is dark
-       enough to carry the ivory "Enter" that sits at the middle of the
-       opening, which is what lets one colour of type work on all seven. */
+       looks from outside. "Enter" now sits high, just under the curve of the
+       arch (59% of the box, y=271), where every one of these gradients is
+       still pale — so the word is dark espresso, not ivory, and one colour
+       of type still works on all seven. The After-Party's lintel was lifted
+       from #B98CC9 to #DCC0E8 for the same reason: at the old value it was a
+       mid lavender that neither a light nor a dark ink could sit on. */
     var interiors = {
       welcome:    ['#F6D9A8', '#A84F2C'],
       wedding:    ['#FFE9BE', '#B96A3E'],
-      afterparty: ['#B98CC9', '#3A2550'],
+      afterparty: ['#DCC0E8', '#3A2550'],
       explore:    ['#BFE4E2', '#2F7B7E'],
       stay:       ['#F3D9B2', '#8A4A2C'],
       travel:     ['#D8E8EF', '#4E7185'],
@@ -2468,10 +2499,10 @@ svg { display: block; }
          Everything inside is clipped to the opening, so the sea and the
          floor can run right to the jambs without spilling onto the stone. */
       var wClip = A.uid('wed');
-      /* The horizon sits below the "Enter", not behind it: the word lives at
-         the middle of the opening and needs the plain warm gradient behind
-         it, and the couple's heads want sky around them rather than a band
-         of water cutting across at eye level. */
+      /* The horizon sits well below the "Enter": the word now lives just
+         under the curve of the arch, at ay+81, and needs the plain warm
+         gradient behind it — and the couple's heads want sky around them
+         rather than a band of water cutting across at eye level. */
       var seaY = baseY - 100, sillY = baseY - 44;
       var rw = rand(59);
       var inner = '';
@@ -2532,12 +2563,15 @@ svg { display: block; }
     } else if (id === 'afterparty') {
       g += A.lantern(ax - 20, ay + 66, 1.1, ay - 22);
       g += A.lantern(ax + aw + 20, ay + 82, 1.1, ay - 16);
-      g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 96) + '" r="34" fill="#E9C6F5" opacity=".45"/>';
+      /* dropped from ay+96: at 34 radius it sat straight behind the word */
+      g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 132) + '" r="34" fill="#E9C6F5" opacity=".45"/>';
       g += A.dancer(cx - 20, baseY - 4, 92, 'rgba(40,24,58,.62)', 0);
       g += A.dancer(cx + 24, baseY - 4, 84, 'rgba(40,24,58,.5)', -0.7);
     } else if (id === 'explore') {
       /* a gap in the wall with a path climbing away */
-      g += '<path d="M ' + f(cx - 26) + ' ' + f(baseY) + ' L ' + f(cx - 8) + ' ' + f(ay + 76) + ' L ' + f(cx + 10) + ' ' + f(ay + 76) + ' L ' + f(cx + 30) + ' ' + f(baseY) + ' Z" fill="#E8DCC0" opacity=".85"/>';
+      /* the path tops out at ay+112, below the "Enter"; at ay+76 its pale
+         apex was directly behind the letters and washing them out */
+      g += '<path d="M ' + f(cx - 26) + ' ' + f(baseY) + ' L ' + f(cx - 8) + ' ' + f(ay + 112) + ' L ' + f(cx + 10) + ' ' + f(ay + 112) + ' L ' + f(cx + 30) + ' ' + f(baseY) + ' Z" fill="#E8DCC0" opacity=".85"/>';
       g += '<rect x="' + f(cx + 44) + '" y="' + f(baseY - 150) + '" width="7" height="150" fill="#7A6247"/>';
       g += '<path d="M ' + f(cx + 51) + ' ' + f(baseY - 148) + ' l 52 0 l 12 12 l -12 12 l -52 0 Z" fill="' + P.terracotta + '"/>';
       g += '<path d="M ' + f(cx + 51) + ' ' + f(baseY - 118) + ' l 40 0 l 12 11 l -12 11 l -40 0 Z" fill="' + P.olive + '"/>';
@@ -2554,26 +2588,28 @@ svg { display: block; }
       g += '<rect x="' + f(ax + 4) + '" y="' + f(baseY - 76) + '" width="' + f(aw - 8) + '" height="76" fill="#7FA3B0" opacity=".8"/>';
       g += A.boat(cx - 6, baseY - 40, 0.85, '#31485A', '#F4E7D3');
       /* an aeroplane crossing the opening, climbing away over the water */
-      g += '<g class="ww-plane-door">' + A.airplane(cx - 6, ay + 74, 0.62, '#4E6E80') + '</g>';
+      g += '<g class="ww-plane-door">' + A.airplane(cx - 6, ay + 116, 0.62, '#4E6E80') + '</g>';
       g += '<ellipse cx="' + f(cx + 34) + '" cy="' + f(ay + 40) + '" rx="26" ry="9" fill="#FFFFFF" opacity=".5"/>';
-      /* kept clear of the "Enter" line at ay+127, which a pale cloud sitting
-         right behind the letters was washing out */
-      g += '<ellipse cx="' + f(cx - 32) + '" cy="' + f(ay + 88) + '" rx="20" ry="7" fill="#FFFFFF" opacity=".38"/>';
+      /* Both clouds and the aeroplane clear the "Enter" line at ay+81. The
+         plane dropped from ay+74 and this cloud from ay+88; a pale shape
+         behind the letters washes them out however dark the ink is. */
+      g += '<ellipse cx="' + f(cx - 32) + '" cy="' + f(ay + 128) + '" rx="20" ry="7" fill="#FFFFFF" opacity=".38"/>';
       g += '<path class="ww-spin-slow" style="transform-box:view-box;transform-origin:' + f(cx) + 'px ' + f(ay - 58) + 'px" d="M ' + f(cx - 26) + ' ' + f(ay - 58) + ' l 40 0 l -8 -7 l 20 7 l -20 7 l 8 -7 Z" fill="#7A6247"/>';
       g += '<rect x="' + f(cx - 2) + '" y="' + f(ay - 58) + '" width="4" height="34" fill="#7A6247"/>';
     } else if (id === 'rsvp') {
       /* a mailbox and a wax seal, glowing gold */
-      g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 72) + '" r="56" fill="' + P.gold + '" opacity=".28"/>';
+      g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 116) + '" r="56" fill="' + P.gold + '" opacity=".28"/>';
       g += '<rect x="' + f(cx + 46) + '" y="' + f(baseY - 116) + '" width="9" height="116" fill="#7A6247"/>';
       g += '<rect x="' + f(cx + 24) + '" y="' + f(baseY - 156) + '" width="54" height="42" rx="8" fill="' + P.terracotta + '"/>';
       g += '<rect x="' + f(cx + 30) + '" y="' + f(baseY - 148) + '" width="42" height="5" rx="2" fill="rgba(59,42,34,.45)"/>';
-      /* envelope hovering in the doorway */
-      /* The envelope hangs in the upper half of the arch: the "Enter" now sits
-         at the middle of the opening and the two were on top of each other. */
-      g += '<g class="ww-hover-bob" style="transform-box:view-box;transform-origin:' + f(cx) + 'px ' + f(ay + 80) + 'px">' +
-        '<rect x="' + f(cx - 36) + '" y="' + f(ay + 52) + '" width="72" height="48" rx="5" fill="#FFF6E4"/>' +
-        '<path d="M ' + f(cx - 36) + ' ' + f(ay + 56) + ' l 36 29 l 36 -29" fill="none" stroke="' + P.terraDeep + '" stroke-width="3"/>' +
-        '<circle cx="' + f(cx) + '" cy="' + f(ay + 90) + '" r="10" fill="' + P.terracotta + '"/>' +
+      /* Envelope hovering in the doorway, below the word. "Enter" moved up
+         to just under the arch curve (ay+81) and the envelope used to span
+         ay+52 to ay+100 — straight through it. It now hangs from ay+104, and
+         the gold pulse behind it dropped to match. */
+      g += '<g class="ww-hover-bob" style="transform-box:view-box;transform-origin:' + f(cx) + 'px ' + f(ay + 132) + 'px">' +
+        '<rect x="' + f(cx - 36) + '" y="' + f(ay + 104) + '" width="72" height="48" rx="5" fill="#FFF6E4"/>' +
+        '<path d="M ' + f(cx - 36) + ' ' + f(ay + 108) + ' l 36 29 l 36 -29" fill="none" stroke="' + P.terraDeep + '" stroke-width="3"/>' +
+        '<circle cx="' + f(cx) + '" cy="' + f(ay + 142) + '" r="10" fill="' + P.terracotta + '"/>' +
         '</g>';
     }
 
@@ -2599,12 +2635,12 @@ svg { display: block; }
   /* --- 1 · Welcome Dinner: a terrace at dusk --------------------------- */
   rooms.welcome = function () {
     var L = [];
-    L.push({ depth: 0.15, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.15, svg: wrapRoom(ROOM_W, ROOM_H,
       skyGrad(ROOM_W, ROOM_H, [[0, '#2F3F5E'], [0.42, '#7A6A82'], [0.72, '#C98A6E'], [1, '#EFC095']], 620) +
       stars(ROOM_W, 380, 46, 41) +
       A.sun(1290, 560, 34, '#FFE7BE', '#F0A96B')
     )});
-    L.push({ depth: 0.3, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.3, svg: wrapRoom(ROOM_W, ROOM_H,
       '<g transform="translate(0,-116)">' +
       '<path d="' + A.ridge(ROOM_W, ROOM_H, { baseline: 600, amp: 250, peaks: 7, seed: 12 }) + '" fill="#3E4A63"/>' +
       A.water(0, 596, ROOM_W, 210, '#4A6272', '#2A3D4E', 15, '#FFD9A8') +
@@ -2613,7 +2649,7 @@ svg { display: block; }
       A.boat(1180, 690, 1.1, '#26313F', '#C9B9A0') +
       '</g>'
     )});
-    L.push({ depth: 0.55, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.55, svg: wrapRoom(ROOM_W, ROOM_H,
       /* the stone arcade at the back of the courtyard, lamplit from within */
       '<g transform="translate(0,-116)">' +
       (function () {
@@ -2635,7 +2671,7 @@ svg { display: block; }
       A.cypress(1150, 720, 300, '#2A3524') + A.cypress(1226, 726, 224, '#243020') +
       A.olive(1420, 730, 0.9, { leaf: '#3E4A32', leaf2: '#4C5A3C' }, 5) + '</g>'
     )});
-    L.push({ depth: 0.85, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.85, svg: wrapRoom(ROOM_W, ROOM_H,
       /* the terrace floor, the long table, the candles */
       '<rect x="0" y="584" width="' + ROOM_W + '" height="330" fill="#7E6650"/>' +
       '<rect x="0" y="584" width="' + ROOM_W + '" height="12" fill="#94795F"/>' +
@@ -2739,7 +2775,7 @@ svg { display: block; }
         return g;
       })() + '</g>'
     )});
-    L.push({ depth: 1.25, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 1.25, svg: wrapRoom(ROOM_W, ROOM_H,
       A.branch(-30, 20, 1, false, { leaf: '#22301F', leaf2: '#2E3F26' }, 29) +
       A.lantern(120, 150, 1.9, 0) + A.lantern(1480, 118, 1.6, 0)
     )});
@@ -2749,24 +2785,24 @@ svg { display: block; }
   /* --- 2 · The Wedding: cliff terrace, golden hour --------------------- */
   rooms.wedding = function () {
     var L = [];
-    L.push({ depth: 0.15, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.15, svg: wrapRoom(ROOM_W, ROOM_H,
       skyGrad(ROOM_W, ROOM_H, [[0, '#8FB6C9'], [0.4, '#E6C39C'], [0.75, '#F6D3A0'], [1, '#FBE7C6']], 640) +
       A.sun(1180, 470, 56, '#FFF3D6', '#F2B968') +
       A.clouds(ROOM_W, ROOM_H, 6, '#FFF0DA', 0.8, [90, 300]) +
       A.birds(360, 200, 1, 5, 9, 'rgba(59,42,34,.35)')
     )});
-    L.push({ depth: 0.28, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.28, svg: wrapRoom(ROOM_W, ROOM_H,
       '<path d="' + A.ridge(ROOM_W, ROOM_H, { baseline: 610, amp: 300, peaks: 6, seed: 22 }) + '" fill="#A8BECB" opacity=".9"/>' +
       '<path d="' + A.ridge(ROOM_W, ROOM_H, { baseline: 630, amp: 190, peaks: 9, seed: 26, phase: 1.6 }) + '" fill="' + P.dusty + '"/>'
     )});
-    L.push({ depth: 0.45, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.45, svg: wrapRoom(ROOM_W, ROOM_H,
       A.water(0, 628, ROOM_W, 190, '#69989B', '#31626A', 27, '#FFF0CE') +
       '<ellipse cx="380" cy="700" rx="66" ry="12" fill="#D7C8AC"/>' +
       A.houses(342, 694, 3, 0.34, 31, { wall: '#F0E3CB', roof: P.terracotta, window: 'rgba(59,42,34,.4)' }) +
       A.boat(940, 726, 1, '#3B2A22', '#FFF5E2') +
       A.houses(1180, 690, 6, 0.4, 35, { wall: '#EADCC2', roof: P.terraLight, window: 'rgba(59,42,34,.35)' })
     )});
-    L.push({ depth: 0.8, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.8, svg: wrapRoom(ROOM_W, ROOM_H,
       /* the terrace, the aisle, the arch */
       '<path d="M -20 812 Q 800 764 1620 812 L 1620 920 L -20 920 Z" fill="#DCCAA9"/>' +
       A.stoneWall(-20, 790, 1640, 30, 17, '#CDBA9A') +
@@ -2817,7 +2853,7 @@ svg { display: block; }
            "the couple" at 150px tall. */
 
         /* --- the guests ------------------------------------------------
-           Nineteen of them, gathered right across the terrace and through
+           Seventeen of them, gathered right across the terrace and through
            the aisle, turned every which way: the pairs face each other,
            three have their backs to us watching the arch, and the
            photographer is side-on to it. The brief was a crowd standing
@@ -2849,8 +2885,9 @@ svg { display: block; }
            with a floor of 0.20h either side for a gown's hem, 0.15h for the
            ground shadow and 0.14h for the head and hair. The spans below are
            built from those, and the closest any two drawn figures come is
-           **17 units** — a real, visible sliver, with nothing touching. Gaps
-           run 17 to 31, unevenly, so the crowd breaks into knots rather than
+           **16 units**, measured off the rendered SVG rather than trusted
+           from the model — a real, visible sliver, nothing touching. Gaps
+           run 16 to 29, unevenly, so the crowd breaks into knots rather than
            reading as railings.
 
            If you add somebody, work their span out the same way. Do not
@@ -2859,20 +2896,33 @@ svg { display: block; }
            fifty units deep, far too little for a nearer figure to read as
            *in front of* another rather than stuck to it.
 
-           **Depth is carried by size, not by y.** 88–96 at the back against
-           124–136 at the front, and baseY moves with the height, never on
-           its own. The sizes deliberately alternate along the row instead of
-           receding left to right, which is what stops it looking like a
-           queue.
+           **Depth is carried by size, not by y.** 104–110 at the back
+           against 148–164 at the front, and **baseY moves with the height** —
+           the relation is `baseY = 0.99h + 727`, which lands every head top
+           on y=727. That is not a coincidence to be tidied away: figures
+           standing on level ground share a head line at the viewer's eye
+           level, and it is what lets the sizes vary this much without
+           anybody looking like they are floating. Change a height and you
+           must move its baseY by the same rule. The sizes alternate along
+           the row rather than receding left to right, which is what stops it
+           reading as a queue.
 
-           **Feet at y=860 or above.** Measured on this layer, a laptop sees
-           the terrace from room x=59 across to wherever the details panel
-           starts (859 at 1280x820, 903 at 1440x900) and down to y=866.7 —
-           and a shoe hangs about 0.013h below its baseY, so a baseY of 864
-           would put the front row's soles on the line. Which guests fall
-           outside the frame changes with the window, and the ones at the far
-           ends drop out on a narrow one — that is fine, a crowd should run
-           past the edges.
+           **Feet down to y=891, and the frame bottom is y=900.** That is
+           new. The room layers used to be sliced from the middle
+           (`xMidYMid`), so on anything wider than 16:9 the crop came off the
+           top *and the bottom* — on a 2:1 laptop the cut landed at about
+           y=829, straight through everybody's shins. Layers are now sliced
+           bottom-anchored (`wrapRoom`, above) and `.room-art` no longer
+           bleeds past the bottom edge, so **y=900 is the foot of the frame
+           at every aspect ratio**, measured. That is what bought the deeper
+           strip of terrace these figures stand on, and it is why they could
+           grow about 18% without anything being cropped. A shoe hangs about
+           0.013h below its baseY, so 891 leaves nine units in hand.
+
+           Sideways is still window-dependent: a laptop sees room x=59 across
+           to wherever the details panel starts (about 900), so the guests at
+           the far ends drop out on a narrow window. That is fine — a crowd
+           should run past the edges.
 
            **The aisle has people in it now.** It used to be held open, with
            nothing between the guest and the arch; at Dana's request the gap
@@ -2889,26 +2939,24 @@ svg { display: block; }
 
         var GUESTS = [
           /*   x     h   baseY  pose       facing   holding */
-          {  x:   45, h: 130, y: 855, pose: 'chat',   face: 'r', hold: 'glass' },
-          {  x:  142, h:  96, y: 825, pose: 'listen', face: 'l' },
-          {  x:  226, h: 112, y: 839, pose: 'laugh',  face: 'r' },
-          {  x:  320, h: 136, y: 860, pose: 'toast',  face: 'l', hold: 'glass' },
-          {  x:  401, h:  92, y: 822, pose: 'stand',  face: 'back' },
-          {  x:  471, h: 120, y: 846, pose: 'chat',   face: 'r' },
-          {  x:  566, h: 100, y: 828, pose: 'listen', face: 'l' },
-          {  x:  638, h: 128, y: 853, pose: 'listen', face: 'back' },
-          {  x:  723, h:  90, y: 820, pose: 'chat',   face: 'r' },
+          {  x:   49, h: 158, y: 883, pose: 'chat',   face: 'r', hold: 'glass' },
+          {  x:  160, h: 112, y: 838, pose: 'listen', face: 'l' },
+          {  x:  253, h: 134, y: 860, pose: 'laugh',  face: 'r' },
+          {  x:  359, h: 164, y: 889, pose: 'toast',  face: 'l', hold: 'glass' },
+          {  x:  449, h: 108, y: 834, pose: 'stand',  face: 'back' },
+          {  x:  526, h: 144, y: 870, pose: 'chat',   face: 'r' },
+          {  x:  632, h: 118, y: 844, pose: 'listen', face: 'l' },
+          {  x:  713, h: 152, y: 877, pose: 'listen', face: 'back' },
+          {  x:  806, h: 104, y: 830, pose: 'chat',   face: 'r' },
           /* the photographer, side-on to the arch */
-          {  x:  810, h: 116, y: 842, pose: 'photo',  face: 'l', hold: 'camera', suit: true },
-          {  x:  891, h: 134, y: 858, pose: 'toast',  face: 'r', hold: 'glass' },
-          {  x:  995, h:  94, y: 823, pose: 'listen', face: 'l' },
-          {  x: 1065, h: 108, y: 836, pose: 'wave',   face: 'r' },
-          {  x: 1160, h: 124, y: 850, pose: 'chat',   face: 'l', hold: 'glass' },
-          {  x: 1233, h:  88, y: 818, pose: 'stand',  face: 'back' },
-          {  x: 1313, h: 126, y: 851, pose: 'laugh',  face: 'r' },
-          {  x: 1402, h: 104, y: 832, pose: 'listen', face: 'l' },
-          {  x: 1472, h: 118, y: 844, pose: 'toast',  face: 'r', hold: 'glass' },
-          {  x: 1561, h:  98, y: 827, pose: 'stand',  face: 'l' }
+          {  x:  901, h: 138, y: 864, pose: 'photo',  face: 'l', hold: 'camera', suit: true },
+          {  x:  993, h: 160, y: 885, pose: 'toast',  face: 'r', hold: 'glass' },
+          {  x: 1108, h: 110, y: 836, pose: 'listen', face: 'l' },
+          {  x: 1180, h: 128, y: 854, pose: 'wave',   face: 'r' },
+          {  x: 1292, h: 148, y: 874, pose: 'chat',   face: 'l' },
+          {  x: 1367, h: 106, y: 832, pose: 'stand',  face: 'back' },
+          {  x: 1458, h: 154, y: 879, pose: 'laugh',  face: 'r' },
+          {  x: 1557, h: 122, y: 848, pose: 'listen', face: 'l' }
         ];
 
         /* A guest's seed is their **row number in the table above**, fixed
@@ -2930,11 +2978,11 @@ svg { display: block; }
             /* a weight-shift, not a dance — the register the terrace is in */
             anim: gu.pose === 'laugh' ? 'ww-laugh' : 'ww-mingle',
             /* Heads and hands only where the guest is close enough to see
-               them. Nineteen figures all nodding is both noise and a lot of
+               them. Seventeen figures all nodding is both noise and a lot of
                separately-animated nodes; the ones at the back keep still. */
             headAnim: gu.h < 100 ? null : (w % 2 ? 'ww-nod' : 'ww-nod-slow'),
             armAnim: talks && gu.h >= 110 ? 'ww-arm-talk' : null,
-            /* everyone on their own clock, or nineteen people breathe together */
+            /* everyone on their own clock, or seventeen people breathe together */
             delay: -((gu.seed * 0.7) % 6),
             headDelay: -((gu.seed * 0.3) % 5)
           });
@@ -2943,7 +2991,7 @@ svg { display: block; }
         return g;
       })()
     )});
-    L.push({ depth: 1.3, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 1.3, svg: wrapRoom(ROOM_W, ROOM_H,
       A.branch(-30, 20, 1.05, false, { leaf: '#4A5A38', leaf2: P.oliveDeep }, 29) +
       A.cypress(1560, 920, 420, '#3E4E32') + A.cypress(1500, 924, 300, '#46563A') +
       A.grassTufts(0, 916, ROOM_W, 26, 23, 'rgba(70,86,58,.6)')
@@ -2954,19 +3002,19 @@ svg { display: block; }
   /* --- 3 · After-Party: a courtyard at midnight ------------------------ */
   rooms.afterparty = function () {
     var L = [];
-    L.push({ depth: 0.15, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.15, svg: wrapRoom(ROOM_W, ROOM_H,
       skyGrad(ROOM_W, ROOM_H, [[0, '#0F1522'], [0.55, '#1E2A3A'], [1, '#33304A']], 700) +
       stars(ROOM_W, 520, 90, 53) +
       '<circle cx="1300" cy="180" r="46" fill="#F3E7C8" opacity=".92"/>' +
       '<circle cx="1300" cy="180" r="120" fill="#F3E7C8" opacity=".08"/>'
     )});
-    L.push({ depth: 0.3, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.3, svg: wrapRoom(ROOM_W, ROOM_H,
       '<path d="' + A.ridge(ROOM_W, ROOM_H, { baseline: 620, amp: 260, peaks: 7, seed: 61 }) + '" fill="#141C28"/>' +
       A.houses(40, 700, 9, 0.62, 63, { wall: '#232C3C', wallShade: '#1A2130', roof: '#2C2434', window: 'rgba(244,196,116,.85)' }) +
       A.campanile(520, 700, 130, 0.7, { wall: '#232C3C', roof: '#2C2434' }) +
       A.houses(1140, 700, 6, 0.6, 67, { wall: '#232C3C', wallShade: '#1A2130', roof: '#2C2434', window: 'rgba(244,196,116,.7)' })
     )});
-    L.push({ depth: 0.55, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.55, svg: wrapRoom(ROOM_W, ROOM_H,
       /* the vault arches, glowing */
       (function () {
         var g = '<rect x="-20" y="470" width="1640" height="330" fill="#1A2231"/>';
@@ -2981,7 +3029,7 @@ svg { display: block; }
         return g;
       })()
     )});
-    L.push({ depth: 0.85, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.85, svg: wrapRoom(ROOM_W, ROOM_H,
       '<rect x="0" y="790" width="' + ROOM_W + '" height="120" fill="#20283A"/>' +
       /* pools of light on the dancefloor */
       (function () {
@@ -3015,7 +3063,7 @@ svg { display: block; }
       '<circle class="ww-twinkle" cx="1145" cy="818" r="7" fill="#C98CE0" opacity=".8"/>' +
       '<circle class="ww-twinkle" cx="1211" cy="818" r="7" fill="#F0B45C" opacity=".8" style="animation-delay:-1.4s"/>'
     )});
-    L.push({ depth: 1.3, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 1.3, svg: wrapRoom(ROOM_W, ROOM_H,
       A.lantern(150, 200, 2.2, 0) + A.lantern(430, 130, 1.7, 0) + A.lantern(1290, 176, 2, 0) + A.lantern(1520, 120, 1.5, 0) +
       '<rect x="0" y="880" width="' + ROOM_W + '" height="30" fill="#0C1119" opacity=".7"/>'
     )});
@@ -3025,16 +3073,16 @@ svg { display: block; }
   /* --- 4 · Explore: the whole bay, drawn like a map -------------------- */
   rooms.explore = function () {
     var L = [];
-    L.push({ depth: 0.12, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.12, svg: wrapRoom(ROOM_W, ROOM_H,
       skyGrad(ROOM_W, ROOM_H, [[0, '#6FA6C4'], [0.55, '#A9CBDB'], [1, '#E3ECEB']], 420) +
       A.clouds(ROOM_W, ROOM_H, 71, '#FFFFFF', 0.7, [60, 240]) +
       A.sun(1420, 130, 44, '#FFF6DC', '#FBD98F')
     )});
-    L.push({ depth: 0.26, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.26, svg: wrapRoom(ROOM_W, ROOM_H,
       '<path d="' + A.ridge(ROOM_W, ROOM_H, { baseline: 430, amp: 300, peaks: 7, seed: 73 }) + '" fill="#8FA9B8"/>' +
       '<path d="' + A.ridge(ROOM_W, ROOM_H, { baseline: 460, amp: 210, peaks: 11, seed: 77, phase: 2 }) + '" fill="#6E8C9C"/>'
     )});
-    L.push({ depth: 0.45, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.45, svg: wrapRoom(ROOM_W, ROOM_H,
       A.water(0, 452, ROOM_W, 460, '#63B0AE', '#2E6B72', 79, '#FFFFFF') +
       /* headlands folding into the bay */
       '<path d="M -20 452 Q 240 500 420 452 L 420 470 Q 220 540 -20 500 Z" fill="#6F8A6A"/>' +
@@ -3043,7 +3091,7 @@ svg { display: block; }
       A.houses(668, 556, 3, 0.3, 81, { wall: '#F3E7D0', roof: P.terracotta, window: 'rgba(59,42,34,.4)' }) +
       A.boat(980, 620, 1.1, '#3B2A22', '#FFFFFF') + A.boat(430, 690, 1.3, '#3B2A22', '#FFF6E4')
     )});
-    L.push({ depth: 0.7, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.7, svg: wrapRoom(ROOM_W, ROOM_H,
       /* near shore: old town, serpentine road, olive terraces */
       '<path d="M -20 700 Q 300 660 640 706 Q 1000 754 1620 700 L 1620 920 L -20 920 Z" fill="#93A97C"/>' +
       '<path d="M -20 742 Q 320 706 660 748 Q 1010 792 1620 740" fill="none" stroke="#E4D6BA" stroke-width="14" stroke-linecap="round"/>' +
@@ -3054,7 +3102,7 @@ svg { display: block; }
       A.cypress(760, 790, 130, P.oliveDeep) + A.cypress(800, 792, 96, '#4F5E3C')
     )});
     /* map pins — the numbered markers that echo the cards in the panel */
-    L.push({ depth: 1.05, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 1.05, svg: wrapRoom(ROOM_W, ROOM_H,
       (function () {
         var pins = [[190, 660], [420, 620], [700, 528], [560, 742], [960, 604], [1140, 690], [1330, 596], [1450, 780]];
         var g = '';
@@ -3064,7 +3112,7 @@ svg { display: block; }
         return g;
       })()
     )});
-    L.push({ depth: 1.3, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 1.3, svg: wrapRoom(ROOM_W, ROOM_H,
       A.branch(-30, 10, 0.85, false, { leaf: '#4A5A38', leaf2: P.oliveDeep }, 93) +
       A.grassTufts(0, 918, ROOM_W, 22, 95, 'rgba(70,86,58,.55)')
     )});
@@ -3082,23 +3130,23 @@ svg { display: block; }
   /* --- 5 · Where to Stay: a street of shuttered houses ----------------- */
   rooms.stay = function () {
     var L = [];
-    L.push({ depth: 0.15, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.15, svg: wrapRoom(ROOM_W, ROOM_H,
       skyGrad(ROOM_W, ROOM_H, [[0, '#8CB4CA'], [0.5, '#CBD8DA'], [1, '#F3E2C6']], 520) +
       A.clouds(ROOM_W, ROOM_H, 101, '#FFF6E8', 0.65, [70, 230]) +
       A.birds(1120, 190, 0.9, 4, 103, 'rgba(59,42,34,.3)')
     )});
-    L.push({ depth: 0.3, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.3, svg: wrapRoom(ROOM_W, ROOM_H,
       '<path d="' + A.ridge(ROOM_W, ROOM_H, { baseline: 520, amp: 280, peaks: 8, seed: 105 }) + '" fill="#9DB4C1"/>' +
       A.houses(60, 560, 14, 0.44, 107, { wall: '#E6D9C1', roof: '#C07B54', window: 'rgba(59,42,34,.35)' })
     )});
-    L.push({ depth: 0.55, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.55, svg: wrapRoom(ROOM_W, ROOM_H,
       /* stepped town blocks climbing the hill */
       A.houses(-30, 700, 6, 0.95, 109, { wall: '#EFE1C7', roof: P.terracotta, window: 'rgba(59,42,34,.45)' }) +
       A.houses(560, 660, 5, 0.9, 111, { wall: '#EADAC0', roof: P.terraLight, window: 'rgba(59,42,34,.42)' }) +
       A.houses(1080, 700, 6, 0.98, 113, { wall: '#F1E4CB', roof: P.terraDeep, window: 'rgba(59,42,34,.45)' }) +
       A.cypress(520, 706, 190, P.oliveDeep) + A.cypress(1040, 706, 160, '#54643F')
     )});
-    L.push({ depth: 0.9, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.9, svg: wrapRoom(ROOM_W, ROOM_H,
       /* the street itself: doors, shutters, laundry, warm windows */
       (function () {
         var g = '<rect x="-20" y="700" width="1640" height="220" fill="#E5D5B6"/>';
@@ -3135,7 +3183,7 @@ svg { display: block; }
         return g;
       })()
     )});
-    L.push({ depth: 1.25, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 1.25, svg: wrapRoom(ROOM_W, ROOM_H,
       urn(90, 918, 0.62) + urn(1520, 924, 0.7) +
       '<rect x="0" y="880" width="' + ROOM_W + '" height="40" fill="rgba(139,112,80,.10)"/>'
     )});
@@ -3145,19 +3193,19 @@ svg { display: block; }
   /* --- 6 · Travel: the coast road in the morning ----------------------- */
   rooms.travel = function () {
     var L = [];
-    L.push({ depth: 0.12, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.12, svg: wrapRoom(ROOM_W, ROOM_H,
       skyGrad(ROOM_W, ROOM_H, [[0, '#7FAECB'], [0.55, '#BBD5E0'], [1, '#EFE6D6']], 520) +
       A.clouds(ROOM_W, ROOM_H, 121, '#FFFFFF', 0.75, [70, 260]) +
       /* aeroplane and contrail */
       '<g class="ww-plane"><path d="M 0 0 l 46 0 l 16 -13 l 9 0 l -8 13 l 26 0 l 12 -9 l 7 0 l -6 9 l 14 0 l -14 6 l -102 0 Z" fill="#4E6E80"/>' +
       '<path d="M -260 3 L 0 3" stroke="#FFFFFF" stroke-width="4" opacity=".55" stroke-linecap="round"/></g>'
     )});
-    L.push({ depth: 0.28, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.28, svg: wrapRoom(ROOM_W, ROOM_H,
       '<path d="' + A.ridge(ROOM_W, ROOM_H, { baseline: 520, amp: 300, peaks: 7, seed: 123 }) + '" fill="#9BB2C0"/>' +
       '<path d="' + A.ridge(ROOM_W, ROOM_H, { baseline: 540, amp: 190, peaks: 10, seed: 127, phase: 1.4 }) + '" fill="#7A97A8"/>' +
       A.houses(1060, 566, 7, 0.42, 129, { wall: '#E4D7BF', roof: '#BE7A54', window: 'rgba(59,42,34,.3)' })
     )});
-    L.push({ depth: 0.5, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.5, svg: wrapRoom(ROOM_W, ROOM_H,
       A.water(0, 560, ROOM_W, 260, '#6FA5A8', '#356B72', 131, '#FFFFFF') +
       /* the ferry */
       '<g class="ww-bob" style="transform-box:view-box;transform-origin:700px 660px">' +
@@ -3168,7 +3216,7 @@ svg { display: block; }
       '<rect x="742" y="612" width="16" height="22" fill="' + P.terracotta + '"/></g>' +
       A.boat(1180, 700, 1, '#3B2A22', '#FFF6E4')
     )});
-    L.push({ depth: 0.85, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.85, svg: wrapRoom(ROOM_W, ROOM_H,
       /* hillside and the hairpin road */
       '<path d="M -20 760 Q 400 700 900 762 Q 1250 806 1620 742 L 1620 920 L -20 920 Z" fill="#8A9F72"/>' +
       '<path d="M -40 880 Q 300 856 520 812 Q 700 776 900 800 Q 1120 826 1300 786 Q 1480 748 1660 764" fill="none" stroke="#4A4038" stroke-width="30" stroke-linecap="round"/>' +
@@ -3181,7 +3229,7 @@ svg { display: block; }
       '<path d="M 206 690 l 120 0 l 22 16 l -22 16 l -120 0 Z" fill="' + P.dustyDeep + '"/>' +
       '<path d="M 196 732 l -110 0 l -22 16 l 22 16 l 110 0 Z" fill="' + P.olive + '"/>'
     )});
-    L.push({ depth: 1.3, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 1.3, svg: wrapRoom(ROOM_W, ROOM_H,
       /* guard rail rushing past in the foreground */
       '<rect x="-20" y="884" width="1640" height="8" rx="4" fill="#B9A88C"/>' +
       (function () {
@@ -3197,16 +3245,16 @@ svg { display: block; }
   /* --- 7 · RSVP: the gate at the end of the path ----------------------- */
   rooms.rsvp = function () {
     var L = [];
-    L.push({ depth: 0.14, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.14, svg: wrapRoom(ROOM_W, ROOM_H,
       skyGrad(ROOM_W, ROOM_H, [[0, '#3D4A6B'], [0.38, '#8A6E80'], [0.68, '#D89A72'], [1, '#F6D4A6']], 640) +
       stars(ROOM_W, 340, 40, 139) +
       A.sun(1240, 600, 40, '#FFEBC6', '#EFA469')
     )});
-    L.push({ depth: 0.3, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.3, svg: wrapRoom(ROOM_W, ROOM_H,
       '<path d="' + A.ridge(ROOM_W, ROOM_H, { baseline: 620, amp: 260, peaks: 7, seed: 141 }) + '" fill="#4E5570"/>' +
       A.water(0, 616, ROOM_W, 150, '#5A7480', '#33475A', 143, '#FFD9A8')
     )});
-    L.push({ depth: 0.5, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.5, svg: wrapRoom(ROOM_W, ROOM_H,
       /* an avenue of cypresses leading to the gate */
       (function () {
         var g = '<path d="M -20 780 Q 800 730 1620 780 L 1620 920 L -20 920 Z" fill="#6E7A5C"/>';
@@ -3215,7 +3263,7 @@ svg { display: block; }
         return g;
       })()
     )});
-    L.push({ depth: 0.85, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 0.85, svg: wrapRoom(ROOM_W, ROOM_H,
       /* shifted left so the gate is not hidden behind the content panel */
       '<g transform="translate(-235,0)">' +
       (function () {
@@ -3252,7 +3300,7 @@ svg { display: block; }
         return g;
       })() + '</g>'
     )});
-    L.push({ depth: 1.3, svg: wrap(ROOM_W, ROOM_H,
+    L.push({ depth: 1.3, svg: wrapRoom(ROOM_W, ROOM_H,
       A.branch(-30, 20, 1, false, { leaf: '#3A4A2E', leaf2: '#4A5A38' }, 147) +
       A.branch(1630, 60, 0.9, true, { leaf: '#3A4A2E', leaf2: '#4A5A38' }, 149) +
       A.grassTufts(0, 916, ROOM_W, 26, 151, 'rgba(58,74,46,.6)')

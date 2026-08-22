@@ -51,8 +51,12 @@
     };
   }
 
-  function svgWrap(w, h, inner, extra) {
-    return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="xMidYMid slice" ' +
+  /* `par` is the preserveAspectRatio. The default centres the crop, which is
+     right for the hub. Room layers pass 'xMidYMax slice' so the crop comes
+     off the sky and the ground is never cut — see wrapRoom() in scenes.js. */
+  function svgWrap(w, h, inner, extra, par) {
+    return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="' +
+      (par || 'xMidYMid slice') + '" ' +
       'xmlns="http://www.w3.org/2000/svg" ' + (extra || '') + '>' + inner + '</svg>';
   }
 

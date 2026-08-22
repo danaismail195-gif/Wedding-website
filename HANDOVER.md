@@ -9,7 +9,7 @@
 >    **Publishing** below — nobody on this machine can `git push`.
 > 4. Test locally before touching anything else. See **Testing** below.
 >
-> Last worked on: **22 August 2026** (see *What changed in the second August
+> Last worked on: **23 August 2026** (see *What changed in the second August
 > 2026 round*; its last entry, on the wedding crowd, is the newest work).
 > **The live site is now behind this folder again: the rebuilt files in
 > `UPLOAD-THESE-FILES/` have not been uploaded yet, and there are two of
@@ -489,6 +489,71 @@ it. Nobody stands directly under the keystone, so the arch still reads.
   Heads and hands are animated only on the figures big enough to show it
   (`h >= 100` for a nod, `h >= 110` for talking hands). Nineteen people all
   gesturing is both noise and a lot of separately-animated nodes.
+
+**Round seven: "Enter" under the arch, and the room stopped cropping feet.**
+Two pieces of feedback, and the second one turned out to be a framing bug that
+had been there since the rooms were built.
+
+  **"Enter" moved to just under the curve of the arch** — 59% of the 460-tall
+  entrance box, y=271. The opening's semicircle springs at y=254, so that is
+  the first clear line below the curve.
+
+  **The ink had to change with it, and this is the part worth knowing.** The
+  doorway interiors are lit at the lintel and deep at the threshold, so the
+  higher the word sits the paler its background. Measured against all seven
+  gradients, the old ivory scored **1.5–1.9:1** at the new height — invisible.
+  What the measuring also turned up is that ivory had never really worked:
+  at its *old* position it was running at **1.9–2.6:1** on six of the seven
+  doorways. It only ever looked right on the After-Party. The word is now
+  espresso `#3B2A22` at 88%, which measures **5.1–6.1:1** on six of them.
+
+  The After-Party is the exception and stays the weakest at about 3.6:1: its
+  lintel was `#B98CC9`, a mid lavender that neither a light nor a dark ink can
+  sit on. Lightening it to `#DCC0E8` is what got it that far. If it ever needs
+  to be better, the lever is the lintel colour, not the ink.
+
+  **Four doorways had art on the new line** and it has been moved down:
+  the After-Party glow disc (`ay+96` → `ay+132`), the Explore path apex
+  (`ay+76` → `ay+112`), the Travel aeroplane (`ay+74` → `ay+116`) and its pale
+  cloud (`ay+88` → `ay+128`), and the RSVP envelope (`ay+52` → `ay+104`) with
+  its gold pulse. A pale shape behind the letters washes them out however dark
+  the ink is. **If you move "Enter" again, walk all seven and check.**
+
+  **The rooms were cropping people's feet on wide screens.** Room layers are
+  1600x900 and CSS slices them to fill the window. The slice was centred
+  (`xMidYMid`), so on anything wider than 16:9 the crop came out of the height
+  — off the top *and the bottom*. On a 2:1 laptop the bottom cut landed at
+  about **y=829**, straight through everybody's shins, which is exactly what
+  Dana's screenshot showed. It was never visible on a 16:10 window, which is
+  why it survived this long.
+
+  Two changes fix it, and they go together:
+  - `wrapRoom()` in `scenes.js` slices room layers **bottom-anchored**
+    (`xMidYMax`), so the whole crop is spent on sky. The hub still uses the
+    centred `wrap()` — do not change that one.
+  - `.room-art` no longer bleeds past the bottom: `inset: -8% -4% 0` instead
+    of `-4%`. The bleed exists for the `scale(1.07)` entrance and is fine on
+    the top and sides, but at the bottom it was pushing the ground line 66
+    units below the window.
+
+  Measured after the fix, **y=900 sits exactly on the foot of the frame at
+  every aspect ratio** — verified at 1.33, 1.89, 2.09 and 2.40, plus the
+  mobile bottom-sheet layout, which was already bottom-anchored and is
+  unaffected. The cost is sky at the top: the After-Party moon is cropped on
+  a wide window now. That is the right trade — nobody misses sky, everybody
+  notices severed feet.
+
+  **The guests grew about 18%** into the strip of terrace that fix bought:
+  heights 104–164 (from 88–136), and there are seventeen of them rather than
+  nineteen, because a fixed-width terrace holds either more people or bigger
+  people. **`baseY = 0.99h + 727`**, which lands every head top on y=727 —
+  figures standing on level ground share a head line at the viewer's eye
+  level, and that is what lets the sizes vary this much without anybody
+  floating. Change a height, move its baseY by the same rule. Feet now reach
+  y=891 against a frame bottom of 900.
+
+  Re-measured off the rendered SVG: seventeen figures, closest approach
+  **15.2 units**, no overlaps, at every aspect ratio tested.
 
 ## Deliberate decisions worth knowing
 - **2.5D parallax, not Three.js** — the brief recommended this for reliability on phones.
