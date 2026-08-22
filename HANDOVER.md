@@ -616,11 +616,26 @@ page reads names-first.**
   them.
 
   **The names in the top bar** carry the landing page's sea colour into the
-  walk, a step larger than before. It has to be the *deep* end of that
-  palette: the promenade sky behind them is `#8FB0C4`, and the bright
-  turquoise `--sea-mid` measures **1.04:1** against it — the same colour, near
-  enough, and completely invisible. `--sea-ink` is 4.72:1 and still reads as
-  sea. The date line sits a step lighter at 3.67:1.
+  walk, a step larger than before, in `#1D5F70`.
+
+  Getting that colour right took a correction worth recording. The first
+  attempt was measured against `#8FB0C4`, the top stop of the sky gradient —
+  **which is never on screen.** The camera is anchored to the ground, so the
+  blue top of the sky is scrolled off, and Dana pointed out that what is
+  actually behind the names is beige. Worse, it is not one colour at all: it
+  depends on the shape of the window. Measured at the brand's own position,
+  the sky there is `#E4CAB1` on a phone, `#DCC5B3` on a tall window, and
+  `#ABB7BE` on a 1440x900 laptop, where it is still grey-blue at that height.
+
+  **Anything chosen here has to survive the worst of those, not the beige.**
+  Against `#ABB7BE`: `#1D5F70` is 3.51:1, `--sea-deep` would be 2.68:1, and
+  the bright `--sea-mid` 1.17:1. So the turquoise cannot go lighter than it
+  now is. 3.51:1 clears the 3:1 bar for large text, which these are at the top
+  of their clamp, and the cream glow does the rest.
+
+  `window.__skyBehindNames()` — the console helper used to measure this — is
+  not in the code, but it is three lines: map the brand's screen position back
+  through the sky layer's viewBox and evaluate the gradient at that y.
 
   **Where to Stay stayed a plain door.** It was built out into a room — a bed
   along the wall, a shuttered window with the bay outside — and next to six
