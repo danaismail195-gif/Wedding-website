@@ -359,9 +359,19 @@
       g += '<rect x="' + f(cx - 2) + '" y="' + f(ay - 58) + '" width="4" height="34" fill="#7A6247"/>';
     } else if (id === 'rsvp') {
       /* a mailbox and a wax seal, glowing gold */
-      /* the glow sits behind the envelope, not behind the word — at ay+116
-         its top edge cut straight across the letters */
-      g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 152) + '" r="56" fill="' + P.gold + '" opacity=".28"/>';
+      /* The warm light behind the envelope. It has to be a radial gradient
+         with a soft edge, not a flat disc: a flat circle at 28% only ever
+         read as a glow because the interior behind it used to be the same
+         amber family. Once this doorway went rose it stopped being light and
+         started being *an orange circle* — a shape, with a visible edge, that
+         nobody could name. It sits behind the envelope, not behind the word;
+         at ay+116 its top edge cut straight across the letters. */
+      var rGlow = A.uid('rg');
+      g += '<defs><radialGradient id="' + rGlow + '">' +
+        '<stop offset="0" stop-color="' + P.gold + '" stop-opacity=".42"/>' +
+        '<stop offset=".55" stop-color="' + P.gold + '" stop-opacity=".16"/>' +
+        '<stop offset="1" stop-color="' + P.gold + '" stop-opacity="0"/></radialGradient></defs>';
+      g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 152) + '" r="66" fill="url(#' + rGlow + ')"/>';
       g += '<rect x="' + f(cx + 46) + '" y="' + f(baseY - 116) + '" width="9" height="116" fill="#7A6247"/>';
       g += '<rect x="' + f(cx + 24) + '" y="' + f(baseY - 156) + '" width="54" height="42" rx="8" fill="' + P.terracotta + '"/>';
       g += '<rect x="' + f(cx + 30) + '" y="' + f(baseY - 148) + '" width="42" height="5" rx="2" fill="rgba(59,42,34,.45)"/>';
