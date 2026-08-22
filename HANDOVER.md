@@ -9,10 +9,11 @@
 >    **Publishing** below — nobody on this machine can `git push`.
 > 4. Test locally before touching anything else. See **Testing** below.
 >
-> Last worked on: **21 August 2026** (second round — see *What changed in the
-> second August 2026 round*). **The live site is now behind this folder again:
-> the rebuilt files in `UPLOAD-THESE-FILES/` have not been uploaded yet, and
-> there are now two of them — the page and the music.**
+> Last worked on: **22 August 2026** (see *What changed in the second August
+> 2026 round*; its last entry, on the wedding crowd, is the newest work).
+> **The live site is now behind this folder again: the rebuilt files in
+> `UPLOAD-THESE-FILES/` have not been uploaded yet, and there are two of
+> them — the page and the music.**
 
 ## What this is
 An illustrated wedding website the guest **walks through** rather than scrolls.
@@ -414,6 +415,51 @@ trio — all because there was no file we were allowed to play. There is now.
 > anywhere else, the question is always the same: what does its licence say
 > about a website? Epidemic Sound, Artlist and Musicbed all licence this kind
 > of music properly for a small annual fee.
+
+**The wedding crowd, one more time — and the chairs are gone.** Round five:
+the guests were still touching each other. Spacing the `chatGroup` calls apart
+had never been the fix, because the overlap was *inside* each group: a chat
+group packs its figures 0.42 of a height apart, which is narrower than their
+shoulders are wide. Whatever you do with the groups, the people in them
+overlap.
+
+  So the terrace is now one flat table of twelve figures — `GUESTS` in
+  `rooms.wedding` — each placed by hand, and `chatGroup` is not used here at
+  all. **Nobody touches anybody.** The arithmetic that guarantees it: a
+  standing figure's widest point is about **0.22 of its own height** either
+  side of its x (a gown's hem reaches 0.20h, a hand holding a glass in the
+  `chat` pose 0.211h), the spans are worked out at 0.24h for margin, and the
+  smallest gap between any two of them is 40 units. Every span is listed in
+  the comment above the table. **If you add a guest, take one of the wide
+  gaps** — do not tuck somebody in beside an existing figure.
+
+  **The chairs went too**, at Dana's request, along with the thirteen guests
+  sitting in them. Twenty seats in a 1600-wide scene left nowhere for anybody
+  to stand, and the rows were the densest thing in the picture. `chair()` is
+  still defined at the bottom of `scenes.js`, unused, if they ever come back.
+
+  Three things that are easy to undo by accident:
+  - **The gaps are uneven on purpose** — 40 units in one place, 105 in
+    another. Evenly spaced, twelve people on a strip of terrace read as a
+    *row*; the tight pairs read as two people talking and the wide gaps as
+    open terrace. Tidying the spacing would put the row back.
+  - **Depth is size, and baseY follows it.** 88–96 at the back against
+    124–136 at the front. There is only about fifty units of walkable terrace
+    between the parapet and the bottom crop, so size is doing nearly all the
+    work.
+  - **A guest's seed is their row number**, fixed before the draw order is
+    sorted by height. Tie it to the draw order instead and changing one
+    person's height reshuffles what everybody else is wearing.
+
+  Measured, on the terrace layer specifically (the parallax means the sky
+  layer answers differently): a laptop sees room x=59 across to where the
+  details panel starts — 859 at 1280x820, 903 at 1440x900 — and down to
+  y=866.7. Feet are at 860 or above, and a shoe hangs about 0.013h below its
+  baseY. Which guests fall outside the frame changes with the window; the
+  ones at the far ends drop out on a narrow one, which is fine.
+
+  The arch still has nobody under it and the aisle is still open — Dana's
+  call, unchanged.
 
 ## Deliberate decisions worth knowing
 - **2.5D parallax, not Three.js** — the brief recommended this for reliability on phones.

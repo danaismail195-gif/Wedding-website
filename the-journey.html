@@ -2778,21 +2778,16 @@ svg { display: block; }
             '" fill="' + (i % 3 ? P.oliveDeep : P.olive) + '" transform="rotate(' + ((r() * 180 - 90) | 0) + ' ' + f(lx) + ' ' + f(ly) + ')"/>';
           if (i % 7 === 0) g += '<circle cx="' + f(lx + 8) + '" cy="' + f(ly + 6) + '" r="4.5" fill="#F0E2CB"/>';
         }
-        /* chairs either side of the aisle */
-        for (var c = 0; c < 5; c++) {
-          var yy = 828 + c * 20, sc = 1 + c * 0.12;
-          var seats = [[300 - c * 46, yy], [392 - c * 30, yy + 6],
-                       [1030 + c * 34, yy], [1122 + c * 48, yy + 6]];
-          for (var st = 0; st < seats.length; st++) {
-            /* not every seat is taken — people are still finding them */
-            if ((c * 4 + st) % 3 !== 1) {
-              g += A.person({ x: seats[st][0] + 13 * sc, baseY: seats[st][1] - 30 * sc,
-                h: 96 * sc, pose: 'table', back: true, shadow: false, evening: true,
-                seed: 600 + c * 7 + st * 3, anim: (c + st) % 3 === 0 ? 'ww-talk' : 'ww-idle' });
-            }
-            g += chair(seats[st][0], seats[st][1], sc);
-          }
-        }
+        /* --- no chairs -------------------------------------------------
+           There were five rows of them either side of the aisle, with
+           thirteen guests sitting in them. They are gone at Dana's request.
+           Twenty seats and thirteen seated figures in a 1600-wide scene left
+           nowhere for anybody to stand without touching somebody else, and
+           the rows themselves were the densest thing in the picture. The
+           terrace is now bare stone with people standing about on it, which
+           is what the hour before a ceremony actually looks like. `chair()`
+           is still defined further down this file, unused, if they ever come
+           back. */
         /* petals down the aisle */
         var rp = rand(47);
         for (var p = 0; p < 40; p++) {
@@ -2808,57 +2803,106 @@ svg { display: block; }
            and it stops two small figures having to carry the weight of being
            "the couple" at 150px tall. */
 
-        /* --- the guests who are not sitting down -----------------------
-           Scattered the whole width of the terrace, turned every which way:
-           the knots face inward (that is what `chatGroup` does — everyone
-           faces the middle, which is what makes a group read as a
-           conversation rather than a queue), one guest has their back to us
-           watching the arch, and the photographer is side-on to it.
+        /* --- the guests, scattered -------------------------------------
+           Twelve of them standing about on bare terrace, turned every which
+           way: pairs angled towards each other, two with their backs to us
+           watching the arch, the photographer side-on to it.
 
-           Three rules keep this from becoming the pile-up it was:
+           **Nobody touches anybody**, and that is why this is one flat list
+           instead of `chatGroup`. A chat group packs its figures 0.42 of a
+           height apart, which is narrower than their shoulders — so inside a
+           knot people always overlapped, however carefully the knots
+           themselves were spaced. Spacing the groups was fixing the wrong
+           thing.
 
-           · **No two figures overlap in x. At all.** Not just within a band.
-             Depth here is worth about fifty units of terrace, which at this
-             scale is far too little to make a nearer figure read as *in
-             front of* a further one rather than *stuck to* it. The x-spans
-             below are worked out with shoulders included, and every gap
-             between them is at least sixty units. If you add somebody, find
-             a gap — do not tuck them behind an existing group.
-           · **Depth is carried by size, not by y.** The far knots are drawn
-             at 92–96 against 120–128 near the front. That ratio is what
-             makes the terrace look deep; moving somebody up the screen
-             without shrinking them just makes them look like they are
-             floating.
-           · **Feet above y=866.** The room is drawn 1600x900 but a laptop
-             crops roughly the last 33 units, and a guest standing at 890
-             loses their shoes to it.
+           A standing figure's widest point is about **0.22 of its own
+           height** either side of its x: a gown's hem reaches 0.20h, and a
+           hand with a glass in it in the `chat` pose 0.211h. The spans below
+           are worked out at **0.24h** for margin, and the smallest gap
+           between any two of them is 40 units. Left to right:
+
+             64–128 · 173–217 · 287–339 · 380–446 · 490–534
+             [ the aisle, 545–745, left clear ]
+             755–801 · 841–897 · 993–1035 · 1090–1152
+             1257–1308 · 1370–1430 · 1513–1558
+
+           **The gaps are deliberately uneven** — 40 units in one place, 105
+           in another. Even spacing is what made twelve people standing on a
+           strip of terrace read as a row rather than as a scattered crowd;
+           the tight pairs read as two people talking, the wide gaps as open
+           terrace. If you add a guest, take one of the wide gaps and keep
+           0.24h clear either side of them. Do not tuck somebody in beside an
+           existing figure — that is the whole bug.
+
+           **Depth is carried by size, not by y.** 88–96 at the back against
+           124–136 at the front, and baseY moves with the height, never on
+           its own. There is only about fifty units of walkable terrace
+           between the parapet and the bottom crop, so size is doing almost
+           all of the work; a figure moved up the screen without being shrunk
+           just floats.
+
+           **Feet at y=860 or above.** Measured on this layer, a laptop sees
+           the terrace from room x=59 across to wherever the details panel
+           starts (859 at 1280x820, 903 at 1440x900) and down to y=866.7 —
+           and a shoe hangs about 0.013h below its baseY, so a baseY of 864
+           put the front row's soles exactly on the line. The left-hand
+           figure starts at x=64 for the same reason: at 38 a third of them
+           was off the side of a laptop. Which guests fall outside the frame
+           changes with the window, and the ones at the far ends drop out on
+           a narrow one — that is fine, a crowd should run past the edges.
+
+           **Nothing under the arch.** The aisle stays open — Dana's call,
+           and the arch is what the scene is about. The two figures who used
+           to drift across it read as strangers wandering through a ceremony.
 
            Everyone is in evening wear (`evening: true`) — gowns to the floor
-           in jewel colours, dark suits with a shirt, lapels and a tie. The
-           palettes are GOWNS and SUITS in art.js. */
+           in jewel colours, dark suits with a shirt, lapels and a tie, from
+           the GOWNS and SUITS palettes in art.js. Nothing here sets a colour
+           or a garment on purpose: each figure dresses itself from its seed,
+           which is what keeps the crowd varied. */
 
-        /* far back: small, and drawn first so anything nearer covers them */
-        g += A.chatGroup(330, 826, 92, 751, { n: 2, lively: true, evening: true });
-        g += A.chatGroup(900, 830, 96, 757, { n: 3, lively: true, evening: true });
+        var GUESTS = [
+          /*   x     h   baseY  pose       facing   holding */
+          {  x:   96, h: 132, y: 858, pose: 'chat',   face: 'r',    hold: 'glass' },
+          {  x:  195, h:  90, y: 820, pose: 'listen', face: 'l' },
+          {  x:  313, h: 110, y: 840, pose: 'laugh',  face: 'r' },
+          {  x:  413, h: 136, y: 860, pose: 'toast',  face: 'l',    hold: 'glass' },
+          {  x:  512, h:  92, y: 822, pose: 'stand',  face: 'back' },
+          {  x:  778, h:  96, y: 826, pose: 'listen', face: 'l' },
+          /* the photographer, side-on to the arch */
+          {  x:  869, h: 118, y: 847, pose: 'photo',  face: 'l',    hold: 'camera', suit: true },
+          {  x: 1014, h:  88, y: 818, pose: 'chat',   face: 'r' },
+          {  x: 1121, h: 130, y: 856, pose: 'listen', face: 'back' },
+          {  x: 1283, h: 106, y: 837, pose: 'toast',  face: 'r',    hold: 'glass' },
+          {  x: 1400, h: 124, y: 853, pose: 'chat',   face: 'l',    hold: 'glass' },
+          {  x: 1535, h:  94, y: 824, pose: 'stand',  face: 'l' }
+        ];
+        /* A guest's seed is its **row number in the table above**, fixed
+           before the sort. It decides their whole wardrobe, so tying it to
+           the draw order instead would mean that changing one person's
+           height reshuffles what everybody else is wearing. */
+        for (var q = 0; q < GUESTS.length; q++) GUESTS[q].seed = 700 + q * 13;
 
-        /* the middle of the terrace */
-        g += A.person({ x: 690, baseY: 848, h: 108, pose: 'photo', hold: 'camera',
-          flip: true, evening: true, suit: true, seed: 727, anim: 'ww-mingle',
-          headAnim: 'ww-nod-slow', delay: -1.7 });
-        g += A.person({ x: 1230, baseY: 852, h: 116, pose: 'listen', back: true,
-          evening: true, seed: 761, anim: 'ww-mingle', delay: -2.8 });
+        /* smallest first, so a nearer figure wins any close call */
+        var order = GUESTS.slice().sort(function (a, b) { return a.h - b.h; });
+        for (var w = 0; w < order.length; w++) {
+          var gu = order[w];
+          var talks = gu.pose === 'chat' || gu.pose === 'toast' || gu.pose === 'laugh';
+          g += A.person({
+            x: gu.x, baseY: gu.y, h: gu.h, pose: gu.pose,
+            flip: gu.face === 'l', back: gu.face === 'back',
+            hold: gu.hold || null, suit: gu.suit, evening: true,
+            seed: gu.seed,
+            /* a weight-shift, not a dance — the register the terrace is in */
+            anim: gu.pose === 'laugh' ? 'ww-laugh' : 'ww-mingle',
+            headAnim: w % 2 ? 'ww-nod' : 'ww-nod-slow',
+            armAnim: talks ? 'ww-arm-talk' : null,
+            /* everyone on their own clock, or twelve people breathe together */
+            delay: -((gu.seed * 0.7) % 6),
+            headDelay: -((gu.seed * 0.3) % 5)
+          });
+        }
 
-        /* nearest the camera: the largest figures, drawn last */
-        g += A.chatGroup(130, 858, 122, 767, { n: 3, lively: true, evening: true });
-        g += A.chatGroup(470, 862, 126, 773, { n: 2, lively: true, evening: true });
-        g += A.chatGroup(1060, 864, 128, 793, { n: 2, lively: true, evening: true });
-        g += A.chatGroup(1420, 858, 120, 809, { n: 3, lively: true, evening: true });
-
-        /* The two who used to drift across the middle of the aisle are gone:
-           they stood directly below the arch, between the guest and the
-           couple, and read as two strangers wandering through the ceremony.
-           The terrace beneath the arch is left clear, which is also how a
-           real aisle looks. */
         return g;
       })()
     )});
