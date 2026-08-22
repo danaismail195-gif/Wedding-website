@@ -595,7 +595,8 @@ svg { display: block; }
 #hub.is-moving .ww-plane, #hub.is-moving .ww-plane-door, #hub.is-moving .ww-idle,
 #hub.is-moving .ww-talk, #hub.is-moving .ww-laugh, #hub.is-moving .ww-stroll,
 #hub.is-moving .ww-nod, #hub.is-moving .ww-nod-slow, #hub.is-moving .ww-mingle,
-#hub.is-moving .ww-arm-talk, #hub.is-moving .ww-arm-raise {
+#hub.is-moving .ww-arm-talk, #hub.is-moving .ww-arm-raise,
+#hub.is-moving .ww-lean {
   animation-play-state: paused;
 }
 #stage.is-moving .mote { animation-play-state: paused; }
@@ -637,6 +638,23 @@ svg { display: block; }
 @keyframes ww-bob {
   0%, 100% { transform: translateY(0)    rotate(-1deg); }
   50%      { transform: translateY(-4px) rotate(1deg); }
+}
+/* A very slight lean, for the things standing inside the seven doorways —
+   the dinner table, the couple, the signpost, the door, the boat, the
+   mailbox. It is a rotation about the object's own base, so it reads as a
+   sway rather than a slide, and at 1.2 degrees the top of a 120-unit object
+   travels about two units — roughly a pixel and a half at the size these are
+   drawn. That is the intended register: something you notice only because
+   the doorway feels alive, never something you catch moving.
+   No `transform-box` here on purpose. Its initial value is already
+   `view-box`, which is the coordinate system the inline `transform-origin`
+   values are written in — the same pairing the plants needed after the
+   fill-box bug. Every use sets its own origin, and its own delay, so the
+   seven doorways never sway in step. */
+.ww-lean { animation: ww-lean 7.2s ease-in-out infinite; }
+@keyframes ww-lean {
+  0%, 100% { transform: rotate(-1.2deg); }
+  50%      { transform: rotate(1.2deg); }
 }
 .ww-hover-bob { animation: ww-hover-bob 3.8s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-hover-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }

@@ -643,6 +643,41 @@ page reads names-first.**
   and it went back. The lesson is in the comment on that branch: these arches
   carry one idea each.
 
+**Round ten: the things inside the doorways sway.** Every arch now has one
+element leaning very slightly on its own base — the dinner table, the couple,
+the After-Party lanterns, the Explore signpost, the Where to Stay door, the
+RSVP mailbox. The class is `ww-lean` in §10 of `main.css`: a rotation of
+±1.2°, seven to nine seconds a cycle, each use carrying **its own origin,
+delay and duration** so the seven doorways never sway in step.
+
+  Measured travel, corner to corner: 2.1px on the table, 3.1px on the couple,
+  3.3px on the door, 3.8–4.1px on the lanterns, 4.2px on the signpost, 4.8px
+  on the mailbox. That is the register Dana asked for — you notice the doorway
+  is alive, you do not catch anything moving.
+
+  Three things worth knowing before adding more:
+  - **`ww-lean` deliberately sets no `transform-box`.** Its initial value is
+    already `view-box`, which is the coordinate system the inline
+    `transform-origin` values are written in. Adding `fill-box` to the class
+    would re-create the bug that once threw the urn leaves clear of their pot.
+  - **The pivot has to be the object's own base**, or a hanging point for
+    something hung. Travel scales with the distance from origin to the
+    farthest corner, so the same 1.2° gives 2px on a table and 5px on a
+    mailbox — which is right, taller things sway more.
+  - **Check what already animates.** The Travel ferry got a lean and it was
+    removed again: `A.boat()` already wraps itself in `ww-bob`, so the lean
+    bought 0.8px of travel and a second animated node for nothing. The RSVP
+    envelope (`ww-hover-bob`), the key (`ww-swing`), the candles
+    (`ww-flicker`) and the dancers are all likewise already moving.
+
+  `ww-lean` is in the `#hub.is-moving` pause list with everything else —
+  verified paused while the camera moves, running when it stops. The hub went
+  from 148 animated nodes to 155.
+
+  **The Explore path is not animated, on purpose.** Dana asked for "the
+  signage and path"; the signpost sways, the path does not. It is ground, and
+  leaning the ground reads as the world tilting rather than as air moving.
+
 ## Deliberate decisions worth knowing
 - **2.5D parallax, not Three.js** — the brief recommended this for reliability on phones.
 - **Procedural SVG instead of an illustrator's files** — one consistent hand, nothing to commission. To swap in real artwork later, replace a layer's `svg` with `<img>` at the same viewBox proportions.

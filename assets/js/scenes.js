@@ -244,10 +244,12 @@
     /* --- per-entrance detail ------------------------------------------ */
     if (id === 'welcome') {
       g += A.stringLights(ax - 40, ay - 30, ax + aw + 40, ay - 24, 30, 6, 3);
-      /* a laid table glimpsed inside */
+      /* a laid table glimpsed inside, leaning on its own feet */
+      g += '<g class="ww-lean" style="transform-origin:' + f(cx) + 'px ' + f(baseY) + 'px; animation-delay:-1.1s">';
       g += '<rect x="' + f(cx - 44) + '" y="' + f(baseY - 62) + '" width="88" height="7" rx="2" fill="rgba(59,42,34,.5)"/>';
       g += '<rect x="' + f(cx - 36) + '" y="' + f(baseY - 55) + '" width="5" height="55" fill="rgba(59,42,34,.4)"/>';
       g += '<rect x="' + f(cx + 31) + '" y="' + f(baseY - 55) + '" width="5" height="55" fill="rgba(59,42,34,.4)"/>';
+      g += '</g>';
       g += '<circle class="ww-flicker" cx="' + f(cx - 16) + '" cy="' + f(baseY - 74) + '" r="6" fill="#FFF0C6"/>';
       g += '<circle class="ww-flicker" cx="' + f(cx + 18) + '" cy="' + f(baseY - 78) + '" r="5" fill="#FFF0C6" style="animation-delay:-1.3s"/>';
     } else if (id === 'wedding') {
@@ -298,6 +300,11 @@
          They are placed so the hands meet: a figure's hand reaches 0.233 of
          its own height forward of centre in this pose, so the gap between
          them is that, doubled. Move one and you have to move the other. */
+      /* The two of them lean together, as one group and about the ground
+         between their feet — separately they would drift apart, and their
+         hands have to stay met. Each still breathes on its own `ww-idle`
+         underneath; the lean composes on top of that. */
+      inner += '<g class="ww-lean" style="transform-origin:' + f(cx) + 'px ' + f(baseY) + 'px; animation-delay:-4.6s; animation-duration:8.6s">';
       inner += A.person({ x: cx - 20, baseY: baseY - 3, h: 96, pose: 'listen',
         back: true, seed: 901, cloth: '#FBF4E8', dress: true, hair: '#3B2A22',
         hairStyle: 'bun', skin: '#E6B183', holdFar: 'bouquet',
@@ -306,6 +313,7 @@
         back: true, flip: true, seed: 907, cloth: '#3B4A56', pants: '#2F3D49',
         dress: false, hair: '#2A2018', hairStyle: 'crop', skin: '#CE8F60',
         anim: 'ww-idle', delay: -2.4, shadow: false });
+      inner += '</g>';
       /* one shadow under the pair of them, rather than two */
       inner += '<ellipse cx="' + f(cx) + '" cy="' + f(baseY - 2) + '" rx="44" ry="6" fill="rgba(90,68,44,.18)"/>';
 
@@ -320,8 +328,11 @@
              '" fill="' + (i % 3 ? P.oliveDeep : P.olive) + '" transform="rotate(' + ((r() * 140 - 70) | 0) + ' ' + f(gx) + ' ' + f(gy) + ')"/>';
       }
     } else if (id === 'afterparty') {
-      g += A.lantern(ax - 20, ay + 66, 1.1, ay - 22);
-      g += A.lantern(ax + aw + 20, ay + 82, 1.1, ay - 16);
+      /* the lanterns swing from where they are hung, not from their base */
+      g += '<g class="ww-lean" style="transform-origin:' + f(ax - 20) + 'px ' + f(ay - 22) + 'px; animation-delay:-1.9s; animation-duration:6.9s">' +
+        A.lantern(ax - 20, ay + 66, 1.1, ay - 22) + '</g>';
+      g += '<g class="ww-lean" style="transform-origin:' + f(ax + aw + 20) + 'px ' + f(ay - 16) + 'px; animation-delay:-4.1s; animation-duration:7.6s">' +
+        A.lantern(ax + aw + 20, ay + 82, 1.1, ay - 16) + '</g>';
       /* dropped from ay+96: at 34 radius it sat straight behind the word */
       g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 132) + '" r="34" fill="#E9C6F5" opacity=".45"/>';
       g += A.dancer(cx - 20, baseY - 4, 92, 'rgba(40,24,58,.62)', 0);
@@ -331,9 +342,13 @@
       /* the path tops out at ay+112, below the "Enter"; at ay+76 its pale
          apex was directly behind the letters and washing them out */
       g += '<path d="M ' + f(cx - 26) + ' ' + f(baseY) + ' L ' + f(cx - 8) + ' ' + f(ay + 112) + ' L ' + f(cx + 10) + ' ' + f(ay + 112) + ' L ' + f(cx + 30) + ' ' + f(baseY) + ' Z" fill="#E8DCC0" opacity=".85"/>';
+      /* the signpost sways on its post; the path it points down does not —
+         leaning the ground itself reads as the world tilting, not as air */
+      g += '<g class="ww-lean" style="transform-origin:' + f(cx + 47) + 'px ' + f(baseY) + 'px; animation-delay:-5.2s; animation-duration:6.6s">';
       g += '<rect x="' + f(cx + 44) + '" y="' + f(baseY - 150) + '" width="7" height="150" fill="#7A6247"/>';
       g += '<path d="M ' + f(cx + 51) + ' ' + f(baseY - 148) + ' l 52 0 l 12 12 l -12 12 l -52 0 Z" fill="' + P.terracotta + '"/>';
       g += '<path d="M ' + f(cx + 51) + ' ' + f(baseY - 118) + ' l 40 0 l 12 11 l -12 11 l -40 0 Z" fill="' + P.olive + '"/>';
+      g += '</g>';
       g += A.cypress(ax + 16, baseY, 104, 'rgba(76,92,68,.6)');
     } else if (id === 'stay') {
       /* shuttered windows either side, a key on a hook. This was tried as a
@@ -341,12 +356,17 @@
          each hold one simple idea it read as clutter, and it went back. */
       g += shutter(ax - 26, ay + 34, 0.85);
       g += shutter(ax + aw + 10, ay + 34, 0.85);
+      g += '<g class="ww-lean" style="transform-origin:' + f(cx) + 'px ' + f(baseY) + 'px; animation-delay:-3.4s; animation-duration:8.1s">';
       g += '<rect x="' + f(cx - 30) + '" y="' + f(baseY - 118) + '" width="60" height="118" rx="4" fill="rgba(59,42,34,.28)"/>';
       g += '<circle cx="' + f(cx + 18) + '" cy="' + f(baseY - 60) + '" r="4" fill="' + P.gold + '"/>';
+      g += '</g>';
       g += '<path class="ww-swing" style="transform-box:view-box;transform-origin:' + f(cx + 60) + 'px ' + f(ay + 20) + 'px" d="M ' + f(cx + 60) + ' ' + f(ay + 20) + ' l 0 26 m -5 0 a 5 6 0 1 0 10 0 a 5 6 0 1 0 -10 0 m 5 6 l 0 12 l 5 0 m -5 6 l 4 0" stroke="' + P.gold + '" stroke-width="2.6" fill="none"/>';
     } else if (id === 'travel') {
       /* iron gate bars + a ferry on the water beyond */
       g += '<rect x="' + f(ax + 4) + '" y="' + f(baseY - 76) + '" width="' + f(aw - 8) + '" height="76" fill="#7FA3B0" opacity=".8"/>';
+      /* no ww-lean on the ferry — A.boat already wraps itself in ww-bob,
+         and a lean on top of that bought 0.8px of travel and a second
+         animated node for nothing */
       g += A.boat(cx - 6, baseY - 40, 0.85, '#31485A', '#F4E7D3');
       /* an aeroplane crossing the opening, climbing away over the water */
       g += '<g class="ww-plane-door">' + A.airplane(cx - 6, ay + 116, 0.62, '#4E6E80') + '</g>';
@@ -372,9 +392,11 @@
         '<stop offset=".55" stop-color="' + P.gold + '" stop-opacity=".16"/>' +
         '<stop offset="1" stop-color="' + P.gold + '" stop-opacity="0"/></radialGradient></defs>';
       g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 152) + '" r="66" fill="url(#' + rGlow + ')"/>';
+      g += '<g class="ww-lean" style="transform-origin:' + f(cx + 50) + 'px ' + f(baseY) + 'px; animation-delay:-2.3s; animation-duration:7.8s">';
       g += '<rect x="' + f(cx + 46) + '" y="' + f(baseY - 116) + '" width="9" height="116" fill="#7A6247"/>';
       g += '<rect x="' + f(cx + 24) + '" y="' + f(baseY - 156) + '" width="54" height="42" rx="8" fill="' + P.terracotta + '"/>';
       g += '<rect x="' + f(cx + 30) + '" y="' + f(baseY - 148) + '" width="42" height="5" rx="2" fill="rgba(59,42,34,.45)"/>';
+      g += '</g>';
       /* Envelope hovering in the doorway, below the word. "Enter" moved up
          to just under the arch curve (ay+81) and the envelope used to span
          ay+52 to ay+100 — straight through it. It now hangs from ay+104, and
