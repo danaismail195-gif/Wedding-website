@@ -160,27 +160,30 @@ svg { display: block; }
 .entrance:hover .entrance-label, .entrance:focus-visible .entrance-label,
 .entrance.is-near .entrance-label { opacity: 1; transform: translate(-50%, 0); }
 
-/* the small permanent "this is a door you can walk through" cue */
+/* The word sits inside the archway itself, at the centre of the opening
+   (the arch is drawn from y=190 to y=440 of a 460-tall box, so its middle
+   is at 69% down). No chip, no orange: a terracotta pill under every door
+   read as seven pieces of interface competing with the illustration. What
+   is left is warm ivory type with a soft shadow, which is legible over all
+   seven interiors — the pale teal of Explore and the deep plum of the
+   After-Party alike — and belongs to the artwork rather than sitting on
+   top of it. No shadow: the doorway gradients were deepened so the letters
+   can sit straight on the light without being propped up by a halo, which
+   is what kept making them look stuck on. The text-indent cancels the
+   trailing letter-space, so the word is optically centred and not pushed a
+   hair to the left. */
 .entrance-cta {
-  position: absolute; left: 50%; bottom: 1.5%;
-  transform: translate(-50%, 0);
-  display: inline-flex; align-items: center; gap: .5em;
-  padding: .42em .95em .46em; border-radius: 999px;
-  font-size: .56em; letter-spacing: .2em; text-transform: uppercase;
-  color: var(--terra-deep); background: rgba(251,244,232,.92);
-  border: 1px solid rgba(155,74,42,.3);
-  box-shadow: 0 6px 18px -9px rgba(59,42,34,.6);
+  position: absolute; left: 50%; top: 69%;
+  transform: translate(-50%, -50%);
+  font-size: .56em; letter-spacing: .38em; text-indent: .38em;
+  text-transform: uppercase; font-weight: 300;
+  color: #FBF3E4; opacity: .72;
   white-space: nowrap; pointer-events: none;
-  transition: background .35s var(--ease), color .35s var(--ease), transform .35s var(--ease);
-}
-.entrance-cta::before {
-  content: ""; width: .5em; height: .5em; border-radius: 50%;
-  background: var(--gold); box-shadow: 0 0 0 .16em rgba(228,168,83,.35);
+  transition: opacity .35s var(--ease), letter-spacing .35s var(--ease);
 }
 .entrance:hover .entrance-cta, .entrance:focus-visible .entrance-cta,
 .entrance.is-near .entrance-cta {
-  background: var(--terracotta); color: var(--cream-2); border-color: var(--terracotta);
-  transform: translate(-50%, -3px);
+  opacity: .95; letter-spacing: .46em; text-indent: .46em;
 }
 /* labels sit above the archway, clear of the path map at the bottom */
 .entrance-label {
@@ -380,11 +383,20 @@ svg { display: block; }
 }
 .top-bar {
   position: absolute; top: 0; left: 0; right: 0; z-index: 40;
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: flex-end;
   padding: 1.4rem clamp(1.1rem, 3vw, 2.4rem);
   pointer-events: none;
 }
-.brand { pointer-events: auto; text-align: left; transition: opacity .5s var(--ease); }
+/* The names are the masthead of the whole site, so they sit centred at the
+   top on every screen — no corner, no plaque, no panel. Absolute rather
+   than in the flex row, so the sound button can keep the right-hand end
+   without pulling the names off centre. */
+.brand {
+  position: absolute; left: 50%; top: 1.4rem;
+  transform: translateX(-50%);
+  text-align: center; pointer-events: auto;
+  transition: opacity .5s var(--ease);
+}
 /* inside a room the way back owns the top of the screen, so the names step
    aside — the room has its own title, and nobody is lost */
 #room.is-open ~ .top-bar .brand { opacity: 0; pointer-events: none; }
@@ -553,16 +565,24 @@ svg { display: block; }
 #hub.is-moving .ww-pulse, #hub.is-moving .ww-glow-soft, #hub.is-moving .ww-dance,
 #hub.is-moving .ww-fly, #hub.is-moving .ww-flap, #hub.is-moving .ww-spin-slow,
 #hub.is-moving .ww-plane, #hub.is-moving .ww-plane-door, #hub.is-moving .ww-idle,
-#hub.is-moving .ww-talk, #hub.is-moving .ww-laugh, #hub.is-moving .ww-stroll {
+#hub.is-moving .ww-talk, #hub.is-moving .ww-laugh, #hub.is-moving .ww-stroll,
+#hub.is-moving .ww-nod, #hub.is-moving .ww-nod-slow, #hub.is-moving .ww-mingle,
+#hub.is-moving .ww-arm-talk, #hub.is-moving .ww-arm-raise {
   animation-play-state: paused;
 }
 #stage.is-moving .mote { animation-play-state: paused; }
 
-.ww-sway      { animation: ww-sway 6.5s ease-in-out infinite; transform-box: fill-box; }
-.ww-sway-slow { animation: ww-sway 13s ease-in-out infinite; transform-box: fill-box; }
+/* Foliage sways about the point where it is rooted — the mouth of the urn,
+   the fork of the branch — which art.js and scenes.js pass in as an inline
+   transform-origin together with `transform-box: view-box`. Without that box
+   the origin was measured from the corner of the leaves' own bounding box,
+   several hundred units away, and a 1.4deg turn threw them clean off the
+   pot. Anchored properly, a small angle is all a light breeze needs. */
+.ww-sway      { animation: ww-sway 7.5s ease-in-out infinite; transform-box: fill-box; }
+.ww-sway-slow { animation: ww-sway 14s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-sway {
-  0%, 100% { transform: rotate(-1.4deg); }
-  50%      { transform: rotate(1.4deg); }
+  0%, 100% { transform: rotate(-2deg); }
+  50%      { transform: rotate(2deg); }
 }
 .ww-swing { animation: ww-swing 5.4s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-swing {
@@ -596,12 +616,12 @@ svg { display: block; }
 @keyframes ww-pulse { 0%, 100% { opacity: .78; transform: scale(1); } 50% { opacity: 1; transform: scale(1.06); } }
 .ww-glow-soft { animation: ww-glow 7.5s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-glow { 0%, 100% { opacity: .45; } 50% { opacity: .78; } }
-.ww-dance { animation: ww-dance 1.9s ease-in-out infinite; transform-box: fill-box; }
+.ww-dance { animation: ww-dance 1.8s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-dance {
-  0%, 100% { transform: translateY(0) rotate(-3deg) scaleY(1); }
-  25%      { transform: translateY(-9px) rotate(0deg) scaleY(1.03); }
-  50%      { transform: translateY(0) rotate(3deg) scaleY(1); }
-  75%      { transform: translateY(-6px) rotate(0deg) scaleY(1.02); }
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  25%      { transform: translateY(var(--ww-lift, -9px)) rotate(0deg) scaleY(1.03); }
+  50%      { transform: translateY(0) rotate(4deg); }
+  75%      { transform: translateY(calc(var(--ww-lift, -9px) * .66)) rotate(0deg) scaleY(1.02); }
 }
 .ww-fly { animation: ww-fly 46s linear infinite; transform-box: fill-box; }
 @keyframes ww-fly { from { transform: translate(-10%, 14px); } to { transform: translate(120%, -34px); } }
@@ -609,17 +629,70 @@ svg { display: block; }
 @keyframes ww-flap { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.4); } }
 .ww-spin-slow { animation: ww-spin 22s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-spin { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+/* The people. Every figure carries --ww-amp-y / --ww-amp-x, set by art.js as
+   a fraction of that figure's own height, and pivots on the ground beneath
+   it (transform-box: view-box, set inline). That is what makes one scene
+   read as one scene: a 96-tall guest at the back of the terrace and a
+   300-tall one at the table breathe by the same amount *of themselves*,
+   instead of the small one twitching while the large one heaves. Keep these
+   amplitudes small — the brief is "everyone is in the same room", not
+   "everyone is performing". */
 .ww-idle { animation: ww-idle 5.6s ease-in-out infinite; transform-box: fill-box; }
-@keyframes ww-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.6px); } }
-.ww-talk { animation: ww-talk 3.6s ease-in-out infinite; transform-box: fill-box; }
-@keyframes ww-talk { 0%, 100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
-.ww-laugh { animation: ww-laugh 2.9s ease-in-out infinite; transform-box: fill-box; }
-@keyframes ww-laugh {
-  0%, 100% { transform: rotate(-1.6deg) translateY(0); }
-  50%      { transform: rotate(2.2deg) translateY(-2.5px); }
+@keyframes ww-idle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(var(--ww-amp-y, -1.6px)); }
 }
-.ww-stroll { animation: ww-stroll 19s ease-in-out infinite; transform-box: fill-box; }
-@keyframes ww-stroll { 0%, 100% { transform: translateX(-26px); } 50% { transform: translateX(34px); } }
+.ww-talk { animation: ww-talk 4.4s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-talk {
+  0%, 100% { transform: rotate(-.9deg); }
+  50%      { transform: rotate(.9deg); }
+}
+.ww-laugh { animation: ww-laugh 3.8s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-laugh {
+  0%, 100% { transform: rotate(-1deg) translateY(0); }
+  50%      { transform: rotate(1.2deg) translateY(var(--ww-amp-y, -1.6px)); }
+}
+/* Heads and arms, animated separately from the body. A figure that only
+   sways is a figure standing still politely; a figure that nods while their
+   neighbour lifts a glass is a room with something going on in it. Both
+   pivot on a real joint — the base of the neck, the shoulder — passed in by
+   art.js as an inline origin. Use these where the guest is close to the
+   camera and you can actually see them; the distant wedding crowd does not
+   need them and should not have them. */
+.ww-nod { animation: ww-nod 4.6s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-nod {
+  0%, 100% { transform: rotate(-2.4deg); }
+  46%      { transform: rotate(2.8deg); }
+  70%      { transform: rotate(-.6deg); }
+}
+.ww-nod-slow { animation: ww-nod 7.2s ease-in-out infinite; transform-box: fill-box; }
+.ww-arm-talk { animation: ww-arm-talk 3.4s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-arm-talk {
+  0%, 100% { transform: rotate(-4deg); }
+  40%      { transform: rotate(7deg); }
+  68%      { transform: rotate(1deg); }
+}
+.ww-arm-raise { animation: ww-arm-raise 5.4s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-arm-raise {
+  0%, 62%, 100% { transform: rotate(0deg); }
+  22%           { transform: rotate(-13deg); }
+  40%           { transform: rotate(-9deg); }
+}
+/* Standing about at a party: weight shifting from one foot to the other,
+   with a little lift in it. More than ww-idle, a long way short of dancing —
+   the register for a crowd that is waiting for something to start. */
+.ww-mingle { animation: ww-mingle 4.8s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-mingle {
+  0%, 100% { transform: rotate(-2.4deg) translateY(0); }
+  30%      { transform: rotate(1.2deg) translateY(var(--ww-amp-y, -1.6px)); }
+  62%      { transform: rotate(2.4deg) translateY(0); }
+  82%      { transform: rotate(-.6deg) translateY(var(--ww-amp-y, -1.6px)); }
+}
+.ww-stroll { animation: ww-stroll 22s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-stroll {
+  0%, 100% { transform: translateX(calc(var(--ww-amp-x, 26px) * -1)); }
+  50%      { transform: translateX(var(--ww-amp-x, 26px)); }
+}
 .ww-plane-door { animation: ww-plane-door 15s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-plane-door {
   0%   { transform: translate(-26px, 16px); opacity: 0; }
@@ -682,6 +755,7 @@ svg { display: block; }
   .beacon .t { font-size: .64rem; letter-spacing: .18em; }
   .facts li { grid-template-columns: 1fr; gap: .25rem; }
   .top-bar { padding: 1rem 1.1rem; }
+  .brand { top: 1rem; }
   .hint { bottom: 4.2rem; font-size: .58rem; letter-spacing: .2em; }
   .pathmap { gap: 0; padding: .4rem .5rem; }
   .dot { width: 30px; height: 30px; }
@@ -697,20 +771,11 @@ svg { display: block; }
 @media (min-width: 901px) {
   .panel { border-left: 1px solid rgba(59,42,34,.1); }
 
-  /* The names used to sit in the top-left corner, where the foreground
-     olive branch hangs into the frame and ate them. Centre them, and give
-     them a plaque so they never have to compete with the artwork. */
-  .brand {
-    position: absolute; left: 50%; top: 0;
-    transform: translateX(-50%); text-align: center;
-    padding: .85rem 2.2rem .95rem; border-radius: 0 0 18px 18px;
-    background: linear-gradient(180deg, rgba(251,244,232,.94), rgba(251,244,232,.6));
-    border: 1px solid rgba(59,42,34,.09); border-top: 0;
-    box-shadow: 0 14px 34px -22px rgba(59,42,34,.65);
-    transition: transform .8s var(--ease);
-  }
-  .brand .n { font-size: clamp(1.3rem, 2.1vw, 1.7rem); text-shadow: none; }
-  .brand .d { font-size: .62rem; text-shadow: none; letter-spacing: .3em; }
+  /* Nothing but type. The plaque that used to sit behind the names read as
+     a separate piece of UI stuck onto the picture; the soft cream glow in
+     §9 is enough to hold them clear of the sky. */
+  .brand .n { font-size: clamp(1.3rem, 2.1vw, 1.7rem); }
+  .brand .d { font-size: .62rem; letter-spacing: .3em; }
 
   /* one clear way back, top left, where a back control belongs */
   .back-btn { top: 1.25rem; bottom: auto; }
@@ -805,7 +870,7 @@ svg { display: block; }
       <span class="d" id="brand-date">&nbsp;</span>
     </div>
     <div class="top-actions">
-      <button class="icon-btn" id="audio-btn" type="button" aria-pressed="false" aria-label="Ambient sound">
+      <button class="icon-btn" id="audio-btn" type="button" aria-pressed="false" aria-label="Music">
         <svg class="off" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M4 9v6h4l5 4V5L8 9H4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
           <path d="m17 10 4 4m0-4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -1370,7 +1435,7 @@ svg { display: block; }
     var d = 'M ' + f(x) + ' ' + f(baseY) +
       ' C ' + f(x - wq) + ' ' + f(baseY - h * 0.34) + ', ' + f(x - wq * 0.82) + ' ' + f(baseY - h * 0.78) + ', ' + f(x) + ' ' + f(baseY - h) +
       ' C ' + f(x + wq * 0.82) + ' ' + f(baseY - h * 0.78) + ', ' + f(x + wq) + ' ' + f(baseY - h * 0.34) + ', ' + f(x) + ' ' + f(baseY) + ' Z';
-    return '<g class="' + (cls || '') + '" style="transform-origin:' + f(x) + 'px ' + f(baseY) + 'px">' +
+    return '<g class="' + (cls || '') + '" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(baseY) + 'px">' +
       '<rect x="' + f(x - h * 0.012) + '" y="' + f(baseY - h * 0.1) + '" width="' + f(h * 0.024) + '" height="' + f(h * 0.1) + '" fill="' + P.espLight + '" opacity=".7"/>' +
       '<path d="' + d + '" fill="' + fill + '"/></g>';
   }
@@ -1389,7 +1454,7 @@ svg { display: block; }
       var rx = (26 + r() * 17) * s, ry = (17 + r() * 11) * s;
       g += '<ellipse cx="' + f(bx) + '" cy="' + f(by) + '" rx="' + f(rx) + '" ry="' + f(ry) + '" fill="' + (i % 2 ? leaf2 : leaf) + '" opacity="' + (0.82 + r() * 0.18).toFixed(2) + '"/>';
     }
-    return '<g class="ww-sway" style="transform-origin:' + f(x) + 'px ' + f(baseY) + 'px;animation-delay:' + (-r() * 6).toFixed(1) + 's">' + g + '</g>';
+    return '<g class="ww-sway" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(baseY) + 'px;animation-delay:' + (-r() * 6).toFixed(1) + 's">' + g + '</g>';
   }
 
   /* Water: flat colour plus drifting glints. */
@@ -1458,7 +1523,7 @@ svg { display: block; }
     g += '<circle class="ww-flicker" cx="' + f(x) + '" cy="' + f(y + 4 * s) + '" r="' + f(30 * s) + '" fill="url(#' + id + ')"/>';
     g += '<path d="M ' + f(x - 7 * s) + ' ' + f(y - 10 * s) + ' l ' + f(14 * s) + ' 0 l ' + f(2.5 * s) + ' ' + f(21 * s) + ' l -' + f(19 * s) + ' 0 Z" fill="rgba(59,42,34,.72)"/>';
     g += '<path d="M ' + f(x - 4.5 * s) + ' ' + f(y - 7 * s) + ' l ' + f(9 * s) + ' 0 l ' + f(1.6 * s) + ' ' + f(15 * s) + ' l -' + f(12 * s) + ' 0 Z" fill="' + P.goldLight + '" class="ww-flicker"/>';
-    return '<g class="ww-swing" style="transform-origin:' + f(x) + 'px ' + f(cordTo != null ? cordTo : y - 46 * s) + 'px">' + g + '</g>';
+    return '<g class="ww-swing" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(cordTo != null ? cordTo : y - 46 * s) + 'px">' + g + '</g>';
   }
 
   /* A sagging run of festoon bulbs. */
@@ -1496,7 +1561,7 @@ svg { display: block; }
 
   /* Little boat on the bay. */
   function boat(x, y, s, hull, sail) {
-    return '<g class="ww-bob" style="transform-origin:' + f(x) + 'px ' + f(y) + 'px;animation-delay:' + f(-x % 5) + 's">' +
+    return '<g class="ww-bob" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(y) + 'px;animation-delay:' + f(-x % 5) + 's">' +
       (sail ? '<path d="M ' + f(x) + ' ' + f(y - 2 * s) + ' L ' + f(x) + ' ' + f(y - 30 * s) + ' L ' + f(x + 17 * s) + ' ' + f(y - 3 * s) + ' Z" fill="' + sail + '"/>' : '') +
       '<path d="M ' + f(x - 16 * s) + ' ' + f(y) + ' q ' + f(16 * s) + ' ' + f(9 * s) + ' ' + f(34 * s) + ' 0 Z" fill="' + (hull || P.espresso) + '"/></g>';
   }
@@ -1508,7 +1573,7 @@ svg { display: block; }
       /* only some of the grass moves — nobody counts, and the layer repaints
          a third as often */
       var sway = i % 3 === 0;
-      g += '<path' + (sway ? ' class="ww-sway"' : '') + ' style="transform-origin:' + f(gx) + 'px ' + f(y) + 'px;animation-delay:' + (-r() * 5).toFixed(1) + 's" d="M ' + f(gx) + ' ' + f(y) +
+      g += '<path' + (sway ? ' class="ww-sway"' : '') + ' style="transform-box:view-box;transform-origin:' + f(gx) + 'px ' + f(y) + 'px;animation-delay:' + (-r() * 5).toFixed(1) + 's" d="M ' + f(gx) + ' ' + f(y) +
            ' q ' + f((r() - 0.5) * 10) + ' -' + f(hgt * 0.6) + ' ' + f((r() - 0.5) * 14) + ' -' + f(hgt) + '" fill="none" stroke="' + (color || P.oliveDeep) + '" stroke-width="1.7" stroke-linecap="round"/>';
     }
     return g;
@@ -1530,21 +1595,62 @@ svg { display: block; }
       g += '<ellipse cx="' + f(lx) + '" cy="' + f(ly + (r() - 0.5) * 26 * s) + '" rx="' + f((16 + r() * 9) * s) + '" ry="' + f((5 + r() * 2.6) * s) +
            '" fill="' + (i % 3 ? leaf : leaf2) + '" transform="rotate(' + ang + ' ' + f(lx) + ' ' + f(ly) + ')" opacity=".93"/>';
     }
-    return '<g class="ww-sway-slow" style="transform-origin:' + f(x) + 'px ' + f(y) + 'px">' + g + '</g>';
+    return '<g class="ww-sway-slow" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(y) + 'px">' + g + '</g>';
   }
 
   /* ======================================================================
-     PEOPLE — flat, hand-made, deliberately a bit wonky, but properly built.
-     Every limb is a round-capped polyline that STARTS at the shoulder or
-     hip it belongs to, so an arm can never float free of its body. Poses
-     are described in fractions of the figure's height, which keeps the
-     proportions honest at any scale.
+     PEOPLE — flat vector figures, in the spirit of the reference artwork:
+     solid colour with no outlines, chunky rounded limbs, generous hair,
+     the smallest possible face. Deliberately a bit wonky, but properly
+     built: every limb is a round-capped polyline that STARTS at the
+     shoulder or hip it belongs to, so an arm can never float free of its
+     body. Poses are fractions of the figure's height, which keeps the
+     proportions honest at any scale — a 96-tall guest in a chair is put
+     together exactly like a 300-tall one at the table.
      ====================================================================== */
 
-  var SKINS   = ['#EFC49F', '#E2AC81', '#C98A5E', '#A06A43', '#7A4E32', '#5B3826'];
+  var SKINS   = ['#F2C79E', '#E6B183', '#CE8F60', '#A97148', '#835434', '#63401F'];
   var CLOTHES = ['#C4643C', '#7A97A8', '#7C8B5E', '#E4A853', '#9B4A2A', '#5A4260',
-                 '#4E6E80', '#D98A5E', '#F4E7D3', '#3B2A22'];
-  var HAIRS   = ['#3B2A22', '#5C4436', '#241A16', '#6B5744', '#2A2430', '#8A6A46', '#B08A55'];
+                 '#4E6E80', '#7E9E8E', '#F2E4CC', '#3B5068', '#B8574B', '#6E8C6A',
+                 '#C98A9B', '#D9B45C'];
+  var PANTS   = ['#3B4A5A', '#5C4436', '#4E6E80', '#7C8B5E', '#9B4A2A', '#2A2430',
+                 '#6B5744', '#5A4260', '#8A6A46'];
+  var HAIRS   = ['#3B2A22', '#241A16', '#5C4436', '#6B5744', '#2A2430', '#8A6A46',
+                 '#B08A55', '#A85331', '#D9B071', '#4A3B52'];
+  var HAIR_STYLES = ['crop', 'bob', 'long', 'bun', 'curls', 'pony', 'wave', 'part'];
+
+  /* Black tie, more or less — but a summer wedding on the Adriatic, so the
+     gowns are the colourful half of the room and they are meant to be seen
+     as colour first. Pink, red, orange, yellow, purple, blue, green and
+     teal all appear. Every entry earns its place as a colour — the greyed
+     neutrals that used to be in here (dusty pink, camel, periwinkle,
+     grey-blue) are gone, because a scene only draws a dozen or so gowns and
+     each muted one spent a draw that could have been a colour. Ivory is the
+     single pale note left, at one chance in nineteen.
+     Suits stay at the dark end — a pale suit at 120px tall reads as
+     pyjamas — but they are no longer all charcoal: burgundy, forest, plum,
+     tobacco and deep teal give the men somewhere to be as well.
+
+     Pass `evening: true` and a figure dresses itself from these; pass
+     `gown` or `suit` to decide which. Only the wedding room uses them. */
+  var GOWNS = ['#E0567B', '#C8324B', '#E0724A', '#EBB13C', '#7B4EA8', '#3D6FD1',
+               '#2E9E8F', '#4E9A4C', '#F49BB4', '#9B2F5E', '#D94F3D', '#5B8FE0',
+               '#2E6B57', '#2C4E7A', '#7A2E3E', '#C99A46', '#4A3352', '#A8556B',
+               '#EFE4D2'];
+  var SUITS = ['#2C3A52', '#33302E', '#241E1C', '#3B3A44', '#2F3A34', '#4A3A46',
+               '#243A52', '#3E2E2C', '#453A2E', '#6B2436', '#1F5B54', '#2F4A2C',
+               '#4A2F5E', '#7A4A28', '#25406B'];
+  var SHIRT = '#F2E9DA';
+
+  /* A limb in two pieces: upper arm thicker than forearm, thigh thicker than
+     calf. Drawing both at one width is exactly what makes a figure read as a
+     stick — the taper is most of the difference between a diagram of a person
+     and a drawing of one. The round caps overlap at the joint, so the elbow
+     and the knee close themselves. */
+  function limb(pts, wUp, wLow, color) {
+    return limbPath([pts[0], pts[1]], wUp, color) +
+           limbPath([pts[1], pts[2]], wLow, color);
+  }
 
   /* round-capped, round-joined polyline — the only way limbs are drawn */
   function limbPath(pts, w, color, extra) {
@@ -1576,9 +1682,21 @@ svg { display: block; }
               legNear: [[.075, .200], [.130, .440]], legFar: [[-.055, .215], [-.105, .450]] },
     sit:    { armNear: [[.055, .105], [.150, .145]], armFar: [[-.045, .110], [.085, .150]],
               legNear: [[.130, .030], [.155, .255]], legFar: [[.112, .052], [.138, .258]] },
-    /* drawn up to a table: legs straight down, where the tabletop hides them */
-    table:  { armNear: [[.062, .100], [.140, .150]], armFar: [[-.058, .100], [-.120, .152]],
+    /* Drawn up to a table: legs straight down where the tabletop hides them,
+       and forearms coming down to meet its edge. The hands used to stop .15
+       of a height below the shoulder, which left everybody sitting with
+       their palms in mid-air about seventy units above the cloth. */
+    table:  { armNear: [[.058, .180], [.112, .400]], armFar: [[-.055, .178], [-.104, .402]],
               legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
+    /* leaning in over the table, one hand up mid-sentence */
+    tableUp:{ armNear: [[.086, .075], [.148, -.020]], armFar: [[-.055, .178], [-.104, .402]],
+              legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
+    /* both forearms on the cloth, mid-conversation with a neighbour */
+    tableIn:{ armNear: [[.070, .165], [.168, .355]], armFar: [[-.055, .178], [-.104, .402]],
+              legNear: [[.022, .140], [.032, .300]], legFar: [[-.022, .140], [-.032, .300]] },
+    /* a tray held at the shoulder, the far hand steadying the way ------ */
+    serve:  { armNear: [[.082, .046], [.108, -.052]], armFar: [[-.048, .120], [-.062, .240]],
+              legNear: [[.062, .200], [.104, .448]], legFar: [[-.052, .212], [-.092, .452]] },
     dance:  { armNear: [[.110, -.010], [.170, -.150]], armFar: [[-.115, .060], [-.205, .015]],
               legNear: [[.075, .200], [.120, .450]], legFar: [[-.080, .195], [-.135, .450]] },
     dance2: { armNear: [[.125, .045], [.215, -.035]], armFar: [[-.095, -.020], [-.140, -.160]],
@@ -1588,11 +1706,18 @@ svg { display: block; }
   /* Small things people hold. Drawn at the hand, so they never drift off. */
   function prop(kind, hx, hy, s, tint) {
     if (kind === 'glass') {
-      return '<path d="M ' + f(hx - 3.6 * s) + ' ' + f(hy - 2 * s) +
-        ' l ' + f(7.2 * s) + ' 0 l -' + f(1.1 * s) + ' ' + f(5.2 * s) + ' l -' + f(5 * s) + ' 0 Z" fill="#FBF4E8" opacity=".92"/>' +
-        '<path d="M ' + f(hx - 2.9 * s) + ' ' + f(hy - 1.2 * s) + ' l ' + f(5.8 * s) + ' 0 l -' + f(.7 * s) + ' ' + f(3 * s) +
-        ' l -' + f(4.4 * s) + ' 0 Z" fill="' + (tint || '#E8B25E') + '" opacity=".85"/>' +
-        '<rect x="' + f(hx - .5 * s) + '" y="' + f(hy + 3 * s) + '" width="' + f(1.2 * s) + '" height="' + f(3.4 * s) + '" fill="#FBF4E8" opacity=".8"/>';
+      /* a proper stemmed glass: bowl, stem, foot — it reads as a glass even
+         when the whole figure is 90px tall */
+      return '<path d="M ' + f(hx - 3.4 * s) + ' ' + f(hy - 3.4 * s) +
+        ' L ' + f(hx + 3.4 * s) + ' ' + f(hy - 3.4 * s) +
+        ' Q ' + f(hx + 3.1 * s) + ' ' + f(hy + 2.2 * s) + ' ' + f(hx) + ' ' + f(hy + 2.6 * s) +
+        ' Q ' + f(hx - 3.1 * s) + ' ' + f(hy + 2.2 * s) + ' ' + f(hx - 3.4 * s) + ' ' + f(hy - 3.4 * s) + ' Z" fill="#FBF4E8" opacity=".95"/>' +
+        '<path d="M ' + f(hx - 3.15 * s) + ' ' + f(hy - 1.2 * s) +
+        ' L ' + f(hx + 3.15 * s) + ' ' + f(hy - 1.2 * s) +
+        ' Q ' + f(hx + 2.9 * s) + ' ' + f(hy + 2.0 * s) + ' ' + f(hx) + ' ' + f(hy + 2.4 * s) +
+        ' Q ' + f(hx - 2.9 * s) + ' ' + f(hy + 2.0 * s) + ' ' + f(hx - 3.15 * s) + ' ' + f(hy - 1.2 * s) + ' Z" fill="' + (tint || '#E8B25E') + '" opacity=".9"/>' +
+        '<rect x="' + f(hx - .55 * s) + '" y="' + f(hy + 2.4 * s) + '" width="' + f(1.1 * s) + '" height="' + f(3.4 * s) + '" fill="#FBF4E8" opacity=".9"/>' +
+        '<ellipse cx="' + f(hx) + '" cy="' + f(hy + 6 * s) + '" rx="' + f(2.6 * s) + '" ry="' + f(.8 * s) + '" fill="#FBF4E8" opacity=".9"/>';
     }
     if (kind === 'camera') {
       return '<rect x="' + f(hx - 5.5 * s) + '" y="' + f(hy - 4 * s) + '" width="' + f(11 * s) + '" height="' + f(8 * s) +
@@ -1608,36 +1733,170 @@ svg { display: block; }
     if (kind === 'plate') {
       return '<ellipse cx="' + f(hx) + '" cy="' + f(hy) + '" rx="' + f(6.5 * s) + '" ry="' + f(2.4 * s) + '" fill="#FFFAF0"/>';
     }
+    if (kind === 'tray') {
+      /* held flat on the palm, so it sits above the hand rather than in it */
+      var ty = hy - 2.4 * s;
+      var tr = '<ellipse cx="' + f(hx) + '" cy="' + f(ty) + '" rx="' + f(12.5 * s) + '" ry="' + f(4 * s) + '" fill="#C9B79B"/>';
+      tr += '<ellipse cx="' + f(hx) + '" cy="' + f(ty - 1.2 * s) + '" rx="' + f(12.5 * s) + '" ry="' + f(4 * s) + '" fill="#E3D6C0"/>';
+      /* three glasses and a small carafe on it */
+      [-8, -2.4, 8.6].forEach(function (gx, gi) {
+        tr += '<path d="M ' + f(hx + gx * s - 2 * s) + ' ' + f(ty - 8.6 * s) +
+          ' l ' + f(4 * s) + ' 0 l -' + f(.5 * s) + ' ' + f(5 * s) + ' l -' + f(3 * s) + ' 0 Z" fill="#FBF4E8" opacity="' + (gi === 1 ? '.95' : '.9') + '"/>';
+        tr += '<path d="M ' + f(hx + gx * s - 1.6 * s) + ' ' + f(ty - 6.4 * s) +
+          ' l ' + f(3.2 * s) + ' 0 l -' + f(.4 * s) + ' ' + f(2.6 * s) + ' l -' + f(2.4 * s) + ' 0 Z" fill="' + (tint || '#E8B25E') + '" opacity=".85"/>';
+      });
+      tr += '<path d="M ' + f(hx + 2.6 * s) + ' ' + f(ty - 3 * s) + ' l 0 -' + f(6 * s) +
+        ' q 0 -' + f(2 * s) + ' ' + f(2 * s) + ' -' + f(3 * s) + ' l ' + f(2 * s) + ' 0 q ' + f(2 * s) + ' ' + f(1 * s) + ' ' + f(2 * s) + ' ' + f(3 * s) +
+        ' l 0 ' + f(6 * s) + ' Z" fill="#D8C9A8" opacity=".9"/>';
+      return tr;
+    }
+    if (kind === 'bouquet') {
+      /* held low, the way people actually carry one: stems down through the
+         fist, blooms above it */
+      var bq = '<path d="M ' + f(hx - 1.4 * s) + ' ' + f(hy + 1 * s) + ' l ' + f(2.4 * s) + ' ' + f(6 * s) +
+        '" stroke="#6E7F52" stroke-width="' + f(1.6 * s) + '" stroke-linecap="round" fill="none"/>';
+      var petals = ['#F6E4D2', '#F0CBBC', '#FBF4E8', '#E8BCA8'];
+      for (var bi = 0; bi < 5; bi++) {
+        var ba = Math.PI * (0.86 + bi * 0.32);
+        bq += '<ellipse cx="' + f(hx + Math.cos(ba) * 2.6 * s) + '" cy="' + f(hy - 1.2 * s + Math.sin(ba) * 2.2 * s) +
+          '" rx="' + f(2.5 * s) + '" ry="' + f(2.1 * s) + '" fill="' + petals[bi % 4] + '"/>';
+      }
+      bq += '<ellipse cx="' + f(hx - 3.4 * s) + '" cy="' + f(hy + 0.6 * s) + '" rx="' + f(3 * s) + '" ry="' + f(1.3 * s) +
+        '" fill="' + (tint || '#7C8B5E') + '" transform="rotate(-24 ' + f(hx - 3.4 * s) + ' ' + f(hy + 0.6 * s) + ')"/>';
+      bq += '<ellipse cx="' + f(hx + 3.4 * s) + '" cy="' + f(hy + 1 * s) + '" rx="' + f(2.8 * s) + '" ry="' + f(1.2 * s) +
+        '" fill="' + (tint || '#7C8B5E') + '" transform="rotate(26 ' + f(hx + 3.4 * s) + ' ' + f(hy + 1 * s) + ')"/>';
+      return bq;
+    }
     return '';
   }
 
+  /* --- hair -------------------------------------------------------------
+     Two pieces: what sits behind the head, and what sits over the brow.
+     Drawing it in two halves is what stops a fringe ever coming apart from
+     the skull when a figure is flipped or leaning. */
+  /* Hair that falls past the jaw is drawn before the body, so it hangs
+     behind the shoulders instead of lying across the chest like a bib. */
+  function hairBehind(style, hx, hy, R, dir, hair) {
+    if (style === 'long') {
+      return '<path d="M ' + f(hx - R * 1.16) + ' ' + f(hy - R * 0.3) +
+        ' q -' + f(R * 0.26) + ' ' + f(R * 1.8) + ' ' + f(R * 0.06) + ' ' + f(R * 2.36) +
+        ' l ' + f(R * 2.28) + ' 0' +
+        ' q ' + f(R * 0.32) + ' -' + f(R * 0.56) + ' ' + f(R * 0.06) + ' -' + f(R * 2.36) + ' Z" fill="' + hair + '"/>';
+    }
+    if (style === 'wave') {
+      return '<path d="M ' + f(hx - R * 1.2) + ' ' + f(hy - R * 0.3) +
+        ' q -' + f(R * 0.34) + ' ' + f(R * 1.5) + ' -' + f(R * 0.02) + ' ' + f(R * 2.1) +
+        ' q ' + f(R * 0.42) + ' -' + f(R * 0.3) + ' ' + f(R * 0.66) + ' ' + f(R * 0.16) +
+        ' q ' + f(R * 0.4) + ' ' + f(R * 0.28) + ' ' + f(R * 0.8) + ' -' + f(R * 0.1) +
+        ' q ' + f(R * 0.4) + ' ' + f(R * 0.3) + ' ' + f(R * 0.72) + ' -' + f(R * 0.14) +
+        ' q ' + f(R * 0.26) + ' -' + f(R * 1.1) + ' -' + f(R * 0.16) + ' -' + f(R * 1.96) + ' Z" fill="' + hair + '"/>';
+    }
+    if (style === 'pony') {
+      return '<path d="M ' + f(hx - R * 0.9 * dir) + ' ' + f(hy - R * 0.5) +
+        ' q -' + f(R * 1.1 * dir) + ' ' + f(R * 0.5) + ' -' + f(R * 0.86 * dir) + ' ' + f(R * 1.9) +
+        ' q ' + f(R * 0.44 * dir) + ' ' + f(R * 0.2) + ' ' + f(R * 0.72 * dir) + ' -' + f(R * 0.22) +
+        ' q -' + f(R * 0.16 * dir) + ' -' + f(R * 1.1) + ' ' + f(R * 0.5 * dir) + ' -' + f(R * 1.6) + ' Z" fill="' + hair + '"/>';
+    }
+    return '';
+  }
+
+  function hairBack(style, hx, hy, R, dir, hair) {
+    var g = '';
+    var cap = '<circle cx="' + f(hx) + '" cy="' + f(hy - R * 0.14) + '" r="' + f(R * 1.07) + '" fill="' + hair + '"/>';
+    if (style === 'bob') {
+      g += '<path d="M ' + f(hx - R * 1.14) + ' ' + f(hy - R * 0.3) +
+        ' l 0 ' + f(R * 1.24) + ' q ' + f(R * 0.5) + ' ' + f(R * 0.3) + ' ' + f(R * 0.86) + ' ' + f(R * 0.06) +
+        ' l ' + f(R * 0.84) + ' 0 q ' + f(R * 0.4) + ' ' + f(R * 0.24) + ' ' + f(R * 0.86) + ' -' + f(R * 0.06) +
+        ' l 0 -' + f(R * 1.24) + ' Z" fill="' + hair + '"/>';
+    } else if (style === 'curls') {
+      for (var i = 0; i < 9; i++) {
+        var a = Math.PI * (1.06 + i * (0.88 / 8));
+        g += '<circle cx="' + f(hx + Math.cos(a) * R * 0.92) + '" cy="' + f(hy - R * 0.1 + Math.sin(a) * R * 0.92) +
+          '" r="' + f(R * 0.54) + '" fill="' + hair + '"/>';
+      }
+    }
+    g += cap;
+    if (style === 'bun') {
+      g += '<circle cx="' + f(hx - R * 1.0 * dir) + '" cy="' + f(hy - R * 0.86) + '" r="' + f(R * 0.5) + '" fill="' + hair + '"/>';
+    }
+    return g;
+  }
+
+  function hairFront(style, hx, hy, R, dir, hair) {
+    if (style === 'curls') {
+      return '<circle cx="' + f(hx - R * 0.42) + '" cy="' + f(hy - R * 0.72) + '" r="' + f(R * 0.46) + '" fill="' + hair + '"/>' +
+             '<circle cx="' + f(hx + R * 0.44) + '" cy="' + f(hy - R * 0.76) + '" r="' + f(R * 0.42) + '" fill="' + hair + '"/>';
+    }
+    if (style === 'part') {
+      /* swept to one side, off a parting */
+      return '<path d="M ' + f(hx - R * 1.02) + ' ' + f(hy - R * 0.32) +
+        ' q ' + f(R * 0.2) + ' -' + f(R * 0.86) + ' ' + f(R * 1.06) + ' -' + f(R * 0.82) +
+        ' q ' + f(R * 0.9) + ' ' + f(R * 0.04) + ' ' + f(R * 1.0) + ' ' + f(R * 0.8) +
+        ' q -' + f(R * 0.66) + ' -' + f(R * 0.44) + ' -' + f(R * 1.34) + ' -' + f(R * 0.1) +
+        ' q -' + f(R * 0.4) + ' ' + f(R * 0.26) + ' -' + f(R * 0.72) + ' ' + f(R * 0.44) + ' Z" fill="' + hair + '"/>';
+    }
+    /* the ordinary fringe, sitting on the brow */
+    return '<ellipse cx="' + f(hx + R * 0.06 * dir) + '" cy="' + f(hy - R * 0.62) +
+      '" rx="' + f(R * 1.0) + '" ry="' + f(R * 0.46) + '" fill="' + hair + '"/>';
+  }
+
   /**
-   * person({ x, baseY, h, pose, flip, skin, cloth, hair, dress, flat, hold,
-   *          anim, delay, seed })
-   * baseY is the ground (or the seat front, for `sit`). Returns one <g>.
+   * person({ x, baseY, h, pose, flip, skin, cloth, pants, hair, hairStyle,
+   *          dress, flat, back, hold, holdTint, holdFar, holdFarTint,
+   *          anim, delay, seed, shadow })
+   * `hold` goes in the near hand, `holdFar` in the hand on the far side —
+   * which is how somebody can hold a bouquet and a hand at the same time.
+   * baseY is the ground (or the seat front, for `sit` / `table`).
+   * Returns one <g>, animated by the class in `anim`.
    */
   function person(o) {
     o = o || {};
     var x = o.x || 0, b = o.baseY || 0, h = o.h || 100;
-    var r = rand(o.seed != null ? o.seed : (Math.abs(x * 31 + b * 17 + h) | 0) + 3);
+    /* Scenes seed their guests from a counter (400, 411, 422 …). The plain
+       linear generator turns neighbouring seeds into near-identical streams,
+       which is how a whole row of chairs ended up dressed in the same colour.
+       Scrambling the seed first — and only for people — gives every guest
+       their own wardrobe without disturbing any other procedural artwork. */
+    var seed0 = o.seed != null ? o.seed : (Math.abs(x * 31 + b * 17 + h) | 0) + 3;
+    var r = rand((((seed0 + 1) * 2654435761) ^ 0x9E3779B9) >>> 0);
     var flat  = o.flat || null;
     var skin  = flat || o.skin  || SKINS[(r() * SKINS.length) | 0];
     var cloth = flat || o.cloth || CLOTHES[(r() * CLOTHES.length) | 0];
     var hair  = flat || o.hair  || HAIRS[(r() * HAIRS.length) | 0];
+    var pants = flat || o.pants || PANTS[(r() * PANTS.length) | 0];
+    var hairStyle = o.hairStyle || HAIR_STYLES[(r() * HAIR_STYLES.length) | 0];
     var shoe  = flat || '#3B2A22';
+
+    /* Evening wear. A gown runs to the floor and hides the legs; a suit gets
+       a shirt and lapels and trousers that match the jacket. */
+    var gown = o.gown != null ? o.gown : (o.evening ? r() < 0.52 : false);
+    var suit = o.suit != null ? o.suit : (o.evening ? !gown : false);
+    if (o.evening && !flat) {
+      if (!o.cloth) cloth = gown ? GOWNS[(r() * GOWNS.length) | 0]
+                                 : SUITS[(r() * SUITS.length) | 0];
+      if (!o.pants) pants = suit ? shade(cloth, -0.05) : pants;
+      if (!o.hair && r() < 0.5) hairStyle = gown ? (r() < 0.5 ? 'bun' : 'wave') : 'crop';
+    }
     var dir   = o.flip ? -1 : 1;
     var pose  = POSES[o.pose] || POSES.stand;
-    var dress = o.dress != null ? o.dress : (r() < 0.45);
-    var seated = o.pose === 'sit' || o.pose === 'table';
+    var dress = gown ? true : (o.dress != null ? o.dress : (r() < 0.45));
+    var seated = o.pose === 'sit' || o.pose === 'table' ||
+                 o.pose === 'tableUp' || o.pose === 'tableIn';
 
-    /* skeleton */
-    var headR = h * 0.098,
-        headY = b - h * (seated ? 0.440 : 0.895),
-        shY   = b - h * (seated ? 0.300 : 0.745),
-        hipY  = b - h * (seated ? 0.020 : 0.455),
-        shW   = h * 0.104,
-        hipW  = h * 0.080,
-        limbW = h * 0.070;
+    /* skeleton — a shade chunkier than life, which is what makes a flat
+       figure read as drawn rather than as a stick */
+    /* Proportions. The head used to be 0.224 of the height — about four and a
+       half heads tall, which is a child. At 0.19 the figure comes out just
+       over five heads: still stylised, still friendly, but grown up. The neck
+       lengthened by the same amount it lost. */
+    var headR = h * 0.095,
+        headY = b - h * (seated ? 0.462 : 0.895),
+        shY   = b - h * (seated ? 0.306 : 0.752),
+        hipY  = b - h * (seated ? 0.020 : 0.468),
+        shW   = h * 0.132,
+        hipW  = h * 0.100,
+        limbW = h * 0.082,
+        handR = limbW * 0.44;
 
     /* a little wonkiness, so no two are quite the same */
     var lean = (r() - 0.5) * 2.2;
@@ -1663,94 +1922,204 @@ svg { display: block; }
 
     var g = '';
 
-    function sleeve(arm) {                     /* the cloth that covers the joint */
-      return limbPath([arm[0], [arm[0][0] + (arm[1][0] - arm[0][0]) * 0.62,
-                                arm[0][1] + (arm[1][1] - arm[0][1]) * 0.62]],
-        limbW * 1.06, flat || shade(cloth, -0.04));
+    /* anything that falls past the jaw hangs behind the whole figure */
+    if (!flat && !o.back) g += hairBehind(hairStyle, x + h * 0.010 * dir, headY, headR, dir, hair);
+
+    /* the cloth that covers the shoulder joint, so an arm never looks
+       pinned on: a sleeve down the first two thirds of the upper arm */
+    function sleeve(arm, len) {
+      return limbPath([arm[0], [arm[0][0] + (arm[1][0] - arm[0][0]) * (len || 0.8),
+                                arm[0][1] + (arm[1][1] - arm[0][1]) * (len || 0.8)]],
+        limbW * 1.02, flat || shade(cloth, -0.05));
+    }
+    function hand(arm, tone) {
+      return '<circle cx="' + f(arm[2][0]) + '" cy="' + f(arm[2][1]) + '" r="' + f(handR) + '" fill="' + (flat || tone) + '"/>';
     }
 
+    /* a shoe, with a bit of a toe on it rather than a flat bean */
+    function foot(pt, tone) {
+      var fx = pt[0], fy = pt[1] + limbW * 0.16;
+      return '<path d="M ' + f(fx - limbW * 0.36) + ' ' + f(fy - limbW * 0.30) +
+        ' l ' + f(limbW * 0.66) + ' 0' +
+        ' q ' + f(limbW * 0.62 * dir) + ' ' + f(limbW * 0.10) + ' ' + f(limbW * 0.64 * dir) + ' ' + f(limbW * 0.34) +
+        ' q 0 ' + f(limbW * 0.20) + ' -' + f(limbW * 0.26) + ' ' + f(limbW * 0.20) +
+        ' l -' + f(limbW * 1.06) + ' 0 Z" fill="' + tone + '"/>';
+    }
+
+    /* A gown covers the legs whether its wearer is standing or sitting. The
+       floor-length skirt below only draws when they are on their feet, so a
+       seated guest in a gown would otherwise be sitting there in bare legs. */
+    var legTone = gown ? cloth : (dress ? skin : pants);
+
     /* --- far arm and far leg go behind the body ---------------------- */
-    g += limbPath(legFar, limbW, flat || shade(cloth, -0.20));
-    g += limbPath(armFar, limbW * 0.80, flat || shade(skin, -0.10));
-    if (!flat) g += sleeve(armFar);
+    g += limb(legFar, limbW * 1.04, limbW * 0.80, flat || shade(legTone, -0.14));
+    g += limb(armFar, limbW * 0.84, limbW * 0.60, flat || shade(skin, -0.10));
+    if (!flat) { g += sleeve(armFar); g += hand(armFar, shade(skin, -0.10)); }
+    if (o.holdFar) g += prop(o.holdFar, armFar[2][0], armFar[2][1] - handR * 0.5, h * 0.012, o.holdFarTint);
 
     /* --- near leg ---------------------------------------------------- */
-    g += limbPath(legNear, limbW, flat || shade(cloth, -0.08));
-    if (!flat) {
-      g += '<ellipse cx="' + f(legFar[2][0]) + '" cy="' + f(legFar[2][1] + limbW * 0.16) + '" rx="' + f(limbW * 0.70) + '" ry="' + f(limbW * 0.36) + '" fill="' + shade(shoe, 0.12) + '"/>';
-      g += '<ellipse cx="' + f(legNear[2][0]) + '" cy="' + f(legNear[2][1] + limbW * 0.16) + '" rx="' + f(limbW * 0.74) + '" ry="' + f(limbW * 0.38) + '" fill="' + shoe + '"/>';
+    g += limb(legNear, limbW * 1.08, limbW * 0.82, flat || legTone);
+    if (!flat && !(gown && !seated)) {
+      g += foot(legFar[2], shade(shoe, 0.14));
+      g += foot(legNear[2], shoe);
     }
 
     /* --- neck, drawn first so the collar covers where it joins -------- */
-    g += '<rect x="' + f(x - h * 0.020 + h * 0.006 * dir) + '" y="' + f(headY + headR * 0.42) +
-      '" width="' + f(h * 0.040) + '" height="' + f(h * 0.105) + '" fill="' + (flat || shade(skin, -0.16)) + '"/>';
+    g += '<rect x="' + f(x - h * 0.022 + h * 0.006 * dir) + '" y="' + f(headY + headR * 0.42) +
+      '" width="' + f(h * 0.044) + '" height="' + f(h * 0.105) + '" fill="' + (flat || shade(skin, -0.18)) + '"/>';
 
-    /* --- torso: round shoulders, a little waist ---------------------- */
-    var torso = 'M ' + f(x - shW) + ' ' + f(shY + h * 0.022) +
-      ' C ' + f(x - shW) + ' ' + f(shY - h * 0.030) + ', ' + f(x - shW * 0.44) + ' ' + f(shY - h * 0.046) + ', ' + f(x) + ' ' + f(shY - h * 0.046) +
-      ' C ' + f(x + shW * 0.44) + ' ' + f(shY - h * 0.046) + ', ' + f(x + shW) + ' ' + f(shY - h * 0.030) + ', ' + f(x + shW) + ' ' + f(shY + h * 0.022) +
-      ' L ' + f(x + hipW) + ' ' + f(hipY) + ' Q ' + f(x) + ' ' + f(hipY + h * 0.024) + ' ' + f(x - hipW) + ' ' + f(hipY) + ' Z';
+    /* --- torso: round shoulders, a little waist, a soft hem ---------- */
+    var torso = 'M ' + f(x - shW) + ' ' + f(shY + h * 0.024) +
+      ' C ' + f(x - shW) + ' ' + f(shY - h * 0.034) + ', ' + f(x - shW * 0.42) + ' ' + f(shY - h * 0.050) + ', ' + f(x) + ' ' + f(shY - h * 0.050) +
+      ' C ' + f(x + shW * 0.42) + ' ' + f(shY - h * 0.050) + ', ' + f(x + shW) + ' ' + f(shY - h * 0.034) + ', ' + f(x + shW) + ' ' + f(shY + h * 0.024) +
+      ' L ' + f(x + hipW) + ' ' + f(hipY) + ' Q ' + f(x) + ' ' + f(hipY + h * 0.028) + ' ' + f(x - hipW) + ' ' + f(hipY) + ' Z';
     g += '<path d="' + torso + '" fill="' + cloth + '"/>';
     if (!flat) {
       /* a wedge of shade down the shadowed edge, so the body reads as solid */
-      g += '<path d="M ' + f(x + shW * 0.40 * dir) + ' ' + f(shY - h * 0.018) +
-        ' L ' + f(x + shW * dir) + ' ' + f(shY + h * 0.022) +
+      g += '<path d="M ' + f(x + shW * 0.40 * dir) + ' ' + f(shY - h * 0.020) +
+        ' L ' + f(x + shW * dir) + ' ' + f(shY + h * 0.024) +
         ' L ' + f(x + hipW * dir) + ' ' + f(hipY) +
-        ' L ' + f(x + hipW * 0.40 * dir) + ' ' + f(hipY) + ' Z" fill="' + shade(cloth, -0.18) + '" opacity=".3"/>';
+        ' L ' + f(x + hipW * 0.40 * dir) + ' ' + f(hipY) + ' Z" fill="' + shade(cloth, -0.20) + '" opacity=".12"/>';
+      /* the neckline — a soft curve of shade where the collar sits */
+      g += '<path d="M ' + f(x - shW * 0.40) + ' ' + f(shY - h * 0.048) +
+        ' Q ' + f(x) + ' ' + f(shY + h * 0.010) + ' ' + f(x + shW * 0.40) + ' ' + f(shY - h * 0.048) +
+        ' Q ' + f(x) + ' ' + f(shY - h * 0.022) + ' ' + f(x - shW * 0.40) + ' ' + f(shY - h * 0.048) + ' Z" fill="' + shade(cloth, -0.26) + '" opacity=".38"/>';
     }
-    if (dress && !seated) {
-      g += '<path d="M ' + f(x - hipW * 1.06) + ' ' + f(hipY - h * 0.045) +
-        ' L ' + f(x + hipW * 1.06) + ' ' + f(hipY - h * 0.045) +
-        ' L ' + f(x + hipW * 1.95) + ' ' + f(hipY + h * 0.175) +
-        ' Q ' + f(x) + ' ' + f(hipY + h * 0.215) + ' ' + f(x - hipW * 1.95) + ' ' + f(hipY + h * 0.175) + ' Z" fill="' + cloth + '"/>';
-      g += '<path d="M ' + f(x + hipW * 0.35 * dir) + ' ' + f(hipY - h * 0.045) + ' L ' + f(x + hipW * 1.95 * dir) + ' ' + f(hipY + h * 0.175) +
-        ' Q ' + f(x + hipW * 0.9 * dir) + ' ' + f(hipY + h * 0.203) + ' ' + f(x + hipW * 0.22 * dir) + ' ' + f(hipY + h * 0.192) + ' Z" fill="' + shade(cloth, -0.14) + '" opacity=".45"/>';
+    if (suit && !flat && !o.back) {
+      /* An open jacket: a wedge of shirt down the chest, a lapel either side
+         of it, and a tie down the middle. Three small shapes, but they are
+         the difference between "dark top" and "black tie" at this size. */
+      var vTop = shY - h * 0.044, vBot = shY + h * 0.088;
+      g += '<path d="M ' + f(x - shW * 0.34) + ' ' + f(vTop) +
+        ' L ' + f(x + shW * 0.34) + ' ' + f(vTop) +
+        ' L ' + f(x) + ' ' + f(vBot) + ' Z" fill="' + SHIRT + '"/>';
+      g += '<path d="M ' + f(x - shW * 0.40) + ' ' + f(vTop - h * 0.004) +
+        ' L ' + f(x - shW * 0.02) + ' ' + f(vBot) +
+        ' L ' + f(x - shW * 0.66) + ' ' + f(vTop + h * 0.052) + ' Z" fill="' + shade(cloth, -0.26) + '"/>';
+      g += '<path d="M ' + f(x + shW * 0.40) + ' ' + f(vTop - h * 0.004) +
+        ' L ' + f(x + shW * 0.02) + ' ' + f(vBot) +
+        ' L ' + f(x + shW * 0.66) + ' ' + f(vTop + h * 0.052) + ' Z" fill="' + shade(cloth, 0.10) + '"/>';
+      g += '<path d="M ' + f(x - shW * 0.10) + ' ' + f(vTop + h * 0.004) +
+        ' L ' + f(x + shW * 0.10) + ' ' + f(vTop + h * 0.004) +
+        ' L ' + f(x + shW * 0.05) + ' ' + f(vBot - h * 0.006) +
+        ' L ' + f(x - shW * 0.05) + ' ' + f(vBot - h * 0.006) + ' Z" fill="' + shade(cloth, -0.42) + '"/>';
     }
-
-    /* --- near arm sits on top of the torso, joined at the shoulder ---- */
-    g += limbPath(armNear, limbW * 0.80, flat || shade(skin, 0.04));
-    if (!flat) g += sleeve(armNear);
-    if (o.hold) g += prop(o.hold, armNear[2][0], armNear[2][1], h * 0.011, o.holdTint);
-
-    /* --- head --------------------------------------------------------- */
-    var hx = x + h * 0.010 * dir;
-    var style = r();
-    if (o.back) {                              /* seen from behind */
-      g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR * 1.04) + '" fill="' + (flat || hair) + '"/>';
-      if (style < 0.4) g += '<circle cx="' + f(hx) + '" cy="' + f(headY - headR * 0.72) + '" r="' + f(headR * 0.46) + '" fill="' + (flat || shade(hair, 0.12)) + '"/>';
-    } else if (!flat) {
-      /* hair behind, face in front: the join can never come apart */
-      if (style < 0.30) {                       /* long hair, down the back */
-        g += '<path d="M ' + f(hx - headR * 1.02) + ' ' + f(headY - headR * 0.1) +
-          ' q -' + f(headR * 0.30) + ' ' + f(headR * 2.4) + ' ' + f(headR * 0.55) + ' ' + f(headR * 2.7) +
-          ' l ' + f(headR * 1.5) + ' 0' +
-          ' q ' + f(headR * 0.85) + ' -' + f(headR * 0.3) + ' ' + f(headR * 0.5) + ' -' + f(headR * 2.7) + ' Z" fill="' + hair + '"/>';
-      } else if (style < 0.44) {                /* a bun */
-        g += '<circle cx="' + f(hx - headR * 1.0 * dir) + '" cy="' + f(headY - headR * 0.62) + '" r="' + f(headR * 0.44) + '" fill="' + hair + '"/>';
+    if (!flat) {
+      /* the hem of the shirt, which is where a body stops being a shape */
+      g += '<path d="M ' + f(x - hipW * 1.01) + ' ' + f(hipY - h * 0.026) +
+        ' Q ' + f(x) + ' ' + f(hipY + h * 0.002) + ' ' + f(x + hipW * 1.01) + ' ' + f(hipY - h * 0.026) +
+        ' L ' + f(x + hipW) + ' ' + f(hipY) + ' Q ' + f(x) + ' ' + f(hipY + h * 0.028) + ' ' + f(x - hipW) + ' ' + f(hipY) +
+        ' Z" fill="' + shade(cloth, -0.22) + '" opacity=".45"/>';
+    }
+    if (gown && !seated) {
+      /* floor length, with a little sweep at the hem. Drawn after the torso
+         so it covers the legs, which is what a gown does. */
+      g += '<path d="M ' + f(x - hipW * 1.02) + ' ' + f(hipY - h * 0.055) +
+        ' L ' + f(x + hipW * 1.02) + ' ' + f(hipY - h * 0.055) +
+        ' C ' + f(x + hipW * 1.5) + ' ' + f(hipY + h * 0.18) + ', ' + f(x + hipW * 1.9) + ' ' + f(b - h * 0.03) + ', ' + f(x + hipW * 2.0) + ' ' + f(b) +
+        ' Q ' + f(x) + ' ' + f(b + h * 0.022) + ' ' + f(x - hipW * 2.0) + ' ' + f(b) +
+        ' C ' + f(x - hipW * 1.9) + ' ' + f(b - h * 0.03) + ', ' + f(x - hipW * 1.5) + ' ' + f(hipY + h * 0.18) + ', ' + f(x - hipW * 1.02) + ' ' + f(hipY - h * 0.055) +
+        ' Z" fill="' + cloth + '"/>';
+      if (!flat) {
+        g += '<path d="M ' + f(x + hipW * 0.30 * dir) + ' ' + f(hipY - h * 0.05) +
+          ' C ' + f(x + hipW * 1.2 * dir) + ' ' + f(hipY + h * 0.18) + ', ' + f(x + hipW * 1.8 * dir) + ' ' + f(b - h * 0.03) + ', ' + f(x + hipW * 1.98 * dir) + ' ' + f(b) +
+          ' Q ' + f(x + hipW * 0.9 * dir) + ' ' + f(b + h * 0.012) + ' ' + f(x + hipW * 0.2 * dir) + ' ' + f(b - h * 0.004) +
+          ' Z" fill="' + shade(cloth, -0.17) + '" opacity=".38"/>';
       }
-      g += '<circle cx="' + f(hx) + '" cy="' + f(headY - headR * 0.15) + '" r="' + f(headR * 1.06) + '" fill="' + hair + '"/>';
+    } else if (dress && !seated) {
+      g += '<path d="M ' + f(x - hipW * 1.04) + ' ' + f(hipY - h * 0.048) +
+        ' L ' + f(x + hipW * 1.04) + ' ' + f(hipY - h * 0.048) +
+        ' L ' + f(x + hipW * 1.92) + ' ' + f(hipY + h * 0.178) +
+        ' Q ' + f(x) + ' ' + f(hipY + h * 0.218) + ' ' + f(x - hipW * 1.92) + ' ' + f(hipY + h * 0.178) + ' Z" fill="' + cloth + '"/>';
+      if (!flat) {
+        g += '<path d="M ' + f(x + hipW * 0.35 * dir) + ' ' + f(hipY - h * 0.048) + ' L ' + f(x + hipW * 1.92 * dir) + ' ' + f(hipY + h * 0.178) +
+          ' Q ' + f(x + hipW * 0.9 * dir) + ' ' + f(hipY + h * 0.206) + ' ' + f(x + hipW * 0.22 * dir) + ' ' + f(hipY + h * 0.195) + ' Z" fill="' + shade(cloth, -0.16) + '" opacity=".42"/>';
+      }
     }
-    if (!o.back) g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR) + '" fill="' + skin + '"/>';
-    if (!flat && !o.back) {
-      /* the fringe, sitting on the brow */
-      g += '<ellipse cx="' + f(hx + headR * 0.06 * dir) + '" cy="' + f(headY - headR * 0.60) + '" rx="' + f(headR * 0.99) + '" ry="' + f(headR * 0.46) + '" fill="' + hair + '"/>';
-      /* the smallest possible face */
-      g += '<circle cx="' + f(hx + headR * 0.34 * dir) + '" cy="' + f(headY + headR * 0.02) + '" r="' + f(headR * 0.10) + '" fill="' + shade(skin, -0.5) + '" opacity=".75"/>';
-      g += '<circle cx="' + f(hx - headR * 0.30 * dir) + '" cy="' + f(headY + headR * 0.02) + '" r="' + f(headR * 0.10) + '" fill="' + shade(skin, -0.5) + '" opacity=".55"/>';
-      g += '<path d="M ' + f(hx - headR * 0.16 * dir) + ' ' + f(headY + headR * 0.44) +
-        ' q ' + f(headR * 0.30 * dir) + ' ' + f(headR * (o.pose === 'laugh' ? 0.46 : 0.28)) + ' ' + f(headR * 0.56 * dir) + ' ' + f(headR * 0.02) + '" ' +
-        'fill="none" stroke="' + shade(skin, -0.5) + '" stroke-width="' + f(headR * 0.15) + '" stroke-linecap="round" opacity=".8"/>';
-      g += '<circle cx="' + f(hx + headR * 0.72 * dir) + '" cy="' + f(headY + headR * 0.28) + '" r="' + f(headR * 0.22) + '" fill="#D98A5E" opacity=".28"/>';
+
+    /* --- near arm sits on top of the torso, joined at the shoulder ----
+       Optionally its own animated group, pivoting on that shoulder: a guest
+       who lifts a glass while they talk is worth ten who only sway. */
+    var armG = limb(armNear, limbW * 0.84, limbW * 0.60, flat || shade(skin, 0.04));
+    if (!flat) { armG += sleeve(armNear); armG += hand(armNear, shade(skin, 0.04)); }
+    if (o.hold) armG += prop(o.hold, armNear[2][0], armNear[2][1] - handR * 0.5, h * 0.012, o.holdTint);
+    if (o.armAnim) {
+      armG = '<g class="' + o.armAnim + '" style="transform-box:view-box;transform-origin:' +
+        f(shR[0]) + 'px ' + f(shR[1]) + 'px;animation-delay:' +
+        f(o.armDelay != null ? o.armDelay : -(r() * 5)) + 's">' + armG + '</g>';
     }
+    g += armG;
+
+    /* --- head ---------------------------------------------------------
+       Built into its own string, then optionally wrapped in a group that
+       pivots on the base of the neck, so a listening guest can nod. */
+    var hx = x + h * 0.010 * dir;
+    var headG = '';
+    var gHead = g; g = '';
+    if (o.back) {                              /* seen from behind */
+      g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR * 1.06) + '" fill="' + (flat || hair) + '"/>';
+      if (!flat) {
+        if (hairStyle === 'bun') g += '<circle cx="' + f(hx) + '" cy="' + f(headY - headR * 0.82) + '" r="' + f(headR * 0.5) + '" fill="' + shade(hair, 0.1) + '"/>';
+        else if (hairStyle === 'long' || hairStyle === 'wave') {
+          g += '<path d="M ' + f(hx - headR * 1.04) + ' ' + f(headY) +
+            ' q -' + f(headR * 0.2) + ' ' + f(headR * 2.2) + ' ' + f(headR * 0.4) + ' ' + f(headR * 2.4) +
+            ' l ' + f(headR * 1.3) + ' 0 q ' + f(headR * 0.6) + ' -' + f(headR * 0.2) + ' ' + f(headR * 0.4) + ' -' + f(headR * 2.4) + ' Z" fill="' + hair + '"/>';
+        } else if (hairStyle === 'curls') {
+          for (var ci = 0; ci < 7; ci++) {
+            var ca = Math.PI * (1.0 + ci * (1.0 / 6));
+            g += '<circle cx="' + f(hx + Math.cos(ca) * headR * 0.9) + '" cy="' + f(headY + Math.sin(ca) * headR * 0.9) +
+              '" r="' + f(headR * 0.5) + '" fill="' + hair + '"/>';
+          }
+        }
+      }
+    } else {
+      if (!flat) g += hairBack(hairStyle, hx, headY, headR, dir, hair);
+      g += '<circle cx="' + f(hx) + '" cy="' + f(headY) + '" r="' + f(headR) + '" fill="' + skin + '"/>';
+      if (!flat) {
+        g += hairFront(hairStyle, hx, headY, headR, dir, hair);
+        /* ears, eyes, a smile — the smallest possible face */
+        g += '<circle cx="' + f(hx - headR * 0.98 * dir) + '" cy="' + f(headY + headR * 0.12) + '" r="' + f(headR * 0.16) + '" fill="' + shade(skin, -0.12) + '"/>';
+        g += '<circle cx="' + f(hx + headR * 0.36 * dir) + '" cy="' + f(headY + headR * 0.04) + '" r="' + f(headR * 0.125) + '" fill="#3B2A22" opacity=".9"/>';
+        g += '<circle cx="' + f(hx - headR * 0.26 * dir) + '" cy="' + f(headY + headR * 0.04) + '" r="' + f(headR * 0.125) + '" fill="#3B2A22" opacity=".78"/>';
+        if (o.pose === 'laugh') {
+          g += '<ellipse cx="' + f(hx + headR * 0.10 * dir) + '" cy="' + f(headY + headR * 0.48) + '" rx="' + f(headR * 0.26) + '" ry="' + f(headR * 0.22) + '" fill="#7A3B2C" opacity=".85"/>';
+        } else {
+          g += '<path d="M ' + f(hx - headR * 0.20 * dir) + ' ' + f(headY + headR * 0.40) +
+            ' q ' + f(headR * 0.30 * dir) + ' ' + f(headR * 0.34) + ' ' + f(headR * 0.60 * dir) + ' ' + f(headR * 0.02) + '" ' +
+            'fill="none" stroke="#3B2A22" stroke-width="' + f(headR * 0.15) + '" stroke-linecap="round" opacity=".85"/>';
+        }
+        g += '<circle cx="' + f(hx + headR * 0.70 * dir) + '" cy="' + f(headY + headR * 0.30) + '" r="' + f(headR * 0.20) + '" fill="#D9714E" opacity=".26"/>';
+        g += '<circle cx="' + f(hx - headR * 0.60 * dir) + '" cy="' + f(headY + headR * 0.32) + '" r="' + f(headR * 0.17) + '" fill="#D9714E" opacity=".18"/>';
+      }
+    }
+
+    headG = g; g = gHead;
+    if (o.headAnim) {
+      headG = '<g class="' + o.headAnim + '" style="transform-box:view-box;transform-origin:' +
+        f(hx) + 'px ' + f(headY + headR * 1.15) + 'px;animation-delay:' +
+        f(o.headDelay != null ? o.headDelay : -(r() * 5)) + 's">' + headG + '</g>';
+    }
+    g += headG;
 
     /* --- ground shadow ------------------------------------------------ */
     var shadow = (!flat && !seated && o.shadow !== false)
       ? '<ellipse cx="' + f(x) + '" cy="' + f(b + limbW * 0.3) + '" rx="' + f(h * 0.15) + '" ry="' + f(h * 0.032) + '" fill="rgba(59,42,34,.20)"/>'
       : '';
 
+    /* --- how it moves --------------------------------------------------
+       The animation origin is the ground under the figure, in the layer's
+       own coordinates (`transform-box: view-box` — the stylesheet's default
+       of fill-box would measure from the corner of each figure's own box,
+       which is what used to make one guest wave about while their neighbour
+       barely twitched). The travel is a fraction of the figure's height, so
+       a small guest at the back of the terrace and a large one at the table
+       move by the same amount *of themselves*: one scene, one intensity. */
     var cls = o.anim !== false ? (o.anim || 'ww-idle') : '';
     var delay = o.delay != null ? o.delay : -(r() * 6);
-    return shadow + '<g class="' + cls + '" style="transform-origin:' + f(x) + 'px ' + f(b) + 'px;' +
+    var vars = '--ww-amp-y:' + f(-h * 0.009) + 'px;--ww-amp-x:' + f(h * 0.10) + 'px;' +
+               '--ww-lift:' + f(-h * 0.052) + 'px;';
+    return shadow + '<g class="' + cls + '" style="transform-box:view-box;transform-origin:' +
+      f(x) + 'px ' + f(b) + 'px;' + vars +
       (cls ? 'animation-delay:' + f(delay) + 's;' : '') + '">' +
       (lean ? '<g transform="rotate(' + f(lean) + ' ' + f(x) + ' ' + f(b) + ')">' + g + '</g>' : g) +
       '</g>';
@@ -1774,15 +2143,26 @@ svg { display: block; }
     var n = opts.n || (r() < 0.45 ? 3 : 2);
     var talker = (r() * n) | 0;
     for (var i = 0; i < n; i++) {
-      var off = (i - (n - 1) / 2) * h * 0.36;
+      var off = (i - (n - 1) / 2) * h * 0.42;
       var hh = h * (0.93 + r() * 0.14);
       var facing = off <= 0;                       /* everyone faces the middle */
       var pose = i === talker ? 'chat' : (r() < 0.3 ? 'laugh' : 'listen');
+      /* `lively` is for a crowd the guest is meant to watch: everyone shifts
+         their weight, most of them nod, the talker uses their hands. Leave it
+         off for people who are only scenery. */
+      var anim = pose === 'laugh' ? 'ww-laugh'
+               : opts.lively ? 'ww-mingle'
+               : (i === talker ? 'ww-talk' : 'ww-idle');
       g += person({
         x: x + off, baseY: baseY + (r() - 0.5) * h * 0.03, h: hh,
         pose: pose, flip: !facing, seed: (seed || 7) * 31 + i * 7,
         hold: r() < 0.45 ? 'glass' : null,
-        anim: pose === 'laugh' ? 'ww-laugh' : (i === talker ? 'ww-talk' : 'ww-idle'),
+        anim: anim,
+        headAnim: opts.lively ? (r() < 0.55 ? 'ww-nod' : 'ww-nod-slow') : null,
+        armAnim: opts.lively && (i === talker || r() < 0.4) ? 'ww-arm-talk' : null,
+        delay: opts.lively ? -((seed || 7) * 0.7 + i * 1.9) % 6 : null,
+        headDelay: opts.lively ? -((seed || 7) * 0.3 + i * 1.3) % 5 : null,
+        evening: opts.evening,
         flat: opts.flat, cloth: opts.cloth
       });
     }
@@ -1989,13 +2369,29 @@ svg { display: block; }
       ' q ' + f(10 * s) + ' ' + f(90 * s) + ' ' + f(22 * s) + ' ' + f(96 * s) +
       ' l ' + f(48 * s) + ' 0 q ' + f(12 * s) + ' -' + f(6 * s) + ' ' + f(22 * s) + ' -' + f(96 * s) + ' Z" fill="' + P.terracotta + '"/>';
     g += '<rect x="' + f(x - 52 * s) + '" y="' + f(baseY - 106 * s) + '" width="' + f(104 * s) + '" height="' + f(14 * s) + '" rx="' + f(5 * s) + '" fill="' + P.terraDeep + '"/>';
+    /* The plant used to be a handful of ellipses scattered above the rim,
+       which is why it looked like it had come loose the moment it moved.
+       Now every leaf grows on a stem out of the mouth of the urn, and the
+       whole spray turns about that same point — so it can lean into the
+       breeze and still, unmistakably, be growing in the pot. */
     var r = rand(x | 0), leaves = '';
-    for (var i = 0; i < 9; i++) {
-      var lx = x + (r() - 0.5) * 78 * s, ly = baseY - (108 + r() * 52) * s;
-      leaves += '<ellipse cx="' + f(lx) + '" cy="' + f(ly) + '" rx="' + f((16 + r() * 10) * s) + '" ry="' + f((7 + r() * 5) * s) +
-        '" fill="' + (i % 2 ? '#6E7F52' : '#87975F') + '" transform="rotate(' + ((r() * 120 - 60) | 0) + ' ' + f(lx) + ' ' + f(ly) + ')"/>';
+    var rimY = baseY - 104 * s, n = 11;
+    for (var i = 0; i < n; i++) {
+      var spread = (i - (n - 1) / 2) / ((n - 1) / 2);          // -1 … 1
+      var ang = -Math.PI / 2 + spread * 1.16 + (r() - 0.5) * 0.16;
+      var len = (40 + (1 - Math.abs(spread)) * 34 + r() * 16) * s;
+      var tipX = x + Math.cos(ang) * len, tipY = rimY + Math.sin(ang) * len;
+      var midX = x + Math.cos(ang) * len * 0.62, midY = rimY + Math.sin(ang) * len * 0.62;
+      leaves += '<path d="M ' + f(x) + ' ' + f(rimY) + ' Q ' + f(midX + Math.cos(ang) * 4 * s) + ' ' + f(midY) +
+        ' ' + f(tipX) + ' ' + f(tipY) + '" fill="none" stroke="#5E6E46" stroke-width="' + f(2.6 * s) + '" stroke-linecap="round"/>';
+      leaves += '<ellipse cx="' + f(midX) + '" cy="' + f(midY) + '" rx="' + f((15 + r() * 7) * s) + '" ry="' + f((6.5 + r() * 3) * s) +
+        '" fill="' + (i % 2 ? '#6E7F52' : '#87975F') +
+        '" transform="rotate(' + f(ang * 180 / Math.PI) + ' ' + f(midX) + ' ' + f(midY) + ')"/>';
+      leaves += '<ellipse cx="' + f(tipX) + '" cy="' + f(tipY) + '" rx="' + f((11 + r() * 6) * s) + '" ry="' + f((5 + r() * 2.6) * s) +
+        '" fill="' + (i % 2 ? '#7C8B5E' : '#96A46B') +
+        '" transform="rotate(' + f(ang * 180 / Math.PI) + ' ' + f(tipX) + ' ' + f(tipY) + ')"/>';
     }
-    return g + '<g class="ww-sway" style="transform-origin:' + f(x) + 'px ' + f(baseY - 100 * s) + 'px">' + leaves + '</g>';
+    return g + '<g class="ww-sway" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(rimY) + 'px">' + leaves + '</g>';
   }
 
   /* ======================================================================
@@ -2011,14 +2407,18 @@ svg { display: block; }
         ' L ' + f(x + w) + ' ' + f(y + h) + ' Z';
     }
 
+    /* Light at the lintel, deeper towards the threshold — the way a lit room
+       looks from outside. The lower half of every one of these is dark
+       enough to carry the ivory "Enter" that sits at the middle of the
+       opening, which is what lets one colour of type work on all seven. */
     var interiors = {
-      welcome:    ['#F6D9A8', '#C4643C'],
-      wedding:    ['#FFE9BE', '#D98A5E'],
+      welcome:    ['#F6D9A8', '#A84F2C'],
+      wedding:    ['#FFE9BE', '#B96A3E'],
       afterparty: ['#B98CC9', '#3A2550'],
-      explore:    ['#BFE4E2', '#4FA3A5'],
-      stay:       ['#F3D9B2', '#A9613C'],
-      travel:     ['#D8E8EF', '#6E93A6'],
-      rsvp:       ['#FFE7B4', '#C4643C']
+      explore:    ['#BFE4E2', '#2F7B7E'],
+      stay:       ['#F3D9B2', '#8A4A2C'],
+      travel:     ['#D8E8EF', '#4E7185'],
+      rsvp:       ['#FFE7B4', '#A85232']
     };
     var pair = interiors[id] || interiors.welcome;
 
@@ -2061,17 +2461,74 @@ svg { display: block; }
       g += '<circle class="ww-flicker" cx="' + f(cx - 16) + '" cy="' + f(baseY - 74) + '" r="6" fill="#FFF0C6"/>';
       g += '<circle class="ww-flicker" cx="' + f(cx + 18) + '" cy="' + f(baseY - 78) + '" r="5" fill="#FFF0C6" style="animation-delay:-1.3s"/>';
     } else if (id === 'wedding') {
-      /* olive garland over the arch */
+      /* Through this arch you can see the ceremony terrace: the bay at
+         golden hour, a stone floor with petals on it, and the two of them
+         standing hand in hand. It used to be a flat slab of teal with a
+         hard edge across it and a cypress that read as a dark leaf.
+         Everything inside is clipped to the opening, so the sea and the
+         floor can run right to the jambs without spilling onto the stone. */
+      var wClip = A.uid('wed');
+      /* The horizon sits below the "Enter", not behind it: the word lives at
+         the middle of the opening and needs the plain warm gradient behind
+         it, and the couple's heads want sky around them rather than a band
+         of water cutting across at eye level. */
+      var seaY = baseY - 100, sillY = baseY - 44;
+      var rw = rand(59);
+      var inner = '';
+
+      /* the far shore, two headlands deep */
+      inner += '<ellipse cx="' + f(ax + 30) + '" cy="' + f(seaY + 3) + '" rx="50" ry="24" fill="#9DB6C4"/>';
+      inner += '<ellipse cx="' + f(ax + 108) + '" cy="' + f(seaY + 4) + '" rx="58" ry="16" fill="#88A5B6"/>';
+      /* the bay */
+      inner += '<rect x="' + f(ax - 8) + '" y="' + f(seaY) + '" width="' + f(aw + 16) + '" height="' + f(sillY - seaY) + '" fill="#6E9FA0"/>';
+      inner += '<rect x="' + f(ax - 8) + '" y="' + f(seaY) + '" width="' + f(aw + 16) + '" height="3" fill="#FFF0C6" opacity=".75"/>';
+      /* the path the low sun lays across the water */
+      for (var wg = 0; wg < 5; wg++) {
+        inner += '<rect class="ww-twinkle" x="' + f(cx - 8 - wg * 5) + '" y="' + f(seaY + 9 + wg * 8) + '" width="' + f(18 + wg * 7) + '" height="2.4" rx="1.2" fill="#FFF3D6" opacity=".6" style="animation-delay:' + (-wg * 0.7) + 's"/>';
+      }
+      /* the parapet, and the floor they are standing on */
+      inner += '<rect x="' + f(ax - 8) + '" y="' + f(sillY - 7) + '" width="' + f(aw + 16) + '" height="8" fill="#DFCBA6"/>';
+      inner += '<rect x="' + f(ax - 8) + '" y="' + f(sillY) + '" width="' + f(aw + 16) + '" height="' + f(baseY - sillY + 6) + '" fill="#E9D3A8"/>';
+      inner += '<rect x="' + f(ax - 8) + '" y="' + f(sillY + 1) + '" width="' + f(aw + 16) + '" height="3" fill="#F6EAD0" opacity=".85"/>';
+      /* the threshold stays warm, so this door glows from inside like the rest */
+      inner += '<rect x="' + f(ax - 8) + '" y="' + f(baseY - 16) + '" width="' + f(aw + 16) + '" height="22" fill="#C98A55" opacity=".45"/>';
+      /* petals, because somebody has already come up the aisle */
+      for (var pw = 0; pw < 14; pw++) {
+        inner += '<ellipse cx="' + f(ax + 8 + rw() * (aw - 16)) + '" cy="' + f(sillY + 9 + rw() * 32) + '" rx="' + f(2.2 + rw() * 1.8) + '" ry="' + f(1.1 + rw()) +
+          '" fill="' + (pw % 2 ? '#F0D2C4' : '#E8BCA8') + '" opacity=".95"/>';
+      }
+      inner += A.cypress(ax + 14, sillY + 5, 52, 'rgba(62,74,50,.62)');
+
+      /* --- the two of them ------------------------------------------------
+         Backs to us, looking out over the bay, hand in hand — no faces. That
+         is deliberate and it is Dana's call: at this size a face is three
+         dots, and three dots on the two people whose wedding this is looked
+         like a cartoon of them. Seen from behind they are anybody, which is
+         the point — the guest fills them in.
+         They are placed so the hands meet: a figure's hand reaches 0.233 of
+         its own height forward of centre in this pose, so the gap between
+         them is that, doubled. Move one and you have to move the other. */
+      inner += A.person({ x: cx - 20, baseY: baseY - 3, h: 96, pose: 'listen',
+        back: true, seed: 901, cloth: '#FBF4E8', dress: true, hair: '#3B2A22',
+        hairStyle: 'bun', skin: '#E6B183', holdFar: 'bouquet',
+        anim: 'ww-idle', shadow: false });
+      inner += A.person({ x: cx + 20, baseY: baseY - 3, h: 102, pose: 'listen',
+        back: true, flip: true, seed: 907, cloth: '#3B4A56', pants: '#2F3D49',
+        dress: false, hair: '#2A2018', hairStyle: 'crop', skin: '#CE8F60',
+        anim: 'ww-idle', delay: -2.4, shadow: false });
+      /* one shadow under the pair of them, rather than two */
+      inner += '<ellipse cx="' + f(cx) + '" cy="' + f(baseY - 2) + '" rx="44" ry="6" fill="rgba(90,68,44,.18)"/>';
+
+      g += '<defs><clipPath id="' + wClip + '"><path d="' + archShape(ax, ay, aw, ah) + '"/></clipPath></defs>';
+      g += '<g clip-path="url(#' + wClip + ')">' + inner + '</g>';
+
+      /* olive garland over the arch, drawn last so it sits on the stone */
       for (var i = 0; i < 22; i++) {
         var t = i / 21, gx = ax - 12 + t * (aw + 24);
         var gy = ay + 22 - Math.sin(t * Math.PI) * 44;
         g += '<ellipse cx="' + f(gx) + '" cy="' + f(gy) + '" rx="' + f(9 + r() * 4) + '" ry="' + f(3.4 + r() * 1.6) +
              '" fill="' + (i % 3 ? P.oliveDeep : P.olive) + '" transform="rotate(' + ((r() * 140 - 70) | 0) + ' ' + f(gx) + ' ' + f(gy) + ')"/>';
       }
-      /* the bay, seen through the doorway */
-      g += '<rect x="' + f(ax + 4) + '" y="' + f(baseY - 96) + '" width="' + f(aw - 8) + '" height="96" fill="#6E9FA0" opacity=".85"/>';
-      g += '<rect x="' + f(ax + 4) + '" y="' + f(baseY - 96) + '" width="' + f(aw - 8) + '" height="4" fill="#FFF0C6" opacity=".7"/>';
-      g += A.cypress(ax + 22, baseY, 92, 'rgba(59,55,34,.55)');
     } else if (id === 'afterparty') {
       g += A.lantern(ax - 20, ay + 66, 1.1, ay - 22);
       g += A.lantern(ax + aw + 20, ay + 82, 1.1, ay - 16);
@@ -2091,7 +2548,7 @@ svg { display: block; }
       g += shutter(ax + aw + 10, ay + 34, 0.85);
       g += '<rect x="' + f(cx - 30) + '" y="' + f(baseY - 118) + '" width="60" height="118" rx="4" fill="rgba(59,42,34,.28)"/>';
       g += '<circle cx="' + f(cx + 18) + '" cy="' + f(baseY - 60) + '" r="4" fill="' + P.gold + '"/>';
-      g += '<path class="ww-swing" style="transform-origin:' + f(cx + 60) + 'px ' + f(ay + 20) + 'px" d="M ' + f(cx + 60) + ' ' + f(ay + 20) + ' l 0 26 m -5 0 a 5 6 0 1 0 10 0 a 5 6 0 1 0 -10 0 m 5 6 l 0 12 l 5 0 m -5 6 l 4 0" stroke="' + P.gold + '" stroke-width="2.6" fill="none"/>';
+      g += '<path class="ww-swing" style="transform-box:view-box;transform-origin:' + f(cx + 60) + 'px ' + f(ay + 20) + 'px" d="M ' + f(cx + 60) + ' ' + f(ay + 20) + ' l 0 26 m -5 0 a 5 6 0 1 0 10 0 a 5 6 0 1 0 -10 0 m 5 6 l 0 12 l 5 0 m -5 6 l 4 0" stroke="' + P.gold + '" stroke-width="2.6" fill="none"/>';
     } else if (id === 'travel') {
       /* iron gate bars + a ferry on the water beyond */
       g += '<rect x="' + f(ax + 4) + '" y="' + f(baseY - 76) + '" width="' + f(aw - 8) + '" height="76" fill="#7FA3B0" opacity=".8"/>';
@@ -2099,20 +2556,24 @@ svg { display: block; }
       /* an aeroplane crossing the opening, climbing away over the water */
       g += '<g class="ww-plane-door">' + A.airplane(cx - 6, ay + 74, 0.62, '#4E6E80') + '</g>';
       g += '<ellipse cx="' + f(cx + 34) + '" cy="' + f(ay + 40) + '" rx="26" ry="9" fill="#FFFFFF" opacity=".5"/>';
-      g += '<ellipse cx="' + f(cx - 30) + '" cy="' + f(ay + 128) + '" rx="20" ry="7" fill="#FFFFFF" opacity=".38"/>';
-      g += '<path class="ww-spin-slow" style="transform-origin:' + f(cx) + 'px ' + f(ay - 58) + 'px" d="M ' + f(cx - 26) + ' ' + f(ay - 58) + ' l 40 0 l -8 -7 l 20 7 l -20 7 l 8 -7 Z" fill="#7A6247"/>';
+      /* kept clear of the "Enter" line at ay+127, which a pale cloud sitting
+         right behind the letters was washing out */
+      g += '<ellipse cx="' + f(cx - 32) + '" cy="' + f(ay + 88) + '" rx="20" ry="7" fill="#FFFFFF" opacity=".38"/>';
+      g += '<path class="ww-spin-slow" style="transform-box:view-box;transform-origin:' + f(cx) + 'px ' + f(ay - 58) + 'px" d="M ' + f(cx - 26) + ' ' + f(ay - 58) + ' l 40 0 l -8 -7 l 20 7 l -20 7 l 8 -7 Z" fill="#7A6247"/>';
       g += '<rect x="' + f(cx - 2) + '" y="' + f(ay - 58) + '" width="4" height="34" fill="#7A6247"/>';
     } else if (id === 'rsvp') {
       /* a mailbox and a wax seal, glowing gold */
-      g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 110) + '" r="60" fill="' + P.gold + '" opacity=".28"/>';
+      g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 72) + '" r="56" fill="' + P.gold + '" opacity=".28"/>';
       g += '<rect x="' + f(cx + 46) + '" y="' + f(baseY - 116) + '" width="9" height="116" fill="#7A6247"/>';
       g += '<rect x="' + f(cx + 24) + '" y="' + f(baseY - 156) + '" width="54" height="42" rx="8" fill="' + P.terracotta + '"/>';
       g += '<rect x="' + f(cx + 30) + '" y="' + f(baseY - 148) + '" width="42" height="5" rx="2" fill="rgba(59,42,34,.45)"/>';
       /* envelope hovering in the doorway */
-      g += '<g class="ww-hover-bob" style="transform-origin:' + f(cx) + 'px ' + f(ay + 120) + 'px">' +
-        '<rect x="' + f(cx - 40) + '" y="' + f(ay + 96) + '" width="80" height="54" rx="5" fill="#FFF6E4"/>' +
-        '<path d="M ' + f(cx - 40) + ' ' + f(ay + 100) + ' l 40 32 l 40 -32" fill="none" stroke="' + P.terraDeep + '" stroke-width="3"/>' +
-        '<circle cx="' + f(cx) + '" cy="' + f(ay + 138) + '" r="11" fill="' + P.terracotta + '"/>' +
+      /* The envelope hangs in the upper half of the arch: the "Enter" now sits
+         at the middle of the opening and the two were on top of each other. */
+      g += '<g class="ww-hover-bob" style="transform-box:view-box;transform-origin:' + f(cx) + 'px ' + f(ay + 80) + 'px">' +
+        '<rect x="' + f(cx - 36) + '" y="' + f(ay + 52) + '" width="72" height="48" rx="5" fill="#FFF6E4"/>' +
+        '<path d="M ' + f(cx - 36) + ' ' + f(ay + 56) + ' l 36 29 l 36 -29" fill="none" stroke="' + P.terraDeep + '" stroke-width="3"/>' +
+        '<circle cx="' + f(cx) + '" cy="' + f(ay + 90) + '" r="10" fill="' + P.terracotta + '"/>' +
         '</g>';
     }
 
@@ -2189,57 +2650,92 @@ svg { display: block; }
       A.stringLights(-40, 210, 1640, 250, 100, 11, 7) +
       A.stringLights(-40, 300, 1640, 176, 132, 9, 8) +
       (function () {
-        /* chairs behind, then the table, then chairs in front */
+        /* Chairs behind, then the table, then chairs in front. Nobody eats
+           alone here: there are exactly as many guests as there are seats,
+           on both sides, and the table was widened to hold them. The guest
+           who used to stand on their own at the right-hand end is gone —
+           they read as an offcut rather than part of the party. */
         var g = '';
-        for (var b = 0; b < 6; b++) {
-          var bx = 120 + b * 158;
+        var BACK = 7, FRONT = 6;
+        var backX  = function (i) { return 120 + i * 158 + 29; };
+        var frontX = function (i) { return 210 + i * 196; };
+        for (var b = 0; b < BACK; b++) {
+          var bx = backX(b) - 29;
           g += '<rect x="' + bx + '" y="666" width="58" height="14" rx="4" fill="#5C4436"/>';
           g += '<path d="M ' + bx + ' 666 l 0 -74 q 29 -14 58 0 l 0 74 Z" fill="#6B5039"/>';
         }
         /* the guests already sitting down, drawn before the table so it
-           covers their laps exactly as a real table would */
-        for (var d = 0; d < 6; d++) {
-          var dx = 120 + d * 158 + 29;
-          g += A.person({ x: dx, baseY: 710, h: 236 + (d % 3) * 11, pose: 'table',
-            seed: 200 + d * 13, flip: d % 2 === 1, shadow: false,
-            hold: d % 3 === 0 ? 'glass' : null,
-            anim: d % 2 ? 'ww-talk' : 'ww-idle' });
+           covers their laps exactly as a real table would. They lean and
+           turn towards each other rather than facing front in a row. */
+        /* This is the closest the guest ever gets to anybody, so it is the one
+           scene where the people are properly busy: everyone nods or gestures
+           or lifts a glass, on their own clock. The distant wedding crowd
+           deliberately does none of this — see the note on animation in
+           HANDOVER.md. */
+        var BEATS = [
+          { pose: 'tableUp', hold: 'glass', anim: 'ww-talk',  head: 'ww-nod',      arm: 'ww-arm-raise' },
+          { pose: 'table',   hold: null,    anim: 'ww-idle',  head: 'ww-nod-slow', arm: null },
+          { pose: 'tableIn', hold: null,    anim: 'ww-talk',  head: 'ww-nod',      arm: 'ww-arm-talk' },
+          { pose: 'tableUp', hold: 'glass', anim: 'ww-laugh', head: 'ww-nod',      arm: 'ww-arm-talk' },
+          { pose: 'table',   hold: null,    anim: 'ww-talk',  head: 'ww-nod-slow', arm: null },
+          { pose: 'tableIn', hold: null,    anim: 'ww-idle',  head: 'ww-nod',      arm: 'ww-arm-talk' },
+          { pose: 'tableUp', hold: 'glass', anim: 'ww-talk',  head: 'ww-nod',      arm: 'ww-arm-raise' }
+        ];
+        for (var d = 0; d < BACK; d++) {
+          var beat = BEATS[d % BEATS.length];
+          g += A.person({ x: backX(d), baseY: 710, h: 232 + (d % 3) * 12,
+            pose: beat.pose, seed: 200 + d * 13, flip: d % 2 === 1, shadow: false,
+            hold: beat.hold, anim: beat.anim,
+            headAnim: beat.head, armAnim: beat.arm,
+            delay: -(d * 1.7) % 6, headDelay: -(d * 2.3) % 5, armDelay: -(d * 1.1) % 5 });
         }
-        g += '<rect x="40" y="742" width="1140" height="26" rx="6" fill="#F2E7D2"/>';
-        g += '<rect x="40" y="768" width="1140" height="14" fill="#CBB795"/>';
+        g += '<rect x="40" y="742" width="1240" height="26" rx="6" fill="#F2E7D2"/>';
+        g += '<rect x="40" y="768" width="1240" height="14" fill="#CBB795"/>';
         for (var i = 0; i < 7; i++) {
-          var x = 96 + i * 168;
+          var x = 96 + i * 184;
           g += '<rect x="' + x + '" y="782" width="14" height="86" rx="3" fill="#6B5744"/>';
         }
-        /* place settings, with something on them */
-        for (var p2 = 0; p2 < 7; p2++) {
-          var px = 110 + p2 * 160;
-          g += A.plate(px, 757, 1, 300 + p2 * 7);
+        /* a place setting in front of every guest at the far side */
+        for (var p2 = 0; p2 < BACK; p2++) {
+          g += A.plate(backX(p2), 757, 0.92, 300 + p2 * 7);
         }
-        /* candles down the middle */
+        /* candles down the middle, between the settings */
+        /* Candles stand between the place settings, never in line with a guest:
+           the soft halo used to land exactly on somebody's forearm and read
+           as a glowing ball being held. Tall and thin, small flame, small
+           glow — they light the table without taking it over. */
         for (var c = 0; c < 6; c++) {
-          var cxp = 170 + c * 172;
-          g += '<rect x="' + cxp + '" y="694" width="13" height="50" rx="3" fill="#F8F1E0"/>';
-          g += '<circle class="ww-flicker" cx="' + (cxp + 6.5) + '" cy="688" r="7" fill="#FFE9B0" style="animation-delay:' + (-c * 0.6) + 's"/>';
-          g += '<circle class="ww-flicker" cx="' + (cxp + 6.5) + '" cy="688" r="21" fill="#F0B45C" opacity=".22" style="animation-delay:' + (-c * 0.6) + 's"/>';
+          var cxp = 226 + c * 158;
+          g += '<rect x="' + cxp + '" y="676" width="10" height="68" rx="3" fill="#F8F1E0"/>';
+          g += '<rect x="' + (cxp + 6) + '" y="676" width="4" height="68" fill="#E2D5BC" opacity=".7"/>';
+          g += '<circle class="ww-flicker" cx="' + (cxp + 5) + '" cy="670" r="5.5" fill="#FFE9B0" style="animation-delay:' + (-c * 0.6) + 's"/>';
+          g += '<circle class="ww-flicker" cx="' + (cxp + 5) + '" cy="670" r="13" fill="#F0B45C" opacity=".18" style="animation-delay:' + (-c * 0.6) + 's"/>';
         }
         /* a carafe and glasses, because someone always pours early */
         g += '<path d="M 560 742 l 0 -34 q 0 -14 12 -20 l 0 -12 l 20 0 l 0 12 q 12 6 12 20 l 0 34 Z" fill="#D8C9A8" opacity=".9"/>';
         g += '<path d="M 700 742 l 0 -22 q -9 -8 -9 -20 l 26 0 q 0 12 -9 20 l 0 22 Z" fill="#EFE7D4" opacity=".85"/>';
-        g += '<path d="M 940 742 l 0 -22 q -9 -8 -9 -20 l 26 0 q 0 12 -9 20 l 0 22 Z" fill="#EFE7D4" opacity=".85"/>';
-        /* front-row chairs, seen from behind — with three guests in them */
-        for (var fch = 0; fch < 5; fch++) {
-          var fx = 200 + fch * 214;
-          if (fch === 0 || fch === 2 || fch === 4) {
-            g += A.person({ x: fx + 40, baseY: 884, h: 300, pose: 'table', back: true,
-              seed: 400 + fch * 11, shadow: false, anim: fch === 2 ? 'ww-talk' : 'ww-idle' });
-          }
+        g += '<path d="M 1080 742 l 0 -34 q 0 -14 12 -20 l 0 -12 l 20 0 l 0 12 q 12 6 12 20 l 0 34 Z" fill="#D8C9A8" opacity=".9"/>';
+        /* front-row chairs, seen from behind — one guest in every one */
+        for (var fch = 0; fch < FRONT; fch++) {
+          var fx = frontX(fch) - 40;
+          g += A.person({ x: frontX(fch), baseY: 884, h: 292 + (fch % 3) * 10,
+            pose: fch % 3 === 1 ? 'tableUp' : 'table', back: true,
+            seed: 400 + fch * 11, shadow: false,
+            anim: fch % 2 ? 'ww-talk' : 'ww-idle',
+            headAnim: fch % 2 ? 'ww-nod' : 'ww-nod-slow',
+            armAnim: fch % 3 === 1 ? 'ww-arm-talk' : null,
+            delay: -(fch * 2.1) % 6, headDelay: -(fch * 1.3) % 5 });
           g += '<path d="M ' + fx + ' 960 l 0 -84 q 40 -16 80 0 l 0 84 Z" fill="#4E382A"/>';
           g += '<rect x="' + (fx - 6) + '" y="868" width="92" height="14" rx="6" fill="#5E452F"/>';
         }
-        /* one guest still on their feet at the end of the table, pouring */
-        g += A.person({ x: 1256, baseY: 806, h: 236, pose: 'toast', flip: true,
-          seed: 517, hold: 'glass', anim: 'ww-talk' });
+        /* A waiter coming up to the head of the table with a tray. He lives on
+           the left because on a laptop the details panel covers everything
+           past about x=1050 — put him at the other end and half the guests
+           would never see him. */
+        g += A.person({ x: 104, baseY: 902, h: 268, pose: 'serve', seed: 523,
+          cloth: '#F2E4CC', pants: '#3B3026', hairStyle: 'crop', dress: false,
+          skin: '#CE8F60', hold: 'tray', anim: 'ww-idle', headAnim: 'ww-nod-slow',
+          delay: -1.4, headDelay: -3.1 });
         return g;
       })() + '</g>'
     )});
@@ -2295,21 +2791,16 @@ svg { display: block; }
             '" fill="' + (i % 3 ? P.oliveDeep : P.olive) + '" transform="rotate(' + ((r() * 180 - 90) | 0) + ' ' + f(lx) + ' ' + f(ly) + ')"/>';
           if (i % 7 === 0) g += '<circle cx="' + f(lx + 8) + '" cy="' + f(ly + 6) + '" r="4.5" fill="#F0E2CB"/>';
         }
-        /* chairs either side of the aisle */
-        for (var c = 0; c < 5; c++) {
-          var yy = 828 + c * 20, sc = 1 + c * 0.12;
-          var seats = [[300 - c * 46, yy], [392 - c * 30, yy + 6],
-                       [1030 + c * 34, yy], [1122 + c * 48, yy + 6]];
-          for (var st = 0; st < seats.length; st++) {
-            /* not every seat is taken — people are still finding them */
-            if ((c * 4 + st) % 3 !== 1) {
-              g += A.person({ x: seats[st][0] + 13 * sc, baseY: seats[st][1] - 30 * sc,
-                h: 96 * sc, pose: 'table', back: true, shadow: false,
-                seed: 600 + c * 7 + st * 3, anim: (c + st) % 3 === 0 ? 'ww-talk' : 'ww-idle' });
-            }
-            g += chair(seats[st][0], seats[st][1], sc);
-          }
-        }
+        /* --- no chairs -------------------------------------------------
+           There were five rows of them either side of the aisle, with
+           thirteen guests sitting in them. They are gone at Dana's request.
+           Twenty seats and thirteen seated figures in a 1600-wide scene left
+           nowhere for anybody to stand without touching somebody else, and
+           the rows themselves were the densest thing in the picture. The
+           terrace is now bare stone with people standing about on it, which
+           is what the hour before a ceremony actually looks like. `chair()`
+           is still defined further down this file, unused, if they ever come
+           back. */
         /* petals down the aisle */
         var rp = rand(47);
         for (var p = 0; p < 40; p++) {
@@ -2317,27 +2808,138 @@ svg { display: block; }
             '" fill="' + (p % 2 ? '#F0D2C4' : '#E8BCA8') + '" opacity=".9"/>';
         }
 
-        /* --- the two of them, under the arch --------------------------- */
-        g += A.person({ x: 596, baseY: 806, h: 150, pose: 'listen', seed: 701,
-          cloth: '#FBF4E8', dress: true, anim: 'ww-idle' });
-        g += A.person({ x: 652, baseY: 806, h: 156, pose: 'chat', flip: true, seed: 707,
-          cloth: '#3B4A56', dress: false, anim: 'ww-talk' });
+        /* --- under the arch, nobody -----------------------------------
+           The two figures who used to stand here — drawn as the couple, in a
+           white dress and a dark suit — are gone at Dana's request. The arch
+           now stands dressed and waiting with the aisle open in front of it,
+           which is what the place looks like before everyone is called in,
+           and it stops two small figures having to carry the weight of being
+           "the couple" at 150px tall. */
 
-        /* --- the guests who are not sitting down ----------------------- */
-        g += A.chatGroup(150, 884, 126, 711);              /* near the terrace edge */
-        g += A.chatGroup(880, 878, 116, 719, { n: 3 });    /* by the aisle */
-        g += A.chatGroup(1420, 882, 120, 723, { n: 2 });   /* off to the right */
+        /* --- the guests ------------------------------------------------
+           Nineteen of them, gathered right across the terrace and through
+           the aisle, turned every which way: the pairs face each other,
+           three have their backs to us watching the arch, and the
+           photographer is side-on to it. The brief was a crowd standing
+           together — close, filling the width, no dead ground anywhere.
 
-        /* someone photographing the arch, someone raising a glass */
-        g += A.person({ x: 470, baseY: 890, h: 124, pose: 'photo', hold: 'camera',
-          seed: 727, anim: 'ww-idle' });
-        g += A.person({ x: 1010, baseY: 892, h: 122, pose: 'toast', hold: 'glass',
-          flip: true, seed: 733, anim: 'ww-talk' });
+           **Nobody touches anybody**, and that is why this is one flat list
+           rather than `chatGroup`. A chat group packs its figures 0.42 of a
+           height apart, which is narrower than their shoulders — so inside a
+           knot people always overlapped, however carefully the knots
+           themselves were spaced. Spacing the groups was fixing the wrong
+           thing.
 
-        /* two more drifting across the open terrace */
-        g += A.person({ x: 726, baseY: 896, h: 128, pose: 'walk', seed: 739, anim: 'ww-stroll' });
-        g += A.person({ x: 772, baseY: 899, h: 122, pose: 'walk', seed: 743, anim: 'ww-stroll',
-          delay: -2.6 });
+           **How wide a figure actually is, because this is easy to get
+           wrong.** A limb in `person()` hangs off the *shoulder*, at x ±
+           0.132h — the numbers in the POSES table are measured from there,
+           not from the figure's centre line. So a `chat` arm, whose hand
+           sits .170h out along the pose, reaches 0.132 + 0.170 + a hand
+           radius of 0.036 = **0.338h**, and 0.379h with a glass in it. An
+           earlier pass here assumed 0.235h, was wrong by a third of a
+           figure, and only escaped because the gaps happened to be wide.
+
+           The extents are therefore **per pose and per side**, and a flipped
+           figure has them the other way round:
+
+             chat   .223 / .338 (.379 with a glass)   laugh  .308 / .248
+             toast  .226 / .303 (.344 with a glass)   photo  .273 / .278
+             listen .238 / .283    wave .223 / .283   stand  .230 / .238
+
+           with a floor of 0.20h either side for a gown's hem, 0.15h for the
+           ground shadow and 0.14h for the head and hair. The spans below are
+           built from those, and the closest any two drawn figures come is
+           **17 units** — a real, visible sliver, with nothing touching. Gaps
+           run 17 to 31, unevenly, so the crowd breaks into knots rather than
+           reading as railings.
+
+           If you add somebody, work their span out the same way. Do not
+           eyeball it, do not use a single symmetric margin, and do not tuck
+           somebody in behind an existing figure — the terrace is only about
+           fifty units deep, far too little for a nearer figure to read as
+           *in front of* another rather than stuck to it.
+
+           **Depth is carried by size, not by y.** 88–96 at the back against
+           124–136 at the front, and baseY moves with the height, never on
+           its own. The sizes deliberately alternate along the row instead of
+           receding left to right, which is what stops it looking like a
+           queue.
+
+           **Feet at y=860 or above.** Measured on this layer, a laptop sees
+           the terrace from room x=59 across to wherever the details panel
+           starts (859 at 1280x820, 903 at 1440x900) and down to y=866.7 —
+           and a shoe hangs about 0.013h below its baseY, so a baseY of 864
+           would put the front row's soles on the line. Which guests fall
+           outside the frame changes with the window, and the ones at the far
+           ends drop out on a narrow one — that is fine, a crowd should run
+           past the edges.
+
+           **The aisle has people in it now.** It used to be held open, with
+           nothing between the guest and the arch; at Dana's request the gap
+           is closed and the crowd runs straight through. Nobody stands
+           directly under the keystone, so the arch still reads.
+
+           Everyone is in evening wear (`evening: true`) — gowns to the floor
+           and dark suits, from the GOWNS and SUITS palettes in art.js, which
+           carry the pinks, reds, oranges, yellows, purples and blues. There
+           is no colour set anywhere in this table on purpose: each figure
+           dresses itself from its seed, and that is what keeps the crowd
+           varied. If the room ever looks drab, widen the palette — do not
+           start pinning colours onto individuals here. */
+
+        var GUESTS = [
+          /*   x     h   baseY  pose       facing   holding */
+          {  x:   45, h: 130, y: 855, pose: 'chat',   face: 'r', hold: 'glass' },
+          {  x:  142, h:  96, y: 825, pose: 'listen', face: 'l' },
+          {  x:  226, h: 112, y: 839, pose: 'laugh',  face: 'r' },
+          {  x:  320, h: 136, y: 860, pose: 'toast',  face: 'l', hold: 'glass' },
+          {  x:  401, h:  92, y: 822, pose: 'stand',  face: 'back' },
+          {  x:  471, h: 120, y: 846, pose: 'chat',   face: 'r' },
+          {  x:  566, h: 100, y: 828, pose: 'listen', face: 'l' },
+          {  x:  638, h: 128, y: 853, pose: 'listen', face: 'back' },
+          {  x:  723, h:  90, y: 820, pose: 'chat',   face: 'r' },
+          /* the photographer, side-on to the arch */
+          {  x:  810, h: 116, y: 842, pose: 'photo',  face: 'l', hold: 'camera', suit: true },
+          {  x:  891, h: 134, y: 858, pose: 'toast',  face: 'r', hold: 'glass' },
+          {  x:  995, h:  94, y: 823, pose: 'listen', face: 'l' },
+          {  x: 1065, h: 108, y: 836, pose: 'wave',   face: 'r' },
+          {  x: 1160, h: 124, y: 850, pose: 'chat',   face: 'l', hold: 'glass' },
+          {  x: 1233, h:  88, y: 818, pose: 'stand',  face: 'back' },
+          {  x: 1313, h: 126, y: 851, pose: 'laugh',  face: 'r' },
+          {  x: 1402, h: 104, y: 832, pose: 'listen', face: 'l' },
+          {  x: 1472, h: 118, y: 844, pose: 'toast',  face: 'r', hold: 'glass' },
+          {  x: 1561, h:  98, y: 827, pose: 'stand',  face: 'l' }
+        ];
+
+        /* A guest's seed is their **row number in the table above**, fixed
+           before the sort. It decides their whole wardrobe, so tying it to
+           the draw order instead would mean that changing one person's
+           height reshuffles what everybody else is wearing. */
+        for (var q = 0; q < GUESTS.length; q++) GUESTS[q].seed = 700 + q * 13;
+
+        /* smallest first, so a nearer figure wins any close call */
+        var order = GUESTS.slice().sort(function (a, b) { return a.h - b.h; });
+        for (var w = 0; w < order.length; w++) {
+          var gu = order[w];
+          var talks = gu.pose === 'chat' || gu.pose === 'toast' || gu.pose === 'laugh';
+          g += A.person({
+            x: gu.x, baseY: gu.y, h: gu.h, pose: gu.pose,
+            flip: gu.face === 'l', back: gu.face === 'back',
+            hold: gu.hold || null, suit: gu.suit, evening: true,
+            seed: gu.seed,
+            /* a weight-shift, not a dance — the register the terrace is in */
+            anim: gu.pose === 'laugh' ? 'ww-laugh' : 'ww-mingle',
+            /* Heads and hands only where the guest is close enough to see
+               them. Nineteen figures all nodding is both noise and a lot of
+               separately-animated nodes; the ones at the back keep still. */
+            headAnim: gu.h < 100 ? null : (w % 2 ? 'ww-nod' : 'ww-nod-slow'),
+            armAnim: talks && gu.h >= 110 ? 'ww-arm-talk' : null,
+            /* everyone on their own clock, or nineteen people breathe together */
+            delay: -((gu.seed * 0.7) % 6),
+            headDelay: -((gu.seed * 0.3) % 5)
+          });
+        }
+
         return g;
       })()
     )});
@@ -2392,23 +2994,26 @@ svg { display: block; }
         }
         return g;
       })() +
-      A.dancer(230, 830, 210, '#0C1119', 0) +
-      A.dancer(390, 848, 190, '#0C1119', -0.9) +
-      A.dancer(560, 836, 220, '#0C1119', -1.7) +
-      A.dancer(720, 852, 176, '#0C1119', -0.4) +
-      A.dancer(880, 840, 200, '#0C1119', -2.2) +
-      /* two hanging back at the edge of it all, drinks in hand */
-      A.person({ x: 96, baseY: 862, h: 188, flat: '#0C1119', pose: 'chat', hold: 'glass',
-        seed: 811, anim: 'ww-talk' }) +
-      A.person({ x: 158, baseY: 868, h: 178, flat: '#0C1119', pose: 'listen', flip: true,
-        seed: 817, anim: 'ww-idle' }) +
+      /* Everybody on this floor is dancing. There used to be two figures
+         standing still with drinks at the far left, and next to seven people
+         moving they read as a glitch rather than as a quiet corner — so they
+         are gone and the floor runs the full width instead. The DJ, who once
+         stood 470 units clear of the nearest dancer, is at the right-hand end
+         of the same crowd. */
+      A.dancer(112, 838, 196, '#0C1119', -2.6) +
+      A.dancer(258, 830, 214, '#0C1119', 0) +
+      A.dancer(404, 850, 186, '#0C1119', -0.9) +
+      A.dancer(552, 836, 222, '#0C1119', -1.7) +
+      A.dancer(702, 852, 178, '#0C1119', -0.4) +
+      A.dancer(858, 840, 204, '#0C1119', -2.2) +
       /* the DJ — drawn first, so the decks stand in front of them */
-      A.person({ x: 1351, baseY: 862, h: 200, flat: '#0C1119', pose: 'dance', seed: 823,
+      A.dancer(1014, 846, 192, '#0C1119', -1.4) +
+      A.person({ x: 1178, baseY: 862, h: 200, flat: '#0C1119', pose: 'dance', seed: 823,
         anim: 'ww-dance', delay: -1.1 }) +
-      '<rect x="1276" y="806" width="150" height="58" rx="4" fill="#0C1119"/>' +
-      '<rect x="1290" y="798" width="122" height="10" rx="3" fill="#161E2C"/>' +
-      '<circle class="ww-twinkle" cx="1318" cy="818" r="7" fill="#C98CE0" opacity=".8"/>' +
-      '<circle class="ww-twinkle" cx="1384" cy="818" r="7" fill="#F0B45C" opacity=".8" style="animation-delay:-1.4s"/>'
+      '<rect x="1103" y="806" width="150" height="58" rx="4" fill="#0C1119"/>' +
+      '<rect x="1117" y="798" width="122" height="10" rx="3" fill="#161E2C"/>' +
+      '<circle class="ww-twinkle" cx="1145" cy="818" r="7" fill="#C98CE0" opacity=".8"/>' +
+      '<circle class="ww-twinkle" cx="1211" cy="818" r="7" fill="#F0B45C" opacity=".8" style="animation-delay:-1.4s"/>'
     )});
     L.push({ depth: 1.3, svg: wrap(ROOM_W, ROOM_H,
       A.lantern(150, 200, 2.2, 0) + A.lantern(430, 130, 1.7, 0) + A.lantern(1290, 176, 2, 0) + A.lantern(1520, 120, 1.5, 0) +
@@ -2467,7 +3072,7 @@ svg { display: block; }
   };
 
   function mapPin(x, y, n, delay) {
-    return '<g class="ww-hover-bob" style="transform-origin:' + f(x) + 'px ' + f(y) + 'px;animation-delay:' + f(-delay) + 's">' +
+    return '<g class="ww-hover-bob" style="transform-box:view-box;transform-origin:' + f(x) + 'px ' + f(y) + 'px;animation-delay:' + f(-delay) + 's">' +
       '<ellipse cx="' + f(x) + '" cy="' + f(y + 4) + '" rx="9" ry="3.5" fill="rgba(59,42,34,.25)"/>' +
       '<path d="M ' + f(x) + ' ' + f(y) + ' c -16 -20 -22 -30 -22 -42 a 22 22 0 0 1 44 0 c 0 12 -6 22 -22 42 Z" fill="' + P.terracotta + '"/>' +
       '<circle cx="' + f(x) + '" cy="' + f(y - 42) + '" r="12" fill="#FFF3DE"/>' +
@@ -2523,7 +3128,7 @@ svg { display: block; }
             g += '<path d="M ' + lx1 + ' 470 Q ' + ((lx1 + lx2) / 2) + ' 500 ' + lx2 + ' 476" fill="none" stroke="rgba(59,42,34,.35)" stroke-width="1.6"/>';
             for (var k = 0; k < 3; k++) {
               var lx = lx1 + (k + 0.5) * ((lx2 - lx1) / 3);
-              g += '<rect class="ww-sway" style="transform-origin:' + f(lx) + 'px 486px;animation-delay:' + (-k * 0.7) + 's" x="' + f(lx - 9) + '" y="486" width="18" height="26" rx="2" fill="' + ['#F4E7D3', '#DCC7AE', '#C9D6DA'][k % 3] + '"/>';
+              g += '<rect class="ww-sway" style="transform-box:view-box;transform-origin:' + f(lx) + 'px 486px;animation-delay:' + (-k * 0.7) + 's" x="' + f(lx - 9) + '" y="486" width="18" height="26" rx="2" fill="' + ['#F4E7D3', '#DCC7AE', '#C9D6DA'][k % 3] + '"/>';
             }
           }
         }
@@ -2555,7 +3160,7 @@ svg { display: block; }
     L.push({ depth: 0.5, svg: wrap(ROOM_W, ROOM_H,
       A.water(0, 560, ROOM_W, 260, '#6FA5A8', '#356B72', 131, '#FFFFFF') +
       /* the ferry */
-      '<g class="ww-bob" style="transform-origin:700px 660px">' +
+      '<g class="ww-bob" style="transform-box:view-box;transform-origin:700px 660px">' +
       '<path d="M 610 660 l 190 0 l -14 30 l -162 0 Z" fill="#F0E5D0"/>' +
       '<rect x="640" y="632" width="120" height="28" fill="#FFFFFF"/>' +
       '<rect x="656" y="638" width="14" height="12" fill="#4E6E80"/><rect x="682" y="638" width="14" height="12" fill="#4E6E80"/>' +
@@ -2637,7 +3242,7 @@ svg { display: block; }
         g += '<rect x="716" y="680" width="10" height="58" fill="#6B5744"/><rect x="894" y="680" width="10" height="58" fill="#6B5744"/>';
         g += '<rect x="756" y="650" width="86" height="20" rx="3" fill="#FFF6E4"/>';
         g += '<path d="M 799 650 l 0 20" stroke="' + P.stoneDeep + '" stroke-width="2"/>';
-        g += '<path class="ww-sway" style="transform-origin:860px 654px" d="M 860 654 l 26 -46 l 7 4 l -26 46 Z" fill="#F4E7D3"/>';
+        g += '<path class="ww-sway" style="transform-box:view-box;transform-origin:860px 654px" d="M 860 654 l 26 -46 l 7 4 l -26 46 Z" fill="#F4E7D3"/>';
         for (var c = 0; c < 3; c++) {
           var cxp = 722 + c * 78;
           g += '<rect x="' + cxp + '" y="636" width="9" height="32" fill="#F6EEDC"/>';
@@ -2672,264 +3277,145 @@ svg { display: block; }
 })(window);
 
 /* ==========================================================================
-   audio.js — the ambience, synthesised in the browser
+   audio.js — the music
    --------------------------------------------------------------------------
-   No .mp3 files to host, licence or wait for. Four buses — sea, wind, birds
-   and a soft instrumental bed — mixed differently for each place in the
-   world. Nothing starts until the guest presses "Begin the walk", because
-   that click is the browser's price of admission for sound.
+   One licensed recording, played from an <audio> element on a loop.
 
-   The music is deliberately not a song: a slow, wide arpeggio through a long
-   reverb, so it sits underneath the site rather than playing at you. If you
-   would rather have a real licensed recording, replace the `music` bus with
-   an <audio> element and leave the sea, wind and birds exactly as they are.
+   The track: "Swing Jazz Midnight Club" by Alex Morgan, from Pixabay
+   (pixabay.com/music, track 568167). The Pixabay Content License allows use
+   on a website, commercial or not, with no attribution required — which is
+   why this one can be here when the earlier suggestions could not. Keep the
+   file: if it is ever replaced, check the new one's licence covers *website*
+   use, not just video, and whether it needs a credit line.
+
+   Everything before this was synthesised in the browser because there was no
+   licensed file to play. There is now, so all of that is gone: this file is
+   an element, a volume, and a fade.
+
+   No Web Audio. It would buy a per-room filter and cost the whole thing
+   working when the site is opened by double-clicking the HTML — a media
+   element routed through an AudioContext goes silent under file://, which is
+   exactly the case that is hardest to notice and hardest to debug. Volume is
+   enough: the rooms differ by level, and at background level nobody hears a
+   lowpass anyway.
+
+   Nothing starts until the guest presses "Begin the walk", because that
+   click is the browser's price of admission for sound.
    ========================================================================== */
 (function (global) {
   'use strict';
 
-  var ctx = null, master = null, verb = null;
-  var bus = {};                       // sea | wind | birds | music
-  var started = false, muted = true;
-  var birdTimer = null, arpTimer = null, pulseTimer = null, bellTimer = null;
-  var sceneId = 'hub', level = 0.5;
+  /* Where the file might be. The site is published two ways — as index.html
+     with a real assets/ folder, and as a flattened single file at the root of
+     the repository with the mp3 beside it — so the first path that loads
+     wins. Add to the front of this list, never take from the end. */
+  var SOURCES = [
+    'assets/audio/swing-jazz-midnight-club.mp3',
+    'swing-jazz-midnight-club.mp3'
+  ];
 
-  /* --- the mix for each place ----------------------------------------- */
-  var MOODS = {
-    hub:        { sea: .40, wind: .15, birds: .30, music: .10, scale: 'day',   step: 2.10, bells: true },
-    welcome:    { sea: .20, wind: .10, birds: .04, music: .13, scale: 'dusk',  step: 2.60 },
-    wedding:    { sea: .18, wind: .12, birds: .16, music: .15, scale: 'gold',  step: 1.85 },
-    afterparty: { sea: .00, wind: .04, birds: .00, music: .13, scale: 'night', step: 0.95, pulse: true },
-    explore:    { sea: .34, wind: .16, birds: .26, music: .09, scale: 'day',   step: 2.20 },
-    stay:       { sea: .22, wind: .12, birds: .22, music: .10, scale: 'day',   step: 2.45, bells: true },
-    travel:     { sea: .26, wind: .18, birds: .14, music: .09, scale: 'day',   step: 2.30 },
-    rsvp:       { sea: .22, wind: .10, birds: .08, music: .14, scale: 'dusk',  step: 2.70 }
+  /* How loud each place is, as a fraction of the master level. A recording
+     cannot change key from room to room the way the old synthesised piece
+     did; what it can do is lean in on the dancefloor and step back where
+     there is something to read. */
+  var ROOMS = {
+    hub:        1.00,
+    welcome:    0.86,
+    wedding:    0.94,
+    afterparty: 1.00,
+    explore:    0.88,
+    stay:       0.84,
+    travel:     0.86,
+    rsvp:       0.82
   };
 
-  /* Pentatonic sets — no semitone clashes, so any order sounds intentional. */
-  var SCALES = {
-    day:   { root: 261.63, steps: [0, 2, 4, 7, 9, 12, 16], type: 'triangle', tone: 1400 },
-    gold:  { root: 293.66, steps: [0, 4, 7, 9, 12, 14, 16], type: 'triangle', tone: 1700 },
-    dusk:  { root: 220.00, steps: [0, 3, 5, 7, 10, 12, 15], type: 'sine',     tone: 1100 },
-    night: { root: 110.00, steps: [0, 3, 5, 7, 10, 15, 22], type: 'sawtooth', tone: 620 }
-  };
+  var BASE = 0.55;              // in the world
+  var BASE_ROOM = 0.34;         // inside a room, under the copy
 
-  function t() { return ctx.currentTime; }
-  function semis(root, n) { return root * Math.pow(2, n / 12); }
-  function ramp(param, to, secs) {
-    param.cancelScheduledValues(t());
-    param.setValueAtTime(param.value, t());
-    param.linearRampToValueAtTime(to, t() + (secs || 1.2));
+  var el = null, srcIndex = 0;
+  var muted = true, ready = false;
+  var sceneId = 'hub', base = BASE;
+  var fadeTimer = null;
+
+  function target() {
+    return muted ? 0 : base * (ROOMS[sceneId] != null ? ROOMS[sceneId] : 1);
   }
 
-  /* --- building blocks -------------------------------------------------- */
-  function noiseBuffer(seconds) {
-    var len = Math.floor(ctx.sampleRate * seconds);
-    var buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0), last = 0;
-    for (var i = 0; i < len; i++) {
-      var white = Math.random() * 2 - 1;
-      last = (last + 0.02 * white) / 1.02;      // brown-ish: softer, less hissy
-      d[i] = last * 3.2;
-    }
-    return buf;
-  }
-
-  /* A hall, made out of decaying noise. Cheap, and it is what stops the
-     music sounding like a ringtone. */
-  function impulse(seconds, decay) {
-    var len = Math.floor(ctx.sampleRate * seconds);
-    var buf = ctx.createBuffer(2, len, ctx.sampleRate);
-    for (var ch = 0; ch < 2; ch++) {
-      var d = buf.getChannelData(ch);
-      for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
-    }
-    return buf;
-  }
-
-  function noiseLayer(target, seconds, type, freq, q, lfoRate, lfoDepth) {
-    var src = ctx.createBufferSource();
-    src.buffer = noiseBuffer(seconds);
-    src.loop = true;
-    var filt = ctx.createBiquadFilter();
-    filt.type = type; filt.frequency.value = freq; filt.Q.value = q;
-    var swell = ctx.createGain();
-    swell.gain.value = 1;
-    var lfo = ctx.createOscillator();
-    lfo.frequency.value = lfoRate;
-    var lfoGain = ctx.createGain();
-    lfoGain.gain.value = lfoDepth;
-    lfo.connect(lfoGain).connect(swell.gain);
-    src.connect(filt).connect(swell).connect(target);
-    src.start(); lfo.start();
-  }
-
-  /* --- birds ------------------------------------------------------------ */
-  function chirp(when, pitch) {
-    var o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
-    o.type = 'sine';
-    f.type = 'bandpass'; f.frequency.value = pitch; f.Q.value = 4;
-    o.frequency.setValueAtTime(pitch * 0.84, when);
-    o.frequency.exponentialRampToValueAtTime(pitch * 1.26, when + 0.042);
-    o.frequency.exponentialRampToValueAtTime(pitch * 0.9, when + 0.115);
-    g.gain.setValueAtTime(0.0001, when);
-    g.gain.linearRampToValueAtTime(0.3, when + 0.012);
-    g.gain.exponentialRampToValueAtTime(0.0008, when + 0.16);
-    o.connect(f).connect(g).connect(bus.birds);
-    o.start(when); o.stop(when + 0.22);
-  }
-
-  function birdBurst() {
-    if (!muted && ctx && ctx.state === 'running') {
-      var when = t() + 0.06;
-      var n = 1 + Math.floor(Math.random() * 3);
-      var base = 1450 + Math.random() * 1600;
-      for (var i = 0; i < n; i++) {
-        chirp(when + i * (0.085 + Math.random() * 0.13), base * (1 + (Math.random() - 0.5) * 0.2));
+  /* A fade, done by hand — an <audio> element has no ramp of its own. */
+  function fade(to, secs) {
+    if (!el) return;
+    if (fadeTimer) clearInterval(fadeTimer);
+    var from = el.volume, t0 = Date.now(), ms = Math.max(60, (secs || 1.2) * 1000);
+    fadeTimer = setInterval(function () {
+      var k = Math.min(1, (Date.now() - t0) / ms);
+      /* ease out, so the last of a fade is not a cliff */
+      var v = from + (to - from) * (1 - Math.pow(1 - k, 3));
+      el.volume = Math.max(0, Math.min(1, v));
+      if (k >= 1) {
+        clearInterval(fadeTimer);
+        fadeTimer = null;
+        if (to === 0 && !el.paused) el.pause();
       }
-    }
-    birdTimer = setTimeout(birdBurst, 1700 + Math.random() * 6800);
+    }, 40);
   }
 
-  /* --- the instrumental bed --------------------------------------------- */
-  var arpStep = 0;
-  function note(freq, when, dur, type, tone, gainVal) {
-    var o = ctx.createOscillator(), o2 = ctx.createOscillator();
-    var g = ctx.createGain(), f = ctx.createBiquadFilter();
-    o.type = type; o2.type = type;
-    o.frequency.value = freq;
-    o2.frequency.value = freq * 1.005;         // a whisper of detune
-    f.type = 'lowpass'; f.frequency.value = tone; f.Q.value = 0.4;
-    g.gain.setValueAtTime(0.0001, when);
-    g.gain.linearRampToValueAtTime(gainVal, when + 0.35);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-    o.connect(f); o2.connect(f);
-    f.connect(g).connect(bus.music);
-    o.start(when); o2.start(when + 0.01);
-    o.stop(when + dur + 0.1); o2.stop(when + dur + 0.1);
-  }
-
-  function arpTick() {
-    var mood = MOODS[sceneId] || MOODS.hub;
-    var sc = SCALES[mood.scale];
-    if (!muted && ctx && ctx.state === 'running') {
-      var when = t() + 0.05;
-      /* wander through the scale rather than running up and down it */
-      arpStep += (Math.random() < 0.62 ? 1 : -1) * (1 + (Math.random() < 0.25 ? 1 : 0));
-      if (arpStep < 0) arpStep += sc.steps.length;
-      var idx = arpStep % sc.steps.length;
-      note(semis(sc.root, sc.steps[idx]), when, 3.4, sc.type, sc.tone, 0.16);
-      /* every so often, a low note underneath to hold it together */
-      if (Math.random() < 0.3) {
-        note(semis(sc.root, sc.steps[0] - 12), when + 0.08, 5.5, 'sine', 700, 0.13);
+  function build() {
+    if (el) return;
+    el = new global.Audio();
+    el.loop = true;
+    el.preload = 'none';
+    el.volume = 0;
+    /* Work down the candidate paths. A missing file is a publishing mistake,
+       not a bug in here: if the site is silent, the mp3 did not get uploaded
+       alongside the HTML. */
+    el.addEventListener('error', function () {
+      if (srcIndex < SOURCES.length - 1) {
+        srcIndex++;
+        el.src = SOURCES[srcIndex];
+        el.load();
+        if (!muted) play();
       }
-    }
-    arpTimer = setTimeout(arpTick, ((MOODS[sceneId] || MOODS.hub).step || 2.1) * 1000 * (0.85 + Math.random() * 0.3));
-  }
-
-  /* A bell from a campanile somewhere across the water. */
-  function bell() {
-    var mood = MOODS[sceneId] || MOODS.hub;
-    if (mood.bells && !muted && ctx && ctx.state === 'running') {
-      var base = [392, 440, 523.25, 587.33][Math.floor(Math.random() * 4)];
-      [1, 2.01].forEach(function (mult, i) {
-        var o = ctx.createOscillator(), g = ctx.createGain();
-        o.type = 'sine';
-        o.frequency.value = base * mult;
-        g.gain.setValueAtTime(0, t());
-        g.gain.linearRampToValueAtTime(i ? 0.010 : 0.024, t() + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, t() + 4.5);
-        o.connect(g).connect(bus.music);
-        o.start(); o.stop(t() + 4.6);
-      });
-    }
-    bellTimer = setTimeout(bell, 22000 + Math.random() * 34000);
-  }
-
-  /* The after-party gets a pulse under the floor — felt more than heard. */
-  function pulse() {
-    var mood = MOODS[sceneId] || MOODS.hub;
-    if (mood.pulse && !muted && ctx && ctx.state === 'running') {
-      var when = t() + 0.04;
-      var o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(96, when);
-      o.frequency.exponentialRampToValueAtTime(44, when + 0.13);
-      g.gain.setValueAtTime(0.0001, when);
-      g.gain.linearRampToValueAtTime(0.30, when + 0.012);
-      g.gain.exponentialRampToValueAtTime(0.0001, when + 0.34);
-      o.connect(g).connect(bus.music);
-      o.start(when); o.stop(when + 0.4);
-    }
-    pulseTimer = setTimeout(pulse, 520);
-  }
-
-  /* --- wiring ----------------------------------------------------------- */
-  function start() {
-    if (started) return;
-    var AC = global.AudioContext || global.webkitAudioContext;
-    if (!AC) return;
-    ctx = new AC();
-
-    master = ctx.createGain();
-    master.gain.value = 0;
-    master.connect(ctx.destination);
-
-    /* a little of everything goes through the hall */
-    verb = ctx.createConvolver();
-    verb.buffer = impulse(2.6, 2.4);
-    var verbGain = ctx.createGain();
-    verbGain.gain.value = 0.55;
-    verb.connect(verbGain).connect(master);
-
-    ['sea', 'wind', 'birds', 'music'].forEach(function (name) {
-      var g = ctx.createGain();
-      g.gain.value = 0;
-      g.connect(master);
-      if (name !== 'sea') g.connect(verb);
-      bus[name] = g;
     });
-
-    noiseLayer(bus.sea, 4, 'lowpass', 420, 0.7, 0.06, 0.35);    // surf on the rocks
-    noiseLayer(bus.wind, 6, 'bandpass', 900, 0.5, 0.033, 0.22); // wind in the olives
-
-    started = true;
-    applyScene(0.1);
-    birdBurst();
-    arpTick();
-    bell();
-    pulse();
+    el.addEventListener('canplay', function () { ready = true; });
+    el.src = SOURCES[srcIndex];
+    /* In the document rather than floating detached: an <audio> with no
+       controls draws nothing, and having it in the DOM means the next person
+       to wonder "is the music actually playing?" can find it in the
+       inspector instead of guessing. */
+    el.id = 'ww-music';
+    el.setAttribute('aria-hidden', 'true');
+    if (global.document && global.document.body) global.document.body.appendChild(el);
   }
 
-  function applyScene(secs) {
-    if (!started) return;
-    var mood = MOODS[sceneId] || MOODS.hub;
-    ramp(bus.sea.gain, mood.sea, secs || 2.2);
-    ramp(bus.wind.gain, mood.wind, secs || 2.2);
-    ramp(bus.birds.gain, mood.birds, secs || 2.2);
-    ramp(bus.music.gain, mood.music, secs || 2.2);
+  function play() {
+    if (!el) return;
+    var p = el.play();
+    /* Older Safari returns nothing; everything else returns a promise that
+       rejects if the browser does not believe a human asked for this. */
+    if (p && p.catch) p.catch(function () {});
   }
 
   global.WW = global.WW || {};
   global.WW.audio = {
     on: function () {
-      start();
-      if (!ctx) return;
-      if (ctx.state === 'suspended') ctx.resume();
+      build();
       muted = false;
-      ramp(master.gain, level, 2.6);
+      play();
+      fade(target(), 2.2);
     },
     off: function () {
       muted = true;
-      if (ctx) ramp(master.gain, 0, 0.9);
+      fade(0, 0.8);
     },
     /* which part of the world we are standing in */
     scene: function (id) {
-      sceneId = MOODS[id] ? id : 'hub';
-      applyScene(2.4);
+      sceneId = ROOMS[id] != null ? id : 'hub';
+      if (!muted) fade(target(), 1.8);
     },
     /* quieter inside a room, so the copy is the thing you notice */
     duck: function (isRoom) {
-      level = isRoom ? 0.34 : 0.5;
-      if (!muted && ctx) ramp(master.gain, level, 1.2);
+      base = isRoom ? BASE_ROOM : BASE;
+      if (!muted) fade(target(), 1.0);
     }
   };
 })(window);
