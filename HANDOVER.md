@@ -581,6 +581,53 @@ sit is 39.**
   all seven ids and look at them side by side. That is how the duplicate
   ambers became obvious.
 
+**Round nine: the compositor was running out of texture, and the landing
+page reads names-first.**
+
+  **The glitching had a measurable cause.** Dana sent a screenshot of the
+  promenade with whole doorways missing their stonework and hard rectangular
+  seams across the sky. That is not a drawing bug — it is the compositor
+  dropping tiles. Measured in a 1900x950 window, the hub is **nine layers,
+  each as wide as the whole promenade, 25.7 megapixels between them**. Every
+  one carried `will-change: transform`, which tells Chrome to rasterise the
+  layer *in full and up front* instead of tiling it lazily around the
+  viewport. At 4 bytes a pixel that is ~98 MB — and on a Retina laptop,
+  rastered at 2x in each direction, closer to **390 MB**. Chrome will not
+  hand that out, so it drops tiles, and a dropped tile is a rectangle of
+  missing artwork.
+
+  `will-change` is gone from `.layer` and `.room-layer`. The layers are still
+  composited — `applyCamera()` moves them with translate3d, which promotes
+  them anyway — but Chrome now rasterises only what is near the viewport.
+  **Do not put it back.** If panning needs to be smoother, make the layers
+  narrower or fewer; do not ask for more texture.
+
+  Honest caveat: measured in the preview browser, which had no memory
+  pressure to begin with, this trades a little smoothness for the memory —
+  50.7 → 47.3 fps idle, 50.0 → 44.9 while panning, with a handful of long
+  frames appearing where there were none. That is raster-on-demand, and it is
+  the right trade against tiles being dropped outright. If the real machine
+  still stutters, the next levers are **fewer layers** (sky+clouds and the two
+  ridges could merge, at a small cost in distant parallax) and **fewer
+  animated nodes** — 148 of them currently dirty their layers every frame at
+  idle, and each dirty tile is a re-rasterisation of a very large texture.
+
+  **The landing page** now reads names first, with the date and place beneath
+  them.
+
+  **The names in the top bar** carry the landing page's sea colour into the
+  walk, a step larger than before. It has to be the *deep* end of that
+  palette: the promenade sky behind them is `#8FB0C4`, and the bright
+  turquoise `--sea-mid` measures **1.04:1** against it — the same colour, near
+  enough, and completely invisible. `--sea-ink` is 4.72:1 and still reads as
+  sea. The date line sits a step lighter at 3.67:1.
+
+  **Where to Stay stayed a plain door.** It was built out into a room — a bed
+  along the wall, a shuttered window with the bay outside — and next to six
+  doorways that each hold one simple idea it read as clutter. Dana called it
+  and it went back. The lesson is in the comment on that branch: these arches
+  carry one idea each.
+
 ## Deliberate decisions worth knowing
 - **2.5D parallax, not Three.js** — the brief recommended this for reliability on phones.
 - **Procedural SVG instead of an illustrator's files** — one consistent hand, nothing to commission. To swap in real artwork later, replace a layer's `svg` with `<img>` at the same viewBox proportions.

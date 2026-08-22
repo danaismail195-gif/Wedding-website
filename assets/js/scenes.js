@@ -336,7 +336,9 @@
       g += '<path d="M ' + f(cx + 51) + ' ' + f(baseY - 118) + ' l 40 0 l 12 11 l -12 11 l -40 0 Z" fill="' + P.olive + '"/>';
       g += A.cypress(ax + 16, baseY, 104, 'rgba(76,92,68,.6)');
     } else if (id === 'stay') {
-      /* shuttered windows either side, a key on a hook */
+      /* shuttered windows either side, a key on a hook. This was tried as a
+         room with a bed and a sea window in it; next to six doorways that
+         each hold one simple idea it read as clutter, and it went back. */
       g += shutter(ax - 26, ay + 34, 0.85);
       g += shutter(ax + aw + 10, ay + 34, 0.85);
       g += '<rect x="' + f(cx - 30) + '" y="' + f(baseY - 118) + '" width="60" height="118" rx="4" fill="rgba(59,42,34,.28)"/>';

@@ -118,9 +118,23 @@ svg { display: block; }
   will-change: transform;
 }
 .world { position: relative; }
+/* No `will-change: transform` here, and that is deliberate — it was the cause
+   of the corruption Dana photographed on 23 Aug: whole doorways missing their
+   stonework, hard rectangular seams across the sky.
+   The hub is nine of these, each as wide as the whole promenade. Measured in
+   a 1900x950 window they come to **25.7 megapixels**, and `will-change` tells
+   the compositor to rasterise each one *in full and up front* rather than
+   tiling it lazily around the viewport. At 4 bytes a pixel that is ~98 MB —
+   and on a Retina laptop, where everything is rastered at 2x in each
+   direction, closer to **390 MB**. Chrome will not hand out that much: it
+   drops tiles, and a dropped tile is a rectangle of missing artwork.
+   The layers are still composited — `applyCamera()` moves them with
+   translate3d, which promotes them anyway — but without the hint Chrome
+   tiles them and rasterises only what is near the viewport.
+   **Do not add `will-change` back here.** If panning ever needs to be
+   smoother, make the layers narrower or fewer; do not ask for more texture. */
 .layer {
   position: absolute; top: 0; left: 0; height: 100%;
-  will-change: transform;
   pointer-events: none;
 }
 .layer > svg { width: 100%; height: 100%; }
@@ -219,9 +233,11 @@ svg { display: block; }
    pushed it 66 viewBox units below the window and cropped everybody's feet
    on a wide laptop. The top keeps its bleed for the scale(1.07) entrance. */
 .room-art { position: absolute; inset: -8% -4% 0; }
+/* Same reasoning as .layer: these are window-sized and they do not move once
+   the room is open, so an up-front full rasterisation hint costs texture and
+   buys nothing. */
 .room-layer {
   position: absolute; inset: 0;
-  will-change: transform;
 }
 .room-layer > svg { width: 100%; height: 100%; }
 .room-scrim {
@@ -399,15 +415,22 @@ svg { display: block; }
 /* inside a room the way back owns the top of the screen, so the names step
    aside — the room has its own title, and nobody is lost */
 #room.is-open ~ .top-bar .brand { opacity: 0; pointer-events: none; }
+/* The names carry the landing page's sea colour through into the walk.
+   It has to be the DEEP end of that palette: the promenade sky behind them
+   is #8FB0C4, and the bright turquoise (--sea-mid #6FB2BF) measures 1.04:1
+   against it — the same colour, near enough, and completely invisible.
+   --sea-ink is 4.72:1 and still unmistakably sea-blue. The date line sits a
+   step lighter at 3.67:1, which small wide-tracked caps carry. Both keep the
+   soft cream glow that holds them off the sky. */
 .brand .n {
-  display: block; font-family: var(--display); font-size: clamp(1.15rem, 2vw, 1.5rem);
-  color: var(--espresso); letter-spacing: .04em;
-  text-shadow: 0 2px 16px rgba(244,231,211,.85);
+  display: block; font-family: var(--display); font-size: clamp(1.32rem, 2.3vw, 1.76rem);
+  color: var(--sea-ink); letter-spacing: .04em;
+  text-shadow: 0 2px 16px rgba(244,231,211,.9);
 }
 .brand .d {
-  display: block; font-size: .6rem; letter-spacing: .28em; text-transform: uppercase;
-  color: var(--terra-deep); margin-top: .18rem;
-  text-shadow: 0 2px 12px rgba(244,231,211,.8);
+  display: block; font-size: .63rem; letter-spacing: .28em; text-transform: uppercase;
+  color: #1B5464; margin-top: .22rem;
+  text-shadow: 0 2px 12px rgba(244,231,211,.85);
 }
 .top-actions { display: flex; gap: .6rem; pointer-events: auto; }
 .icon-btn {
