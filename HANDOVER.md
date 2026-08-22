@@ -555,6 +555,32 @@ had been there since the rooms were built.
   Re-measured off the rendered SVG: seventeen figures, closest approach
   **15.2 units**, no overlaps, at every aspect ratio tested.
 
+**Round eight: the seven doorway interiors are seven different colours.**
+Welcome, Where to Stay and RSVP were three warm ambers within a few points of
+each other — measured at their midpoints, Welcome and RSVP were an RGB
+distance of **12** apart, which is to say the same colour. Where to Stay went
+to olive (its shutters, the olive groves), RSVP to rose (a letter and a wax
+seal), and Welcome deepened to a redder russet so it is not simply a paler
+Wedding. Explore and Travel were nudged apart at the same time, since they
+became the closest pair once the ambers were fixed. **The closest any two now
+sit is 39.**
+
+  The hues, in order along the promenade: 22° · 26° · 89° · 172° · 216° ·
+  274° · 346°.
+
+  Two constraints on any future change here. The **top** of each gradient has
+  to carry the espresso "Enter" at y=271 — the current set measures 5.0–6.1:1
+  on six of the seven, with the After-Party the exception at 3.9:1 (its
+  lavender is a mid tone no ink sits well on; the lever there is the lintel
+  colour, not the ink). And art inside the opening has to stay off the word:
+  the RSVP gold pulse had to drop to `ay+152` because at `ay+116` its top edge
+  cut straight across the letters.
+
+  A quick way to judge them as a set, rather than one at a time by walking the
+  promenade: in the console, build a row of `WW.scenes.entranceArt(id)` for
+  all seven ids and look at them side by side. That is how the duplicate
+  ambers became obvious.
+
 ## Deliberate decisions worth knowing
 - **2.5D parallax, not Three.js** — the brief recommended this for reliability on phones.
 - **Procedural SVG instead of an illustrator's files** — one consistent hand, nothing to commission. To swap in real artwork later, replace a layer's `svg` with `<img>` at the same viewBox proportions.

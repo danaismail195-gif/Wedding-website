@@ -2442,14 +2442,29 @@ svg { display: block; }
        of type still works on all seven. The After-Party's lintel was lifted
        from #B98CC9 to #DCC0E8 for the same reason: at the old value it was a
        mid lavender that neither a light nor a dark ink could sit on. */
+    /* One hue each, spread right round the wheel. Welcome, Where to Stay and
+       RSVP used to be three warm ambers within a few points of each other —
+       measured at the midpoint, Welcome and RSVP were an RGB distance of 12
+       apart, which is to say indistinguishable. Stay went to olive (the
+       shutters and the olive groves), RSVP to rose (a letter, a wax seal),
+       and Welcome deepened to a redder russet so it is not a paler Wedding.
+       Travel and Explore were nudged apart at the same time. The closest any
+       two now sit is 39.
+
+       Hues, in order: 22° · 26° · 89° · 172° · 216° · 274° · 346°.
+
+       The top of each pair also has to carry the espresso "Enter" at y=271,
+       which measures 5.0–6.1:1 on six of the seven. The After-Party is the
+       exception at 3.9:1 — its lavender is a mid tone no ink sits well on,
+       and the lever there is the lintel colour, not the ink. */
     var interiors = {
-      welcome:    ['#F6D9A8', '#A84F2C'],
+      welcome:    ['#F9DCA6', '#9B3E1F'],
       wedding:    ['#FFE9BE', '#B96A3E'],
       afterparty: ['#DCC0E8', '#3A2550'],
-      explore:    ['#BFE4E2', '#2F7B7E'],
-      stay:       ['#F3D9B2', '#8A4A2C'],
-      travel:     ['#D8E8EF', '#4E7185'],
-      rsvp:       ['#FFE7B4', '#A85232']
+      explore:    ['#BFE4E2', '#2C7F72'],
+      stay:       ['#DFE8C4', '#4F6B3C'],
+      travel:     ['#D3E3F4', '#3F5F93'],
+      rsvp:       ['#F7D3D6', '#9E3A54']
     };
     var pair = interiors[id] || interiors.welcome;
 
@@ -2598,7 +2613,9 @@ svg { display: block; }
       g += '<rect x="' + f(cx - 2) + '" y="' + f(ay - 58) + '" width="4" height="34" fill="#7A6247"/>';
     } else if (id === 'rsvp') {
       /* a mailbox and a wax seal, glowing gold */
-      g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 116) + '" r="56" fill="' + P.gold + '" opacity=".28"/>';
+      /* the glow sits behind the envelope, not behind the word — at ay+116
+         its top edge cut straight across the letters */
+      g += '<circle class="ww-pulse" cx="' + cx + '" cy="' + f(ay + 152) + '" r="56" fill="' + P.gold + '" opacity=".28"/>';
       g += '<rect x="' + f(cx + 46) + '" y="' + f(baseY - 116) + '" width="9" height="116" fill="#7A6247"/>';
       g += '<rect x="' + f(cx + 24) + '" y="' + f(baseY - 156) + '" width="54" height="42" rx="8" fill="' + P.terracotta + '"/>';
       g += '<rect x="' + f(cx + 30) + '" y="' + f(baseY - 148) + '" width="42" height="5" rx="2" fill="rgba(59,42,34,.45)"/>';

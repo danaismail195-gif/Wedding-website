@@ -9,9 +9,17 @@ assets/ folder. Edit the real sources in assets/, then run:
     python3 build.py
 
 It writes:
-    UPLOAD-THESE-FILES/index.html   <- upload BOTH of these to GitHub
+    UPLOAD-THESE-FILES/index.html         <- upload EVERYTHING in this folder
+    UPLOAD-THESE-FILES/the-journey.html
     UPLOAD-THESE-FILES/*.mp3
-    the-journey.html                <- the same page, kept in the repo
+    the-journey.html                      <- the same page, kept in the repo
+
+the-journey.html is a byte-identical copy of index.html under a second name,
+because both URLs are live and people have both bookmarked. It is written
+into the upload folder as well as the repo root, so that "drag everything in
+UPLOAD-THESE-FILES into GitHub" is the whole instruction — there is nothing
+to fetch from anywhere else. Uploading only index.html leaves the
+/the-journey.html link showing an old build, which has caught us out once.
 
 The music is a real recording, so it cannot be baked into the HTML the way
 the CSS and the scripts are — a few megabytes of base64 in front of the page
@@ -51,7 +59,9 @@ def build():
            '</head>\n<body>\n' + body + '</body>\n</html>\n')
 
     os.makedirs(os.path.join(ROOT, OUTDIR), exist_ok=True)
-    for path in [os.path.join(OUTDIR, 'index.html'), 'the-journey.html']:
+    for path in [os.path.join(OUTDIR, 'index.html'),
+                 os.path.join(OUTDIR, 'the-journey.html'),
+                 'the-journey.html']:
         with open(os.path.join(ROOT, path), 'w', encoding='utf-8') as fh:
             fh.write(out)
         print('wrote %s  (%d KB)' % (path, len(out.encode('utf-8')) // 1024))
@@ -78,7 +88,10 @@ def build():
         if os.path.basename(track) not in out:
             sys.exit('BUILD FAILED: audio.js does not mention %s'
                      % os.path.basename(track))
-    print('upload EVERY file in %s/ — the page is silent without the mp3.' % OUTDIR)
+    print('\nUpload EVERY file in %s/ to the repository root.' % OUTDIR)
+    print('  index.html         the site')
+    print('  the-journey.html   the same page, second live URL')
+    print('  *.mp3              the music — the page is silent without it')
 
 
 if __name__ == '__main__':
