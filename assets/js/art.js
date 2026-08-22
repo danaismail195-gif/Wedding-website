@@ -323,6 +323,16 @@
                  '#B08A55', '#A85331', '#D9B071', '#4A3B52'];
   var HAIR_STYLES = ['crop', 'bob', 'long', 'bun', 'curls', 'pony', 'wave', 'part'];
 
+  /* Black tie, more or less. Gowns get the jewel and the pale end of the
+     range; suits get the dark end, because a pale suit at 120px tall reads
+     as pyjamas. Pass `evening: true` and a figure dresses itself from these;
+     pass `gown` or `suit` to decide which. */
+  var GOWNS = ['#2E6B57', '#2C4E7A', '#7A2E3E', '#C99A46', '#D9A7A0', '#8E93A8',
+               '#EFE4D2', '#A8556B', '#4A3352', '#2A5560', '#B8894E', '#6E7FA8'];
+  var SUITS = ['#2C3A52', '#33302E', '#241E1C', '#3B3A44', '#2F3A34', '#4A3A46',
+               '#243A52', '#3E2E2C', '#453A2E'];
+  var SHIRT = '#F2E9DA';
+
   /* A limb in two pieces: upper arm thicker than forearm, thigh thicker than
      calf. Drawing both at one width is exactly what makes a figure read as a
      stick — the taper is most of the difference between a diagram of a person
@@ -547,9 +557,20 @@
     var pants = flat || o.pants || PANTS[(r() * PANTS.length) | 0];
     var hairStyle = o.hairStyle || HAIR_STYLES[(r() * HAIR_STYLES.length) | 0];
     var shoe  = flat || '#3B2A22';
+
+    /* Evening wear. A gown runs to the floor and hides the legs; a suit gets
+       a shirt and lapels and trousers that match the jacket. */
+    var gown = o.gown != null ? o.gown : (o.evening ? r() < 0.52 : false);
+    var suit = o.suit != null ? o.suit : (o.evening ? !gown : false);
+    if (o.evening && !flat) {
+      if (!o.cloth) cloth = gown ? GOWNS[(r() * GOWNS.length) | 0]
+                                 : SUITS[(r() * SUITS.length) | 0];
+      if (!o.pants) pants = suit ? shade(cloth, -0.05) : pants;
+      if (!o.hair && r() < 0.5) hairStyle = gown ? (r() < 0.5 ? 'bun' : 'wave') : 'crop';
+    }
     var dir   = o.flip ? -1 : 1;
     var pose  = POSES[o.pose] || POSES.stand;
-    var dress = o.dress != null ? o.dress : (r() < 0.45);
+    var dress = gown ? true : (o.dress != null ? o.dress : (r() < 0.45));
     var seated = o.pose === 'sit' || o.pose === 'table' ||
                  o.pose === 'tableUp' || o.pose === 'tableIn';
 
@@ -616,15 +637,20 @@
         ' l -' + f(limbW * 1.06) + ' 0 Z" fill="' + tone + '"/>';
     }
 
+    /* A gown covers the legs whether its wearer is standing or sitting. The
+       floor-length skirt below only draws when they are on their feet, so a
+       seated guest in a gown would otherwise be sitting there in bare legs. */
+    var legTone = gown ? cloth : (dress ? skin : pants);
+
     /* --- far arm and far leg go behind the body ---------------------- */
-    g += limb(legFar, limbW * 1.04, limbW * 0.80, flat || (dress ? shade(skin, -0.14) : shade(pants, -0.14)));
+    g += limb(legFar, limbW * 1.04, limbW * 0.80, flat || shade(legTone, -0.14));
     g += limb(armFar, limbW * 0.84, limbW * 0.60, flat || shade(skin, -0.10));
     if (!flat) { g += sleeve(armFar); g += hand(armFar, shade(skin, -0.10)); }
     if (o.holdFar) g += prop(o.holdFar, armFar[2][0], armFar[2][1] - handR * 0.5, h * 0.012, o.holdFarTint);
 
     /* --- near leg ---------------------------------------------------- */
-    g += limb(legNear, limbW * 1.08, limbW * 0.82, flat || (dress ? skin : pants));
-    if (!flat) {
+    g += limb(legNear, limbW * 1.08, limbW * 0.82, flat || legTone);
+    if (!flat && !(gown && !seated)) {
       g += foot(legFar[2], shade(shoe, 0.14));
       g += foot(legNear[2], shoe);
     }
@@ -650,6 +676,25 @@
         ' Q ' + f(x) + ' ' + f(shY + h * 0.010) + ' ' + f(x + shW * 0.40) + ' ' + f(shY - h * 0.048) +
         ' Q ' + f(x) + ' ' + f(shY - h * 0.022) + ' ' + f(x - shW * 0.40) + ' ' + f(shY - h * 0.048) + ' Z" fill="' + shade(cloth, -0.26) + '" opacity=".38"/>';
     }
+    if (suit && !flat && !o.back) {
+      /* An open jacket: a wedge of shirt down the chest, a lapel either side
+         of it, and a tie down the middle. Three small shapes, but they are
+         the difference between "dark top" and "black tie" at this size. */
+      var vTop = shY - h * 0.044, vBot = shY + h * 0.088;
+      g += '<path d="M ' + f(x - shW * 0.34) + ' ' + f(vTop) +
+        ' L ' + f(x + shW * 0.34) + ' ' + f(vTop) +
+        ' L ' + f(x) + ' ' + f(vBot) + ' Z" fill="' + SHIRT + '"/>';
+      g += '<path d="M ' + f(x - shW * 0.40) + ' ' + f(vTop - h * 0.004) +
+        ' L ' + f(x - shW * 0.02) + ' ' + f(vBot) +
+        ' L ' + f(x - shW * 0.66) + ' ' + f(vTop + h * 0.052) + ' Z" fill="' + shade(cloth, -0.26) + '"/>';
+      g += '<path d="M ' + f(x + shW * 0.40) + ' ' + f(vTop - h * 0.004) +
+        ' L ' + f(x + shW * 0.02) + ' ' + f(vBot) +
+        ' L ' + f(x + shW * 0.66) + ' ' + f(vTop + h * 0.052) + ' Z" fill="' + shade(cloth, 0.10) + '"/>';
+      g += '<path d="M ' + f(x - shW * 0.10) + ' ' + f(vTop + h * 0.004) +
+        ' L ' + f(x + shW * 0.10) + ' ' + f(vTop + h * 0.004) +
+        ' L ' + f(x + shW * 0.05) + ' ' + f(vBot - h * 0.006) +
+        ' L ' + f(x - shW * 0.05) + ' ' + f(vBot - h * 0.006) + ' Z" fill="' + shade(cloth, -0.42) + '"/>';
+    }
     if (!flat) {
       /* the hem of the shirt, which is where a body stops being a shape */
       g += '<path d="M ' + f(x - hipW * 1.01) + ' ' + f(hipY - h * 0.026) +
@@ -657,7 +702,22 @@
         ' L ' + f(x + hipW) + ' ' + f(hipY) + ' Q ' + f(x) + ' ' + f(hipY + h * 0.028) + ' ' + f(x - hipW) + ' ' + f(hipY) +
         ' Z" fill="' + shade(cloth, -0.22) + '" opacity=".45"/>';
     }
-    if (dress && !seated) {
+    if (gown && !seated) {
+      /* floor length, with a little sweep at the hem. Drawn after the torso
+         so it covers the legs, which is what a gown does. */
+      g += '<path d="M ' + f(x - hipW * 1.02) + ' ' + f(hipY - h * 0.055) +
+        ' L ' + f(x + hipW * 1.02) + ' ' + f(hipY - h * 0.055) +
+        ' C ' + f(x + hipW * 1.5) + ' ' + f(hipY + h * 0.18) + ', ' + f(x + hipW * 1.9) + ' ' + f(b - h * 0.03) + ', ' + f(x + hipW * 2.0) + ' ' + f(b) +
+        ' Q ' + f(x) + ' ' + f(b + h * 0.022) + ' ' + f(x - hipW * 2.0) + ' ' + f(b) +
+        ' C ' + f(x - hipW * 1.9) + ' ' + f(b - h * 0.03) + ', ' + f(x - hipW * 1.5) + ' ' + f(hipY + h * 0.18) + ', ' + f(x - hipW * 1.02) + ' ' + f(hipY - h * 0.055) +
+        ' Z" fill="' + cloth + '"/>';
+      if (!flat) {
+        g += '<path d="M ' + f(x + hipW * 0.30 * dir) + ' ' + f(hipY - h * 0.05) +
+          ' C ' + f(x + hipW * 1.2 * dir) + ' ' + f(hipY + h * 0.18) + ', ' + f(x + hipW * 1.8 * dir) + ' ' + f(b - h * 0.03) + ', ' + f(x + hipW * 1.98 * dir) + ' ' + f(b) +
+          ' Q ' + f(x + hipW * 0.9 * dir) + ' ' + f(b + h * 0.012) + ' ' + f(x + hipW * 0.2 * dir) + ' ' + f(b - h * 0.004) +
+          ' Z" fill="' + shade(cloth, -0.17) + '" opacity=".38"/>';
+      }
+    } else if (dress && !seated) {
       g += '<path d="M ' + f(x - hipW * 1.04) + ' ' + f(hipY - h * 0.048) +
         ' L ' + f(x + hipW * 1.04) + ' ' + f(hipY - h * 0.048) +
         ' L ' + f(x + hipW * 1.92) + ' ' + f(hipY + h * 0.178) +
@@ -774,7 +834,7 @@
     var n = opts.n || (r() < 0.45 ? 3 : 2);
     var talker = (r() * n) | 0;
     for (var i = 0; i < n; i++) {
-      var off = (i - (n - 1) / 2) * h * 0.36;
+      var off = (i - (n - 1) / 2) * h * 0.42;
       var hh = h * (0.93 + r() * 0.14);
       var facing = off <= 0;                       /* everyone faces the middle */
       var pose = i === talker ? 'chat' : (r() < 0.3 ? 'laugh' : 'listen');
@@ -793,6 +853,7 @@
         armAnim: opts.lively && (i === talker || r() < 0.4) ? 'ww-arm-talk' : null,
         delay: opts.lively ? -((seed || 7) * 0.7 + i * 1.9) % 6 : null,
         headDelay: opts.lively ? -((seed || 7) * 0.3 + i * 1.3) % 5 : null,
+        evening: opts.evening,
         flat: opts.flat, cloth: opts.cloth
       });
     }

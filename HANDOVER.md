@@ -340,6 +340,32 @@ the bottom of the camera crop (the room is drawn 1600x900, but a laptop crops
 roughly the last 33 units), and one more guest joined the group on the right
 so nobody stands alone.
 
+**Evening wear.** `person()` takes `evening: true` and dresses itself: a gown
+to the floor in one of the GOWNS colours, or a suit from SUITS with a shirt
+wedge, two lapels and a tie. `gown: true` / `suit: true` force one or the
+other. Two things about gowns are easy to break:
+  - A gown's **legs are drawn in the fabric colour**, not skin. The skirt only
+    draws for a figure who is standing, so a seated guest in a gown would
+    otherwise be sitting there in bare legs — which is exactly what happened
+    the first time, in a chair, in front of everybody.
+  - A standing gown **gets no shoes**, because a floor-length skirt covers
+    them. A pair of shoes poking through the hem is the giveaway.
+
+**The Wedding crowd, again.** Round four: everyone was facing front, banked up
+on one side of the terrace, and overlapping badly enough to produce visible
+artifacts. It is now scattered the full width in evening dress, turned every
+which way — the knots face inward, one guest watches the arch with their back
+to us, the photographer is side-on. Three rules hold it together, and they are
+written out in full above the cast list in `rooms.wedding`. The important one:
+
+> **No two standing figures overlap in x. At all — not just within a depth
+> band.** There is about fifty units of terrace to play with, which is far too
+> little for a nearer figure to read as *in front of* another rather than
+> *stuck to* it. Depth is carried by size instead: 92–96 at the back against
+> 120–128 at the front. If you add a guest, find a gap — the spans are laid
+> out in the comment, every one of them at least fifty units clear of the
+> next. Do not tuck somebody in behind an existing group.
+
 **The After-Party.** The DJ was 470 units clear of the nearest dancer, which
 read as somebody who had wandered off on their own. The decks came in to meet
 the floor (now at x=1103 instead of 1276) and the whole thing reads as one

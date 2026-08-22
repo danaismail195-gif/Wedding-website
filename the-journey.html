@@ -1619,6 +1619,16 @@ svg { display: block; }
                  '#B08A55', '#A85331', '#D9B071', '#4A3B52'];
   var HAIR_STYLES = ['crop', 'bob', 'long', 'bun', 'curls', 'pony', 'wave', 'part'];
 
+  /* Black tie, more or less. Gowns get the jewel and the pale end of the
+     range; suits get the dark end, because a pale suit at 120px tall reads
+     as pyjamas. Pass `evening: true` and a figure dresses itself from these;
+     pass `gown` or `suit` to decide which. */
+  var GOWNS = ['#2E6B57', '#2C4E7A', '#7A2E3E', '#C99A46', '#D9A7A0', '#8E93A8',
+               '#EFE4D2', '#A8556B', '#4A3352', '#2A5560', '#B8894E', '#6E7FA8'];
+  var SUITS = ['#2C3A52', '#33302E', '#241E1C', '#3B3A44', '#2F3A34', '#4A3A46',
+               '#243A52', '#3E2E2C', '#453A2E'];
+  var SHIRT = '#F2E9DA';
+
   /* A limb in two pieces: upper arm thicker than forearm, thigh thicker than
      calf. Drawing both at one width is exactly what makes a figure read as a
      stick — the taper is most of the difference between a diagram of a person
@@ -1843,9 +1853,20 @@ svg { display: block; }
     var pants = flat || o.pants || PANTS[(r() * PANTS.length) | 0];
     var hairStyle = o.hairStyle || HAIR_STYLES[(r() * HAIR_STYLES.length) | 0];
     var shoe  = flat || '#3B2A22';
+
+    /* Evening wear. A gown runs to the floor and hides the legs; a suit gets
+       a shirt and lapels and trousers that match the jacket. */
+    var gown = o.gown != null ? o.gown : (o.evening ? r() < 0.52 : false);
+    var suit = o.suit != null ? o.suit : (o.evening ? !gown : false);
+    if (o.evening && !flat) {
+      if (!o.cloth) cloth = gown ? GOWNS[(r() * GOWNS.length) | 0]
+                                 : SUITS[(r() * SUITS.length) | 0];
+      if (!o.pants) pants = suit ? shade(cloth, -0.05) : pants;
+      if (!o.hair && r() < 0.5) hairStyle = gown ? (r() < 0.5 ? 'bun' : 'wave') : 'crop';
+    }
     var dir   = o.flip ? -1 : 1;
     var pose  = POSES[o.pose] || POSES.stand;
-    var dress = o.dress != null ? o.dress : (r() < 0.45);
+    var dress = gown ? true : (o.dress != null ? o.dress : (r() < 0.45));
     var seated = o.pose === 'sit' || o.pose === 'table' ||
                  o.pose === 'tableUp' || o.pose === 'tableIn';
 
@@ -1912,15 +1933,20 @@ svg { display: block; }
         ' l -' + f(limbW * 1.06) + ' 0 Z" fill="' + tone + '"/>';
     }
 
+    /* A gown covers the legs whether its wearer is standing or sitting. The
+       floor-length skirt below only draws when they are on their feet, so a
+       seated guest in a gown would otherwise be sitting there in bare legs. */
+    var legTone = gown ? cloth : (dress ? skin : pants);
+
     /* --- far arm and far leg go behind the body ---------------------- */
-    g += limb(legFar, limbW * 1.04, limbW * 0.80, flat || (dress ? shade(skin, -0.14) : shade(pants, -0.14)));
+    g += limb(legFar, limbW * 1.04, limbW * 0.80, flat || shade(legTone, -0.14));
     g += limb(armFar, limbW * 0.84, limbW * 0.60, flat || shade(skin, -0.10));
     if (!flat) { g += sleeve(armFar); g += hand(armFar, shade(skin, -0.10)); }
     if (o.holdFar) g += prop(o.holdFar, armFar[2][0], armFar[2][1] - handR * 0.5, h * 0.012, o.holdFarTint);
 
     /* --- near leg ---------------------------------------------------- */
-    g += limb(legNear, limbW * 1.08, limbW * 0.82, flat || (dress ? skin : pants));
-    if (!flat) {
+    g += limb(legNear, limbW * 1.08, limbW * 0.82, flat || legTone);
+    if (!flat && !(gown && !seated)) {
       g += foot(legFar[2], shade(shoe, 0.14));
       g += foot(legNear[2], shoe);
     }
@@ -1946,6 +1972,25 @@ svg { display: block; }
         ' Q ' + f(x) + ' ' + f(shY + h * 0.010) + ' ' + f(x + shW * 0.40) + ' ' + f(shY - h * 0.048) +
         ' Q ' + f(x) + ' ' + f(shY - h * 0.022) + ' ' + f(x - shW * 0.40) + ' ' + f(shY - h * 0.048) + ' Z" fill="' + shade(cloth, -0.26) + '" opacity=".38"/>';
     }
+    if (suit && !flat && !o.back) {
+      /* An open jacket: a wedge of shirt down the chest, a lapel either side
+         of it, and a tie down the middle. Three small shapes, but they are
+         the difference between "dark top" and "black tie" at this size. */
+      var vTop = shY - h * 0.044, vBot = shY + h * 0.088;
+      g += '<path d="M ' + f(x - shW * 0.34) + ' ' + f(vTop) +
+        ' L ' + f(x + shW * 0.34) + ' ' + f(vTop) +
+        ' L ' + f(x) + ' ' + f(vBot) + ' Z" fill="' + SHIRT + '"/>';
+      g += '<path d="M ' + f(x - shW * 0.40) + ' ' + f(vTop - h * 0.004) +
+        ' L ' + f(x - shW * 0.02) + ' ' + f(vBot) +
+        ' L ' + f(x - shW * 0.66) + ' ' + f(vTop + h * 0.052) + ' Z" fill="' + shade(cloth, -0.26) + '"/>';
+      g += '<path d="M ' + f(x + shW * 0.40) + ' ' + f(vTop - h * 0.004) +
+        ' L ' + f(x + shW * 0.02) + ' ' + f(vBot) +
+        ' L ' + f(x + shW * 0.66) + ' ' + f(vTop + h * 0.052) + ' Z" fill="' + shade(cloth, 0.10) + '"/>';
+      g += '<path d="M ' + f(x - shW * 0.10) + ' ' + f(vTop + h * 0.004) +
+        ' L ' + f(x + shW * 0.10) + ' ' + f(vTop + h * 0.004) +
+        ' L ' + f(x + shW * 0.05) + ' ' + f(vBot - h * 0.006) +
+        ' L ' + f(x - shW * 0.05) + ' ' + f(vBot - h * 0.006) + ' Z" fill="' + shade(cloth, -0.42) + '"/>';
+    }
     if (!flat) {
       /* the hem of the shirt, which is where a body stops being a shape */
       g += '<path d="M ' + f(x - hipW * 1.01) + ' ' + f(hipY - h * 0.026) +
@@ -1953,7 +1998,22 @@ svg { display: block; }
         ' L ' + f(x + hipW) + ' ' + f(hipY) + ' Q ' + f(x) + ' ' + f(hipY + h * 0.028) + ' ' + f(x - hipW) + ' ' + f(hipY) +
         ' Z" fill="' + shade(cloth, -0.22) + '" opacity=".45"/>';
     }
-    if (dress && !seated) {
+    if (gown && !seated) {
+      /* floor length, with a little sweep at the hem. Drawn after the torso
+         so it covers the legs, which is what a gown does. */
+      g += '<path d="M ' + f(x - hipW * 1.02) + ' ' + f(hipY - h * 0.055) +
+        ' L ' + f(x + hipW * 1.02) + ' ' + f(hipY - h * 0.055) +
+        ' C ' + f(x + hipW * 1.5) + ' ' + f(hipY + h * 0.18) + ', ' + f(x + hipW * 1.9) + ' ' + f(b - h * 0.03) + ', ' + f(x + hipW * 2.0) + ' ' + f(b) +
+        ' Q ' + f(x) + ' ' + f(b + h * 0.022) + ' ' + f(x - hipW * 2.0) + ' ' + f(b) +
+        ' C ' + f(x - hipW * 1.9) + ' ' + f(b - h * 0.03) + ', ' + f(x - hipW * 1.5) + ' ' + f(hipY + h * 0.18) + ', ' + f(x - hipW * 1.02) + ' ' + f(hipY - h * 0.055) +
+        ' Z" fill="' + cloth + '"/>';
+      if (!flat) {
+        g += '<path d="M ' + f(x + hipW * 0.30 * dir) + ' ' + f(hipY - h * 0.05) +
+          ' C ' + f(x + hipW * 1.2 * dir) + ' ' + f(hipY + h * 0.18) + ', ' + f(x + hipW * 1.8 * dir) + ' ' + f(b - h * 0.03) + ', ' + f(x + hipW * 1.98 * dir) + ' ' + f(b) +
+          ' Q ' + f(x + hipW * 0.9 * dir) + ' ' + f(b + h * 0.012) + ' ' + f(x + hipW * 0.2 * dir) + ' ' + f(b - h * 0.004) +
+          ' Z" fill="' + shade(cloth, -0.17) + '" opacity=".38"/>';
+      }
+    } else if (dress && !seated) {
       g += '<path d="M ' + f(x - hipW * 1.04) + ' ' + f(hipY - h * 0.048) +
         ' L ' + f(x + hipW * 1.04) + ' ' + f(hipY - h * 0.048) +
         ' L ' + f(x + hipW * 1.92) + ' ' + f(hipY + h * 0.178) +
@@ -2070,7 +2130,7 @@ svg { display: block; }
     var n = opts.n || (r() < 0.45 ? 3 : 2);
     var talker = (r() * n) | 0;
     for (var i = 0; i < n; i++) {
-      var off = (i - (n - 1) / 2) * h * 0.36;
+      var off = (i - (n - 1) / 2) * h * 0.42;
       var hh = h * (0.93 + r() * 0.14);
       var facing = off <= 0;                       /* everyone faces the middle */
       var pose = i === talker ? 'chat' : (r() < 0.3 ? 'laugh' : 'listen');
@@ -2089,6 +2149,7 @@ svg { display: block; }
         armAnim: opts.lively && (i === talker || r() < 0.4) ? 'ww-arm-talk' : null,
         delay: opts.lively ? -((seed || 7) * 0.7 + i * 1.9) % 6 : null,
         headDelay: opts.lively ? -((seed || 7) * 0.3 + i * 1.3) % 5 : null,
+        evening: opts.evening,
         flat: opts.flat, cloth: opts.cloth
       });
     }
@@ -2726,7 +2787,7 @@ svg { display: block; }
             /* not every seat is taken — people are still finding them */
             if ((c * 4 + st) % 3 !== 1) {
               g += A.person({ x: seats[st][0] + 13 * sc, baseY: seats[st][1] - 30 * sc,
-                h: 96 * sc, pose: 'table', back: true, shadow: false,
+                h: 96 * sc, pose: 'table', back: true, shadow: false, evening: true,
                 seed: 600 + c * 7 + st * 3, anim: (c + st) % 3 === 0 ? 'ww-talk' : 'ww-idle' });
             }
             g += chair(seats[st][0], seats[st][1], sc);
@@ -2747,31 +2808,51 @@ svg { display: block; }
            and it stops two small figures having to carry the weight of being
            "the couple" at 150px tall. */
 
-        /* --- the guests who are not sitting down ----------------------- */
-        /* One crowd, gathered to the right of the aisle, close enough to read
-           as people who came together — they used to be three knots at 150,
-           880 and 1420 with the whole terrace between them. Everybody in it
-           shifts their weight and most of them nod (`lively`), so the group
-           has the same low-level movement the dancefloor has.
-           Feet stay above y=866: the room is drawn 1600x900 but the camera
-           crops a little off the bottom on a laptop, and a guest standing at
-           890 loses their shoes to it. */
-        g += A.chatGroup(824, 856, 122, 711, { n: 3, lively: true });
-        g += A.chatGroup(946, 850, 116, 719, { n: 3, lively: true });
-        g += A.chatGroup(1146, 854, 118, 723, { n: 2, lively: true });
+        /* --- the guests who are not sitting down -----------------------
+           Scattered the whole width of the terrace, turned every which way:
+           the knots face inward (that is what `chatGroup` does — everyone
+           faces the middle, which is what makes a group read as a
+           conversation rather than a queue), one guest has their back to us
+           watching the arch, and the photographer is side-on to it.
 
-        /* someone photographing the arch, someone raising a glass */
-        /* the photographer works the near edge of the crowd, turned back
-           towards the arch — which is also what keeps the group anchored to
-           the ceremony rather than floating on the terrace */
-        g += A.person({ x: 748, baseY: 858, h: 124, pose: 'photo', hold: 'camera',
-          flip: true, seed: 727, anim: 'ww-mingle', headAnim: 'ww-nod-slow',
-          delay: -1.7 });
-        g += A.person({ x: 1042, baseY: 862, h: 122, pose: 'toast', hold: 'glass',
-          flip: true, seed: 733, anim: 'ww-mingle', headAnim: 'ww-nod',
-          armAnim: 'ww-arm-raise', delay: -3.4, headDelay: -2.2 });
-        g += A.person({ x: 1086, baseY: 866, h: 126, pose: 'listen', seed: 737,
-          anim: 'ww-mingle', headAnim: 'ww-nod', delay: -0.9, headDelay: -4.1 });
+           Three rules keep this from becoming the pile-up it was:
+
+           · **No two figures overlap in x. At all.** Not just within a band.
+             Depth here is worth about fifty units of terrace, which at this
+             scale is far too little to make a nearer figure read as *in
+             front of* a further one rather than *stuck to* it. The x-spans
+             below are worked out with shoulders included, and every gap
+             between them is at least sixty units. If you add somebody, find
+             a gap — do not tuck them behind an existing group.
+           · **Depth is carried by size, not by y.** The far knots are drawn
+             at 92–96 against 120–128 near the front. That ratio is what
+             makes the terrace look deep; moving somebody up the screen
+             without shrinking them just makes them look like they are
+             floating.
+           · **Feet above y=866.** The room is drawn 1600x900 but a laptop
+             crops roughly the last 33 units, and a guest standing at 890
+             loses their shoes to it.
+
+           Everyone is in evening wear (`evening: true`) — gowns to the floor
+           in jewel colours, dark suits with a shirt, lapels and a tie. The
+           palettes are GOWNS and SUITS in art.js. */
+
+        /* far back: small, and drawn first so anything nearer covers them */
+        g += A.chatGroup(330, 826, 92, 751, { n: 2, lively: true, evening: true });
+        g += A.chatGroup(900, 830, 96, 757, { n: 3, lively: true, evening: true });
+
+        /* the middle of the terrace */
+        g += A.person({ x: 690, baseY: 848, h: 108, pose: 'photo', hold: 'camera',
+          flip: true, evening: true, suit: true, seed: 727, anim: 'ww-mingle',
+          headAnim: 'ww-nod-slow', delay: -1.7 });
+        g += A.person({ x: 1230, baseY: 852, h: 116, pose: 'listen', back: true,
+          evening: true, seed: 761, anim: 'ww-mingle', delay: -2.8 });
+
+        /* nearest the camera: the largest figures, drawn last */
+        g += A.chatGroup(130, 858, 122, 767, { n: 3, lively: true, evening: true });
+        g += A.chatGroup(470, 862, 126, 773, { n: 2, lively: true, evening: true });
+        g += A.chatGroup(1060, 864, 128, 793, { n: 2, lively: true, evening: true });
+        g += A.chatGroup(1420, 858, 120, 809, { n: 3, lively: true, evening: true });
 
         /* The two who used to drift across the middle of the aisle are gone:
            they stood directly below the arch, between the guest and the

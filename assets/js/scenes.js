@@ -562,7 +562,7 @@
             /* not every seat is taken — people are still finding them */
             if ((c * 4 + st) % 3 !== 1) {
               g += A.person({ x: seats[st][0] + 13 * sc, baseY: seats[st][1] - 30 * sc,
-                h: 96 * sc, pose: 'table', back: true, shadow: false,
+                h: 96 * sc, pose: 'table', back: true, shadow: false, evening: true,
                 seed: 600 + c * 7 + st * 3, anim: (c + st) % 3 === 0 ? 'ww-talk' : 'ww-idle' });
             }
             g += chair(seats[st][0], seats[st][1], sc);
@@ -583,31 +583,51 @@
            and it stops two small figures having to carry the weight of being
            "the couple" at 150px tall. */
 
-        /* --- the guests who are not sitting down ----------------------- */
-        /* One crowd, gathered to the right of the aisle, close enough to read
-           as people who came together — they used to be three knots at 150,
-           880 and 1420 with the whole terrace between them. Everybody in it
-           shifts their weight and most of them nod (`lively`), so the group
-           has the same low-level movement the dancefloor has.
-           Feet stay above y=866: the room is drawn 1600x900 but the camera
-           crops a little off the bottom on a laptop, and a guest standing at
-           890 loses their shoes to it. */
-        g += A.chatGroup(824, 856, 122, 711, { n: 3, lively: true });
-        g += A.chatGroup(946, 850, 116, 719, { n: 3, lively: true });
-        g += A.chatGroup(1146, 854, 118, 723, { n: 2, lively: true });
+        /* --- the guests who are not sitting down -----------------------
+           Scattered the whole width of the terrace, turned every which way:
+           the knots face inward (that is what `chatGroup` does — everyone
+           faces the middle, which is what makes a group read as a
+           conversation rather than a queue), one guest has their back to us
+           watching the arch, and the photographer is side-on to it.
 
-        /* someone photographing the arch, someone raising a glass */
-        /* the photographer works the near edge of the crowd, turned back
-           towards the arch — which is also what keeps the group anchored to
-           the ceremony rather than floating on the terrace */
-        g += A.person({ x: 748, baseY: 858, h: 124, pose: 'photo', hold: 'camera',
-          flip: true, seed: 727, anim: 'ww-mingle', headAnim: 'ww-nod-slow',
-          delay: -1.7 });
-        g += A.person({ x: 1042, baseY: 862, h: 122, pose: 'toast', hold: 'glass',
-          flip: true, seed: 733, anim: 'ww-mingle', headAnim: 'ww-nod',
-          armAnim: 'ww-arm-raise', delay: -3.4, headDelay: -2.2 });
-        g += A.person({ x: 1086, baseY: 866, h: 126, pose: 'listen', seed: 737,
-          anim: 'ww-mingle', headAnim: 'ww-nod', delay: -0.9, headDelay: -4.1 });
+           Three rules keep this from becoming the pile-up it was:
+
+           · **No two figures overlap in x. At all.** Not just within a band.
+             Depth here is worth about fifty units of terrace, which at this
+             scale is far too little to make a nearer figure read as *in
+             front of* a further one rather than *stuck to* it. The x-spans
+             below are worked out with shoulders included, and every gap
+             between them is at least sixty units. If you add somebody, find
+             a gap — do not tuck them behind an existing group.
+           · **Depth is carried by size, not by y.** The far knots are drawn
+             at 92–96 against 120–128 near the front. That ratio is what
+             makes the terrace look deep; moving somebody up the screen
+             without shrinking them just makes them look like they are
+             floating.
+           · **Feet above y=866.** The room is drawn 1600x900 but a laptop
+             crops roughly the last 33 units, and a guest standing at 890
+             loses their shoes to it.
+
+           Everyone is in evening wear (`evening: true`) — gowns to the floor
+           in jewel colours, dark suits with a shirt, lapels and a tie. The
+           palettes are GOWNS and SUITS in art.js. */
+
+        /* far back: small, and drawn first so anything nearer covers them */
+        g += A.chatGroup(330, 826, 92, 751, { n: 2, lively: true, evening: true });
+        g += A.chatGroup(900, 830, 96, 757, { n: 3, lively: true, evening: true });
+
+        /* the middle of the terrace */
+        g += A.person({ x: 690, baseY: 848, h: 108, pose: 'photo', hold: 'camera',
+          flip: true, evening: true, suit: true, seed: 727, anim: 'ww-mingle',
+          headAnim: 'ww-nod-slow', delay: -1.7 });
+        g += A.person({ x: 1230, baseY: 852, h: 116, pose: 'listen', back: true,
+          evening: true, seed: 761, anim: 'ww-mingle', delay: -2.8 });
+
+        /* nearest the camera: the largest figures, drawn last */
+        g += A.chatGroup(130, 858, 122, 767, { n: 3, lively: true, evening: true });
+        g += A.chatGroup(470, 862, 126, 773, { n: 2, lively: true, evening: true });
+        g += A.chatGroup(1060, 864, 128, 793, { n: 2, lively: true, evening: true });
+        g += A.chatGroup(1420, 858, 120, 809, { n: 3, lively: true, evening: true });
 
         /* The two who used to drift across the middle of the aisle are gone:
            they stood directly below the arch, between the guest and the
