@@ -156,8 +156,64 @@ svg { display: block; }
    the cursor and start a hover/unhover flicker. No filter: it forces a
    repaint of the whole layer on a machine that can least afford it. */
 .entrance:hover, .entrance:focus-visible, .entrance.is-near { transform: scale(1.035); }
-.entrance:hover .entrance-label, .entrance:focus-visible .entrance-label,
-.entrance.is-near .entrance-label { opacity: 1; transform: translate(-50%, 0); }
+
+/* --- when a doorway shows its name -------------------------------------
+   One rule for all seven, and this took a correction to get right.
+   `.is-near` marks whichever doorway the camera is standing in front of.
+   It used to reveal that doorway's title as well as scaling it — so on a
+   laptop there was permanently one name on screen, sitting open while its
+   six neighbours waited to be hovered. It read as a bug in the navigation
+   rather than as a highlight, because the guest cannot see the rule that
+   produced it: they see one door labelled and six not.
+   So the title is now **hover and keyboard focus only**, on every doorway,
+   with nothing permanently open. `.is-near` keeps the quiet part of its
+   job — the small scale and the brighter "Enter" — which reads as depth
+   rather than as a label somebody left on.
+   A touch screen has no hover, and there `.is-near` is the only thing that
+   can ever show a name, so it keeps the title: still one rule for all seven
+   doorways, still nothing behaving differently from its neighbours. */
+@media (hover: hover) and (pointer: fine) {
+  .entrance:hover .entrance-label, .entrance:focus-visible .entrance-label {
+    opacity: 1; transform: translate(-50%, 0);
+  }
+}
+@media (hover: none), (pointer: coarse) {
+  .entrance:focus-visible .entrance-label,
+  .entrance.is-near .entrance-label { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* --- "Start here", over the first doorway only -------------------------
+   Seven arches along a promenade do not say which one is the beginning, and
+   the walk only makes sense in order. A small line of type above the
+   Welcome Dinner and a hairline arrow pointing down into it is enough to
+   say so without becoming a piece of interface: it is the same espresso ink
+   as "Enter", at the weight of a caption, and it fades out of the way the
+   moment that doorway is hovered so it never sits on top of the title. */
+/* Anchored to the doorway's own artwork, not to its box. The button is 460
+   units tall and the stonework only starts at unit 128 of that (27.8% down),
+   so a cue hung off `top` floats a hundred pixels clear of the arch it is
+   pointing at. Bottom-anchored at 76% the arrow tip lands about fifteen
+   pixels above the cornice, at every size the doorway is drawn. */
+.entrance-start {
+  position: absolute; left: 50%; bottom: 76%; top: auto;
+  transform: translate(-50%, 0);
+  display: flex; flex-direction: column; align-items: center; gap: .35em;
+  pointer-events: none; white-space: nowrap;
+  color: var(--espresso); opacity: .72;
+  transition: opacity .45s var(--ease);
+  animation: ww-start-breathe 4.8s ease-in-out infinite;
+}
+.entrance-start .word {
+  font-size: .62em; letter-spacing: .28em; text-indent: .28em;
+  text-transform: uppercase; font-weight: 400;
+}
+.entrance-start .arrow { display: block; width: .75em; height: 1.35em; opacity: .8; }
+.entrance:hover .entrance-start, .entrance:focus-visible .entrance-start { opacity: 0; }
+@keyframes ww-start-breathe {
+  0%, 100% { transform: translate(-50%, 0); }
+  50%      { transform: translate(-50%, .3em); }
+}
+#hub.is-moving .entrance-start { animation-play-state: paused; }
 
 /* The word sits inside the archway itself, at the centre of the opening
    (the arch is drawn from y=190 to y=440 of a 460-tall box, so its middle
@@ -596,6 +652,7 @@ svg { display: block; }
 #hub.is-moving .ww-talk, #hub.is-moving .ww-laugh, #hub.is-moving .ww-stroll,
 #hub.is-moving .ww-nod, #hub.is-moving .ww-nod-slow, #hub.is-moving .ww-mingle,
 #hub.is-moving .ww-arm-talk, #hub.is-moving .ww-arm-raise,
+#hub.is-moving .ww-post, #hub.is-moving .ww-cruise,
 #hub.is-moving .ww-lean {
   animation-play-state: paused;
 }
@@ -734,6 +791,21 @@ svg { display: block; }
   62%      { transform: rotate(2.4deg) translateY(0); }
   82%      { transform: rotate(-.6deg) translateY(var(--ww-amp-y, -1.6px)); }
 }
+/* Posting a letter. The arm carries this, and so does the envelope in its
+   hand — the two are separate elements in the RSVP scene (the envelope has
+   to be clipped at the mouth of the slot, which it cannot be from inside the
+   figure), so they share a class, an origin and a delay and move as one.
+   Mostly a slide, with a degree and a half of turn in it: the arm is nearly
+   horizontal at the slot, and a pure rotation about the shoulder would have
+   moved the hand down rather than in. Seven seconds a cycle and four units
+   of travel — the letter goes a little further in, and comes back, once
+   every seven seconds. Any faster and it reads as somebody fidgeting. */
+.ww-post { animation: ww-post 7s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-post {
+  0%, 100% { transform: translateX(0)     rotate(0deg); }
+  46%      { transform: translateX(4px)   rotate(1.6deg); }
+  74%      { transform: translateX(1.4px) rotate(.6deg); }
+}
 .ww-stroll { animation: ww-stroll 22s ease-in-out infinite; transform-box: fill-box; }
 @keyframes ww-stroll {
   0%, 100% { transform: translateX(calc(var(--ww-amp-x, 26px) * -1)); }
@@ -745,6 +817,16 @@ svg { display: block; }
   14%  { opacity: 1; }
   82%  { opacity: 1; }
   100% { transform: translate(40px, -18px); opacity: 0; }
+}
+/* An aeroplane that stays in the frame. The Travel room's airliner is big
+   enough to have people in its windows, and a thing you are meant to look
+   into cannot also be crossing the sky — so it drifts about twenty units
+   over nineteen seconds, rising and falling a little, and the contrail
+   behind it says the rest. */
+.ww-cruise { animation: ww-cruise 19s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ww-cruise {
+  0%, 100% { transform: translate(-10px, 3px); }
+  50%      { transform: translate(10px, -5px); }
 }
 .ww-plane { animation: ww-plane 34s linear infinite; }
 @keyframes ww-plane {

@@ -45,27 +45,35 @@
   function hub() {
     var L = [];
 
-    /* 1 · sky */
-    L.push({ depth: 0.05, svg: wrap(HUB_W, HUB_H,
+    /* --- how many layers, and why it matters --------------------------
+       Every one of these is as wide as the whole promenade — 3311 x 1364 CSS
+       pixels in a 1900-wide window, four times that in device pixels on a
+       Retina screen — and a change to any of their transforms is paid for in
+       raster rather than in compositing, because the camera above them
+       carries a `will-change` and a scale of its own. Measured on this
+       machine: panning nine of them ran at 36.5fps with 27 frames over 32ms
+       in two seconds; five of them ran at 49.5fps with one. That is the
+       whole difference between a walk that glides and one that tears.
+       So sky and clouds are one layer now, and the two ridges are one
+       layer, and the promenade is six rather than eight. The parallax lost
+       is between a cloud and the sky behind it, and between two ranges of
+       hills forty units apart — neither of which anybody could see moving.
+       **Adding a layer here is expensive.** If something new needs its own
+       depth, take it out of an existing layer rather than adding a tenth. */
+
+    /* 1 · sky, with the clouds and the birds in it */
+    L.push({ depth: 0.10, svg: wrap(HUB_W, HUB_H,
       skyGrad(HUB_W, HUB_H, [[0, '#8FB0C4'], [0.42, '#D9C3B4'], [0.72, '#F2D3AE'], [1, '#F9E6C9']], 900) +
       A.sun(2560, 470, 62, '#FFF1D2', P.gold) +
-      '<rect x="0" y="700" width="' + HUB_W + '" height="200" fill="#F7DEBB" opacity=".5"/>'
-    )});
-
-    /* 2 · clouds + birds */
-    L.push({ depth: 0.12, svg: wrap(HUB_W, HUB_H,
+      '<rect x="0" y="700" width="' + HUB_W + '" height="200" fill="#F7DEBB" opacity=".5"/>' +
       A.clouds(HUB_W, HUB_H, 5, '#FFF3E0', 0.75, [150, 520]) +
       A.birds(760, 380, 1.2, 6, 9, 'rgba(59,42,34,.42)') +
       A.birds(2180, 300, 0.9, 4, 14, 'rgba(59,42,34,.34)')
     )});
 
-    /* 3 · far ridge */
-    L.push({ depth: 0.22, svg: wrap(HUB_W, HUB_H,
-      '<path d="' + A.ridge(HUB_W, HUB_H, { baseline: 830, amp: 330, peaks: 8, seed: 21 }) + '" fill="#9FB6C4" opacity=".85"/>'
-    )});
-
-    /* 4 · middle ridge with a distant village at its foot */
-    L.push({ depth: 0.36, svg: wrap(HUB_W, HUB_H,
+    /* 2 · the hills, far range and near, with a distant village at the foot */
+    L.push({ depth: 0.30, svg: wrap(HUB_W, HUB_H,
+      '<path d="' + A.ridge(HUB_W, HUB_H, { baseline: 830, amp: 330, peaks: 8, seed: 21 }) + '" fill="#9FB6C4" opacity=".85"/>' +
       '<path d="' + A.ridge(HUB_W, HUB_H, { baseline: 855, amp: 250, peaks: 12, seed: 33, phase: 1.2 }) + '" fill="' + P.dusty + '"/>' +
       '<path d="' + A.ridge(HUB_W, HUB_H, { baseline: 862, amp: 150, peaks: 16, seed: 44, phase: 2.4 }) + '" fill="' + P.dustyDeep + '" opacity=".55"/>' +
       A.houses(420, 866, 7, 0.5, 51, { wall: '#DCCDB6', roof: '#B9704E', window: 'rgba(59,42,34,.32)' }) +
@@ -75,7 +83,7 @@
       A.cypress(2620, 868, 58, 'rgba(76,92,68,.7)')
     )});
 
-    /* 5 · the bay itself */
+    /* 3 · the bay itself */
     L.push({ depth: 0.52, svg: wrap(HUB_W, HUB_H,
       A.water(0, 866, HUB_W, 210, '#5E8E93', '#2E5A63', 61, '#FFEFD6') +
       /* the little island church, Our Lady of the Rocks */
@@ -88,7 +96,7 @@
       A.boat(2900, 990, 0.95, '#3B2A22', null)
     )});
 
-    /* 6 · the near shore, just below the promenade */
+    /* 4 · the near shore, just below the promenade */
     L.push({ depth: 0.72, svg: wrap(HUB_W, HUB_H,
       A.houses(120, 1078, 6, 0.78, 71, { wall: '#EBDCC2', roof: P.terracotta, window: 'rgba(59,42,34,.45)' }) +
       A.campanile(560, 1078, 122, 0.8, { wall: '#EFE2CA', roof: P.terraDeep }) +
@@ -99,7 +107,7 @@
       A.cypress(3280, 1080, 172, '#54643F')
     )});
 
-    /* 7 · the promenade you are standing on — entrances live on this plane */
+    /* 5 · the promenade you are standing on — entrances live on this plane */
     var ground = '';
     ground += A.stoneWall(-60, 1064, HUB_W + 120, 40, 17, '#D6C5A8');
     /* parapet posts */
@@ -123,7 +131,7 @@
     ground += A.grassTufts(0, 1106, HUB_W, 40, 23, 'rgba(91,106,68,.55)');
     L.push({ depth: 1.0, svg: wrap(HUB_W, HUB_H, ground) });
 
-    /* 8 · foreground — drawn wider so it never runs out as it rushes past */
+    /* 6 · foreground — drawn wider so it never runs out as it rushes past */
     var FG_W = 4600;
     L.push({ depth: 1.25, svg: wrap(FG_W, HUB_H,
       A.branch(-40, 90, 1.25, false, { leaf: '#4A5A38', leaf2: P.oliveDeep }, 29) +
@@ -639,13 +647,53 @@
             '" fill="' + (p % 2 ? '#F0D2C4' : '#E8BCA8') + '" opacity=".9"/>';
         }
 
-        /* --- under the arch, nobody -----------------------------------
-           The two figures who used to stand here — drawn as the couple, in a
-           white dress and a dark suit — are gone at Dana's request. The arch
-           now stands dressed and waiting with the aisle open in front of it,
-           which is what the place looks like before everyone is called in,
-           and it stops two small figures having to carry the weight of being
-           "the couple" at 150px tall. */
+        /* --- under the arch, the couple --------------------------------
+           They were taken out of here once, at Dana's request, on the
+           grounds that at 150px tall two figures could not carry being "the
+           couple". They are back, at Dana's request, and this time they can:
+           `A.bride()` and `A.groom()` in art.js dress them from one table —
+           ivory gown and veil, deep navy tuxedo and a white bow tie — and
+           the same two people now appear in six places across the site, so
+           the guest has met them before they get here.
+           They are the largest pair on the terrace and they stand alone in
+           the middle of it, which is what makes them the focal point rather
+           than two more guests. **Three guests came out to make the room**:
+           the ones who stood at x=526, 632 and 713, straight under the arch.
+           Fourteen are left, and the arithmetic below has been redone around
+           the gap.
+
+           **The numbers, worked the same way as the crowd.** They stand at
+           586 and 684, facing each other, on the head line — `baseY = 0.99h
+           + 727` puts both head tops at y=727, as it does for everybody
+           standing on this terrace. In the `listen` pose a figure reaches
+           .283h on its near side and .238h on its far side, and the bride's
+           veil flares .235h either way, so:
+             bride  586, h 152 → 550.3 … 629.0   (veil to 621.7)
+             groom  684, h 158 → 639.3 … 721.6
+           which leaves ten units of daylight between them and their raised
+           hands twenty-one apart — near enough to read as a couple turned to
+           each other, far enough that nothing collides. Their nearest
+           neighbours are the guest at 449 (clear to 474.7) and the one at
+           806 (clear from 782.8), so there is about sixty units of empty
+           terrace either side of the pair. That space is the composition.
+           They are drawn after the crowd, on top of it: they are the biggest
+           figures here and the two the whole room is about.
+           Their motion is `ww-idle` and a slow nod, not the `ww-mingle` the
+           party is on. Everybody else is waiting for something to start;
+           these two are the something. */
+        var arch = (function () {
+          var cg = '';
+          cg += A.bride({
+            x: 586, baseY: 877.5, h: 152, pose: 'listen',
+            hold: 'bouquet', seed: 901,
+            anim: 'ww-idle', delay: -1.2, headAnim: 'ww-nod-slow', headDelay: -2.4
+          });
+          cg += A.groom({
+            x: 684, baseY: 883.4, h: 158, pose: 'listen', flip: true, seed: 913,
+            anim: 'ww-idle', delay: -3.1, headAnim: 'ww-nod-slow', headDelay: -0.8
+          });
+          return cg;
+        })();
 
         /* --- the guests ------------------------------------------------
            Seventeen of them, gathered right across the terrace and through
@@ -739,9 +787,6 @@
           {  x:  253, h: 134, y: 860, pose: 'laugh',  face: 'r' },
           {  x:  359, h: 164, y: 889, pose: 'toast',  face: 'l', hold: 'glass' },
           {  x:  449, h: 108, y: 834, pose: 'stand',  face: 'back' },
-          {  x:  526, h: 144, y: 870, pose: 'chat',   face: 'r' },
-          {  x:  632, h: 118, y: 844, pose: 'listen', face: 'l' },
-          {  x:  713, h: 152, y: 877, pose: 'listen', face: 'back' },
           {  x:  806, h: 104, y: 830, pose: 'chat',   face: 'r' },
           /* the photographer, side-on to the arch */
           {  x:  901, h: 138, y: 864, pose: 'photo',  face: 'l', hold: 'camera', suit: true },
@@ -782,6 +827,9 @@
             headDelay: -((gu.seed * 0.3) % 5)
           });
         }
+
+        /* last, and therefore in front of everybody */
+        g += arch;
 
         return g;
       })()
@@ -842,13 +890,42 @@
          moving they read as a glitch rather than as a quiet corner — so they
          are gone and the floor runs the full width instead. The DJ, who once
          stood 470 units clear of the nearest dancer, is at the right-hand end
-         of the same crowd. */
-      A.dancer(112, 838, 196, '#0C1119', -2.6) +
-      A.dancer(258, 830, 214, '#0C1119', 0) +
-      A.dancer(404, 850, 186, '#0C1119', -0.9) +
-      A.dancer(552, 836, 222, '#0C1119', -1.7) +
-      A.dancer(702, 852, 178, '#0C1119', -0.4) +
-      A.dancer(858, 840, 204, '#0C1119', -2.2) +
+         of the same crowd.
+         Nine on the floor now: seven guests and, in the middle of them, the
+         bride and the groom. They are placed left of centre on purpose — on
+         a laptop the details panel covers everything past about x=900, and
+         the two figures the scene is about should not be the two behind the
+         copy. */
+      A.dancer(104, 838, 196, '#0C1119', -2.6) +
+      A.dancer(244, 830, 214, '#0C1119', 0) +
+      A.dancer(378, 850, 186, '#0C1119', -0.9) +
+      /* --- the bride and groom, on the floor with everybody else --------
+         Same two people as the terrace, the aeroplane and the RSVP gate,
+         and the same wrappers draw them — but `flat` takes the bodies down
+         to the courtyard's own silhouette black, so they belong to this
+         scene rather than being lit differently from the seven people
+         around them. The veil and the bow tie stay white whatever `flat`
+         says (see person() in art.js), and on a night floor that is the
+         entire trick: two dark shapes, one with a white net behind her head
+         and one with a white bow at his collar, and you know exactly who
+         they are without a single lit face.
+         They dance together, 144 apart — near enough to be a pair among a
+         crowd that is otherwise evenly spread. Their flung arms overlap by
+         about eleven units, which on a dance floor of silhouettes is what a
+         dance floor looks like; the no-overlap rule belongs to the wedding
+         terrace, where people are standing still and lit. */
+      /* A short dress rather than the floor-length gown she wears on the
+         terrace. Drawn as a gown here she came out as one solid bell of
+         black with a veil on top of it — no legs, no dance, and next to
+         seven people throwing their arms about she read as somebody
+         standing very still. The veil is what says "bride" in this scene;
+         the dress lets her move like everybody else on the floor. */
+      A.bride({ x: 496, baseY: 842, h: 206, flat: '#0C1119', pose: 'dance',
+        gown: false, dress: true, seed: 901, anim: 'ww-dance', delay: -1.7 }) +
+      A.groom({ x: 640, baseY: 848, h: 218, flat: '#0C1119', pose: 'dance2',
+        flip: true, seed: 913, anim: 'ww-dance', delay: -0.6 }) +
+      A.dancer(784, 852, 178, '#0C1119', -0.4) +
+      A.dancer(892, 840, 204, '#0C1119', -2.2) +
       /* the DJ — drawn first, so the decks stand in front of them */
       A.dancer(1014, 846, 192, '#0C1119', -1.4) +
       A.person({ x: 1178, baseY: 862, h: 200, flat: '#0C1119', pose: 'dance', seed: 823,
@@ -947,6 +1024,69 @@
         var g = '<rect x="-20" y="700" width="1640" height="220" fill="#E5D5B6"/>';
         g += '<rect x="-20" y="700" width="1640" height="12" fill="#D2BF9C"/>';
         var xs = [30, 300, 570, 840, 1110], r = rand(117);
+
+        /* --- who is at home ------------------------------------------------
+           The street was five empty facades. It now has people in some of the
+           windows and standing in some of the doorways, and — in the wide
+           window of the second house — **the bride and the groom**, the same
+           two the guest meets under the arch, on the dance floor and in the
+           aeroplane.
+
+           Three rules held this together, and all three came from putting a
+           first pass on the screen and looking at it.
+
+           **Not every window.** Somebody at every opening is not a street, it
+           is a doll's house. Six windows out of eighteen have anybody in them
+           and two doorways out of five, in no pattern — which is what makes
+           it read as a street where some people happen to be in.
+
+           **Nobody is drawn small.** These are `A.bust()` — whole figures,
+           drawn the ordinary way and clipped to the opening, so the people at
+           the windows have the same heads, hair, faces and clothes as the
+           people everywhere else on the site. A second, simplified upper-body
+           kit would have been less code today and two kits drifting apart by
+           the next round of feedback.
+
+           **The couple need a window they fit in.** Two heads will not go in
+           52 units side by side, so the top storey of the second house is one
+           wide window rather than two narrow ones — a balcony window, which
+           the architecture happily supports. It is the second house on
+           purpose: on a laptop the details panel covers the room from about
+           x=900, so the fifth house is never seen and the fourth only half.
+
+           **Only what is close enough to see moves.** A wave, a nod, a
+           breath. The people at the windows are about 66 units tall on a
+           1600-unit scene; anything more than that at this size is a twitch,
+           not a gesture. */
+        var CAST = {
+          /* house · row · col  →  who is at that window */
+          '0-0-1': { h: 112, dx: -9, pose: 'wave', armAnim: 'ww-arm-raise', armDelay: -0.6,
+                     headAnim: 'ww-nod', headDelay: -1.9, seed: 301, cloth: '#C4643C' },
+          '2-1-1': { h: 108, dx: 4, pose: 'listen', flip: true, headAnim: 'ww-nod-slow',
+                     headDelay: -3.1, seed: 313, cloth: '#7A97A8' },
+          '3-0-0': { h: 110, dx: -2, pose: 'chat', armAnim: 'ww-arm-talk', armDelay: -2.4,
+                     seed: 331, cloth: '#7C8B5E' },
+          '4-1-0': { h: 106, dx: 6, pose: 'listen', headAnim: 'ww-nod', headDelay: -0.7,
+                     seed: 347, cloth: '#E4A853' }
+        };
+        /* and two people standing in their own doorways */
+        var ATDOOR = {
+          '0': { h: 92, pose: 'stand', flip: true, seed: 359, cloth: '#5A4260',
+                 anim: 'ww-idle', delay: -2.1, headAnim: 'ww-nod-slow', headDelay: -1.2 },
+          '2': { h: 96, pose: 'wave', seed: 373, cloth: '#4E6E80',
+                 anim: 'ww-idle', delay: -0.8, armAnim: 'ww-arm-raise', armDelay: -1.6 }
+        };
+
+        function pane(wx, wy, ww, lit) {
+          var q = '<rect x="' + f(wx) + '" y="' + f(wy) + '" width="' + f(ww) + '" height="66" fill="rgba(59,42,34,.35)"/>';
+          q += '<rect x="' + f(wx) + '" y="' + f(wy) + '" width="' + f(ww) + '" height="66" fill="' + P.goldLight + '" opacity="' + (lit ? '.7' : '0') + '"/>';
+          return q;
+        }
+        function shutters(wx, wy, ww, col) {
+          return '<rect x="' + f(wx - 15) + '" y="' + f(wy) + '" width="15" height="66" fill="' + col + '"/>' +
+                 '<rect x="' + f(wx + ww) + '" y="' + f(wy) + '" width="15" height="66" fill="' + col + '"/>';
+        }
+
         for (var i = 0; i < xs.length; i++) {
           var x = xs[i], w = 230, h = 330, top = 700 - h;
           g += '<rect x="' + x + '" y="' + top + '" width="' + w + '" height="' + h + '" fill="' + (i % 2 ? '#F3E6CE' : '#EADCC0') + '"/>';
@@ -954,15 +1094,48 @@
           /* door */
           g += '<path d="M ' + (x + 92) + ' 700 L ' + (x + 92) + ' 596 a 23 23 0 0 1 46 0 L ' + (x + 138) + ' 700 Z" fill="' + (i % 2 ? '#4E6E80' : '#7C8B5E') + '"/>';
           g += '<circle cx="' + (x + 130) + '" cy="654" r="4" fill="' + P.gold + '"/>';
+          /* somebody standing in it, drawn before the step so their feet
+             stand on the threshold rather than in front of it */
+          if (ATDOOR[i]) {
+            var dp = {}, dk;
+            for (dk in ATDOOR[i]) dp[dk] = ATDOOR[i][dk];
+            dp.x = x + 115; dp.baseY = 700; dp.shadow = false;
+            g += A.person(dp);
+          }
           g += '<rect x="' + (x + 84) + '" y="700" width="62" height="7" fill="#CBB795"/>';
           /* shuttered windows */
+          var shCol = i % 2 ? '#4E6E80' : '#6B7F55';
           for (var row = 0; row < 2; row++) {
+            /* the second house's top storey is one wide window, and the
+               couple are in it */
+            if (i === 1 && row === 0) {
+              var bwx = x + 40, bwy = top + 46, bww = 162;
+              g += pane(bwx, bwy, bww, true);
+              g += A.bust({ x: bwx, y: bwy, w: bww, h: 66 },
+                { h: 116, dx: -37, crown: 8, pose: 'listen', seed: 901,
+                  veil: true, cloth: A.COUPLE.gown, gown: true, hairStyle: 'bun',
+                  hair: '#4A3526', skin: '#E6B183',
+                  anim: 'ww-idle', delay: -1.4, headAnim: 'ww-nod-slow', headDelay: -2.6 });
+              g += A.bust({ x: bwx, y: bwy, w: bww, h: 66 },
+                { h: 120, dx: 38, crown: 6, pose: 'wave', flip: true, seed: 913,
+                  bowTie: A.COUPLE.tie, cloth: A.COUPLE.suit, suit: true, dress: false,
+                  pants: A.COUPLE.suit, hairStyle: 'crop', hair: '#2A1D17', skin: '#CE8F60',
+                  anim: 'ww-idle', delay: -3.2, armAnim: 'ww-arm-raise', armDelay: -0.9 });
+              /* a mullion, so one wide opening still reads as a window */
+              g += '<rect x="' + f(bwx + bww / 2 - 2) + '" y="' + f(bwy) + '" width="4" height="66" fill="rgba(59,42,34,.30)"/>';
+              g += shutters(bwx, bwy, bww, shCol);
+              continue;
+            }
             for (var col = 0; col < 2; col++) {
               var wx = x + 40 + col * 110, wy = top + 46 + row * 96;
-              g += '<rect x="' + wx + '" y="' + wy + '" width="52" height="66" fill="rgba(59,42,34,.35)"/>';
-              g += '<rect x="' + wx + '" y="' + wy + '" width="52" height="66" fill="' + P.goldLight + '" opacity="' + (r() < 0.45 ? '.7' : '0') + '"/>';
-              g += '<rect x="' + (wx - 15) + '" y="' + wy + '" width="15" height="66" fill="' + (i % 2 ? '#4E6E80' : '#6B7F55') + '"/>';
-              g += '<rect x="' + (wx + 52) + '" y="' + wy + '" width="15" height="66" fill="' + (i % 2 ? '#4E6E80' : '#6B7F55') + '"/>';
+              var who = CAST[i + '-' + row + '-' + col];
+              g += pane(wx, wy, 52, who ? true : r() < 0.45);
+              if (who) {
+                var wp = {}, wk;
+                for (wk in who) wp[wk] = who[wk];
+                g += A.bust({ x: wx, y: wy, w: 52, h: 66 }, wp);
+              }
+              g += shutters(wx, wy, 52, shCol);
             }
           }
           /* laundry line between buildings */
@@ -991,9 +1164,64 @@
     L.push({ depth: 0.12, svg: wrapRoom(ROOM_W, ROOM_H,
       skyGrad(ROOM_W, ROOM_H, [[0, '#7FAECB'], [0.55, '#BBD5E0'], [1, '#EFE6D6']], 520) +
       A.clouds(ROOM_W, ROOM_H, 121, '#FFFFFF', 0.75, [70, 260]) +
-      /* aeroplane and contrail */
-      '<g class="ww-plane"><path d="M 0 0 l 46 0 l 16 -13 l 9 0 l -8 13 l 26 0 l 12 -9 l 7 0 l -6 9 l 14 0 l -14 6 l -102 0 Z" fill="#4E6E80"/>' +
-      '<path d="M -260 3 L 0 3" stroke="#FFFFFF" stroke-width="4" opacity=".55" stroke-linecap="round"/></g>'
+      /* --- the aeroplane, with the couple aboard ------------------------
+         This used to be a 100-unit silhouette crossing the sky on a 34
+         second loop. Dana asked for a plane with people visible through the
+         windows, and the two are not compatible: a shape that small has no
+         windows to look into, and one that crosses the frame would only
+         show its passengers for part of a minute at a time.
+         So it is one aeroplane, five times the size, holding its position in
+         the sky with a slow drift on it (`ww-cruise`: about twenty units of
+         travel over nineteen seconds, and a little rise and fall). The
+         contrail behind it does the rest of the work of saying it is moving.
+         Six seats. **The bride is in the third window and the groom in the
+         fourth** — the same two people, from the same `A.bride()` and
+         `A.groom()` as the terrace, the dance floor and the street, so a
+         guest who has walked the promenade in order recognises them here.
+         Four other passengers, and one empty seat: an aeroplane in which
+         every single window has a face in it reads as a diagram.
+         **It sits at x=540, and that number is the two crops at once.** A
+         laptop sees the room from about x=80 across to wherever the details
+         panel starts, around 1020. A phone is the tighter one and it is
+         tight at the *other* end: the artwork is drawn wider than the screen
+         and centred, so a 375-wide phone sees x=229 to x=1371. The aircraft
+         is 556 long from tailplane to nose, so at the first position — x=430
+         — its tail was cut ninety units short on every phone. At 540 it runs
+         248 … 804 and is whole in both. The contrail is deliberately longer
+         than either crop: a vapour trail that ends inside the frame looks
+         like a scratch, one that runs off the edge looks like a flight. */
+      '<g class="ww-cruise">' +
+      '<path d="M ' + f(540 - 620) + ' ' + f(258) + ' L ' + f(540 - 268) + ' ' + f(252) +
+        '" stroke="#FFFFFF" stroke-width="9" opacity=".45" stroke-linecap="round" fill="none"/>' +
+      A.airliner(540, 250, {
+        seatFn: function (i, win) {
+          if (i === 2) {
+            return A.bust(win, { h: 96, crown: 5, pose: 'listen', seed: 901,
+              veil: true, cloth: A.COUPLE.gown, gown: true, hairStyle: 'bun',
+              hair: '#4A3526', skin: '#E6B183',
+              anim: 'ww-idle', delay: -1.6, headAnim: 'ww-nod-slow', headDelay: -2.8 });
+          }
+          if (i === 3) {
+            return A.bust(win, { h: 100, crown: 4, pose: 'listen', flip: true, seed: 913,
+              bowTie: A.COUPLE.tie, cloth: A.COUPLE.suit, suit: true, dress: false,
+              pants: A.COUPLE.suit, hairStyle: 'crop', hair: '#2A1D17', skin: '#CE8F60',
+              anim: 'ww-idle', delay: -3.4, headAnim: 'ww-nod-slow', headDelay: -0.9 });
+          }
+          if (i === 4) return '';                    // one seat with nobody at the window
+          var kit = [
+            { seed: 411, cloth: '#C4643C', hairStyle: 'curls', pose: 'listen' },
+            { seed: 423, cloth: '#7C8B5E', hairStyle: 'long', pose: 'chat', flip: true },
+            { seed: 0, cloth: '', hairStyle: '', pose: '' },
+            { seed: 0, cloth: '', hairStyle: '', pose: '' },
+            { seed: 0, cloth: '', hairStyle: '', pose: '' },
+            { seed: 437, cloth: '#5A4260', hairStyle: 'wave', pose: 'listen', flip: true }
+          ][i];
+          return A.bust(win, { h: 94, crown: 6, pose: kit.pose, flip: kit.flip,
+            seed: kit.seed, cloth: kit.cloth, hairStyle: kit.hairStyle,
+            anim: 'ww-idle', delay: -(i * 1.3), headAnim: i % 2 ? 'ww-nod' : 'ww-nod-slow',
+            headDelay: -(i * 0.9) });
+        }
+      }) + '</g>'
     )});
     L.push({ depth: 0.28, svg: wrapRoom(ROOM_W, ROOM_H,
       '<path d="' + A.ridge(ROOM_W, ROOM_H, { baseline: 520, amp: 300, peaks: 7, seed: 123 }) + '" fill="#9BB2C0"/>' +
@@ -1080,18 +1308,89 @@
         /* open gate doors */
         g += '<path d="M ' + gx + ' ' + (gy + 40) + ' l 60 -22 l 0 300 l -60 -18 Z" fill="#6B5744"/>';
         g += '<path d="M ' + (gx + gw) + ' ' + (gy + 40) + ' l -60 -22 l 0 300 l 60 -18 Z" fill="#7A6247"/>';
-        /* guestbook table with candles */
-        g += '<rect x="700" y="668" width="220" height="12" rx="3" fill="#EFE3CD"/>';
-        g += '<rect x="716" y="680" width="10" height="58" fill="#6B5744"/><rect x="894" y="680" width="10" height="58" fill="#6B5744"/>';
-        g += '<rect x="756" y="650" width="86" height="20" rx="3" fill="#FFF6E4"/>';
-        g += '<path d="M 799 650 l 0 20" stroke="' + P.stoneDeep + '" stroke-width="2"/>';
-        g += '<path class="ww-sway" style="transform-box:view-box;transform-origin:860px 654px" d="M 860 654 l 26 -46 l 7 4 l -26 46 Z" fill="#F4E7D3"/>';
-        for (var c = 0; c < 3; c++) {
-          var cxp = 722 + c * 78;
-          g += '<rect x="' + cxp + '" y="636" width="9" height="32" fill="#F6EEDC"/>';
-          g += '<circle class="ww-flicker" cx="' + (cxp + 4.5) + '" cy="630" r="7" fill="#FFE9B0" style="animation-delay:' + (-c * 0.7) + 's"/>';
-          g += '<circle class="ww-flicker" cx="' + (cxp + 4.5) + '" cy="630" r="22" fill="#F0B45C" opacity=".3" style="animation-delay:' + (-c * 0.7) + 's"/>';
-        }
+        /* --- the reply going in ----------------------------------------
+           This is where the guestbook table with its three candles used to
+           stand. It has gone, and so has the quill: a table and a book are a
+           still life, and this doorway is the one that asks the guest to do
+           something. What is here instead is the one action the whole page
+           is about — somebody standing at the mailbox with a letter half
+           inside the slot.
+
+           **The letter is genuinely half in.** It is drawn as two pieces
+           either side of the mouth of the box: the part that is still in the
+           daylight, held between finger and slot, and a sliver of the same
+           envelope showing dark through the opening. Drawing one whole
+           envelope floating near the box was the first attempt and it read
+           as a letter being *shown to* a mailbox.
+
+           **What moves, and how little.** The mailbox itself is still. The
+           figure breathes on `ww-idle`, and their posting arm turns about
+           its own shoulder on `ww-post`, seven seconds a cycle — a slow push
+           of about four degrees, so the envelope travels roughly two units
+           further in and comes back. That is the whole animation. The brief
+           asked for charming rather than busy, and a hand that shoves a
+           letter in and out of a slot on a fast loop is neither.
+           The envelope is inside the arm's own group, so it goes with the
+           hand instead of having to be animated in step with it — which is
+           the same reason props are drawn at the hand everywhere else. */
+        /* **The arithmetic, because the envelope is drawn outside the
+           figure and every number below depends on the others.** The guest
+           stands at x=794 on ground y=770 and is 188 tall, in the `toast`
+           pose, which puts the near shoulder at
+             sx = 794 + .132*188 = 818.8      sy = 770 - .752*188 = 628.6
+           and the hand at .135 / -.090 of a height beyond it:
+             hx = 844.2                        hy = 611.7
+           The mailbox stands at x=880 on ground 776 at scale 1.15, so its
+           box runs x 848.9 … 911.0 and y 594.3 … 642.6, and its slot is the
+           band y 609.3 … 615.5. The envelope is 34 long and 24 tall — a hair
+           under an eighth of the figure's height, which is about what an
+           envelope is — so it runs 835.8 … 869.9: fifteen units of it out in
+           the daylight, nineteen of it inside the box.
+           **Move any one of those numbers and you have to redo the rest**,
+           or the letter goes into the side of the box or floats in front of
+           it. The first attempt put the hand exactly on the lip of the slot,
+           which is where a hand actually goes — and left barely a corner of
+           the envelope showing. It has to stand off a little for the letter
+           to be legible as a letter.
+           `straight: true` turns off the random lean and shoulder tilt that
+           every other figure gets, because the envelope is positioned from
+           the numbers above rather than by person() — with the wonkiness on,
+           the hand lands up to three units from where the letter was drawn. */
+        var mbX = 880, mbBase = 776, mbS = 1.15;
+        var shX = 818.8, shY = 628.6, hX = 844.2, hY = 611.7;
+        var boxL = 848.9, slotT = 609.3, slotB = 615.5;
+        g += A.mailbox(mbX, mbBase, mbS);
+        /* --- the envelope, cut off at the mouth of the slot -------------
+           The clip is two rectangles: everything to the left of the slot's
+           lip, plus the slot band itself. So the envelope is drawn whole,
+           and what you see is all of it up to the box and then only the
+           sliver of it that is inside the opening — which is what a letter
+           halfway into a mailbox looks like, and is a great deal more
+           convincing than an envelope drawn near a mailbox.
+           It carries the same `ww-post` class, origin and delay as the arm
+           that is holding it, so the two move as one thing. */
+        var clipId = A.uid('post');
+        g += '<defs><clipPath id="' + clipId + '">' +
+          /* out to the near edge of the box, the envelope entire */
+          '<rect x="700" y="540" width="' + f(boxL + 2 - 700) + '" height="180"/>' +
+          /* past it, only the height of the slot: the part that is in */
+          '<rect x="' + f(boxL + 2) + '" y="' + f(slotT) + '" width="60" height="' + f(slotB - slotT) + '"/>' +
+          '</clipPath></defs>';
+        g += '<g clip-path="url(#' + clipId + ')">' +
+          '<g class="ww-post" style="transform-box:view-box;transform-origin:' + f(shX) + 'px ' + f(shY) + 'px;animation-delay:-0.4s">' +
+          A.prop('letter', hX, hY - 3.4, 188 * 0.0165, 'flat') +
+          '</g></g>';
+        /* The guest is drawn **after** the envelope, so the hand closes over
+           the near end of it. The other way round the envelope covered the
+           fist, and a letter that hides the hand holding it reads as a card
+           propped against a box rather than as one being posted. */
+        g += A.person({
+          x: 794, baseY: 770, h: 188, pose: 'toast', seed: 617, straight: true,
+          cloth: '#7A97A8', pants: '#3B4A5A', hairStyle: 'wave', hair: '#4A3526',
+          anim: false,
+          armAnim: 'ww-post', armDelay: -0.4,
+          headAnim: 'ww-nod-slow', headDelay: -2.2
+        });
         return g;
       })() + '</g>'
     )});

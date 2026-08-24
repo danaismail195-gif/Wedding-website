@@ -8,7 +8,7 @@
 >    hand-upload dance is over — see **Publishing** below.
 > 4. Test locally before touching anything else. See **Testing** below.
 >
-> Last worked on: **23–24 August 2026**. **Everything in this folder is live
+> Last worked on: **24 August 2026**. **Everything in this folder is live
 > and the repository is in sync** — `git rev-list --left-right --count
 > origin/main...main` returned `0  0` after the push on 24 August.
 
@@ -89,7 +89,7 @@ the mp3 is being served before touching any code.**
 | File | What it does |
 |---|---|
 | `assets/js/content.js` | **All the words.** Names, dates, venues, hotels, RSVP questions. The only file to edit for copy changes. |
-| `assets/js/art.js` | Drawing kit — limestone ridges, houses, cypresses, olive trees, lanterns, boats, and the people (`person()` and friends). |
+| `assets/js/art.js` | Drawing kit — limestone ridges, houses, cypresses, olive trees, lanterns, boats, an airliner, a mailbox, and the people (`person()` and friends, plus `bride()`, `groom()` and `bust()`). |
 | `assets/js/scenes.js` | The 8 places: `hub()` (the promenade), `entranceArt(id)` (the 7 doorways), `rooms.*` (7 environments). All procedural SVG. |
 | `assets/js/app.js` | Camera, pan/drag, transitions, room rendering, RSVP form, deep links. |
 | `assets/js/tween.js` | Tiny animation engine (replaces GSAP). |
@@ -669,6 +669,211 @@ delay and duration** so the seven doorways never sway in step.
   signage and path"; the signpost sways, the path does not. It is ground, and
   leaning the ground reads as the world tilting rather than as air moving.
 
+## Round eleven: the flickering, the doorway labels, and the couple everywhere
+
+A written feedback pass from Dana. One critical bug, one navigation
+inconsistency, and five additions. The art direction is unchanged.
+
+### The flickering had a second cause, and it was the cursor
+
+**This is the important entry in this file.** Round nine found the
+force-rasterised layers and removed `will-change`. It did not fix what Dana
+was seeing, because it was only half of it. The other half:
+
+> **Every layer on the page moved a few pixels whenever the mouse moved.**
+
+`applyCamera()` took the pointer's y and gave each hub layer a vertical
+offset of up to five pixels; `applyRoomParallax()` did the same inside a
+room, at 22px horizontally and 12px vertically. Neither cost anything on
+paper. Both are catastrophic here, because the layers are enormous and they
+are **not cheap textures the compositor can slide about**: the camera above
+them carries its own `will-change` and a scale, so a change to a child's
+transform is paid for in raster, not in compositing.
+
+Measured, in a 904x935 window on a Retina screen, before the fix:
+
+| | idle | with the cursor moving |
+|---|---|---|
+| the promenade (9 layers of 3311x1364) | 50.3fps, 0 long frames | 38.3fps, **23** frames over 32ms in 2s |
+| the Wedding room (5 layers of ~1Mpx) | 49.3fps, 1 | 37.8fps, **29** in 2.5s |
+
+And the control that settles it: writing the *same* transform to all nine
+hub layers every frame cost nothing at all (50.3fps, 0 long frames). Writing
+one that varied by those same few pixels cost 25. It is not the number of
+writes, it is that the value changes.
+
+On this machine that is jank. On a machine with real memory pressure it is
+dropped tiles — rectangles of missing artwork and wrong colour, which is
+exactly the "mountains and graphics flickering and changing colour" Dana
+reported, and exactly the corruption in the screenshot from 23 August.
+
+**Both parallaxes are gone. There is no `pointermove` listener on the
+artwork at all any more.** Nothing on this site moves because the cursor
+moved; the world moves only when the guest moves it — a drag, the wheel, the
+arrow keys, the path map. After the fix, three seconds of the cursor
+crossing the whole screen gives **50fps and not one frame over 32ms**, on
+the promenade and inside a room, which is what sitting still gives. The
+layer transforms are provably unchanged across a sweep.
+
+**Do not add another one.** Five pixels of head-tilt is not worth a page
+that flickers, and the depth in these scenes is drawn in — the ridges, the
+water, the terrace — it does not need the cursor's help.
+
+**The hub is six layers now, not eight.** Sky and clouds are one; the far
+ridge and the middle ridge are one. Same measurement, same window: panning
+nine layers ran at 36.5fps with 27 long frames in two seconds, five ran at
+49.5fps with one. A realistic drag now measures 50fps / 0, a continuous
+wheel 45.6fps / 13 over three seconds. The parallax given up is between a
+cloud and the sky behind it, and between two ranges of hills forty units
+apart. **Adding a layer here is expensive** — if something needs its own
+depth, take it out of an existing layer rather than adding a seventh.
+
+### One rule for all seven doorway labels
+
+`.is-near` marks whichever doorway the camera is standing in front of, and it
+used to reveal that doorway's **title** as well as scaling it. So on a laptop
+there was permanently one name on screen with its six neighbours waiting to
+be hovered — which reads as a bug in the navigation, because the guest cannot
+see the rule that produced it. (Dana saw it as "The After-Party is always
+labelled"; which doorway it happens to be is just where the camera stopped.)
+
+Titles are now **hover and keyboard focus only**, on all seven, with nothing
+permanently open. `.is-near` keeps the quiet half of its job — the small
+scale and the brighter "Enter" — which reads as depth rather than as a label
+somebody left on.
+
+A touch screen has no hover, and there `.is-near` is the only thing that can
+ever show a name, so under `@media (hover: none)` it keeps the title. Still
+one rule for all seven doorways on any given device.
+
+### "Start here", over the first doorway only
+
+Small caps type and a hairline arrow above the Welcome Dinner, in the same
+espresso ink as "Enter", breathing very slightly and fading out when that
+doorway is hovered so it never sits under the title.
+
+Two things about it are load-bearing. It is **bottom-anchored at 76%**, not
+hung off `top`: the button is 460 units tall and the stonework only starts at
+unit 128 of that, so a cue positioned from the top floats a hundred pixels
+clear of the arch it is pointing at. And **the opening pan changed** — the
+walk used to land 6% along the promenade, which cut the first doorway in half
+on a laptop. It now lands at whichever is smaller, that 6% or "the first
+doorway's left edge, 46px in". Half a doorway is a poor thing to be told to
+start at.
+
+### Dana and Nadeem, in six places
+
+The couple now appear on the Wedding terrace, on the After-Party floor, in a
+window on the Where to Stay street, in the aeroplane on Travel Details,
+posting the reply at the RSVP gate, and (as before) inside the Wedding
+doorway on the promenade. **They are recognisably the same two people in all
+of them**, and that is what `A.COUPLE`, `A.bride()` and `A.groom()` in
+`art.js` are for: one ivory gown, one deep navy tuxedo, one white bow tie,
+one veil, set once. Nothing else in the site dresses itself from that table.
+If any of it changes, it changes there and every scene follows.
+
+`person()` gained `veil` and `bowTie` to make this work, and **both draw
+whatever `flat` says** — on the after-party floor the couple are silhouettes
+and the veil and the bow tie are the only white things on them, which is the
+entire trick of that scene. Two traps found the hard way:
+  - The veil has to flare to **0.235 of the figure's height**. A standing
+    gown's hem reaches 0.20 either side and the shoulders 0.132, so the first
+    attempt at 0.15 was drawn entirely behind the bride and only its cap ever
+    showed — which read as a white band across her brow.
+  - The cap sits on the **crown**, not the hairline. At the first value it
+    came down level with the eyes and read as a blindfold.
+  - `groom()` has to set `dress: false` and its own `pants`. `person()`
+    gives anybody a 45% chance of a dress, and trousers only follow the
+    jacket when `evening` is set — which a groom drawn on his own is not. The
+    first render put him in a skirt and brown trousers.
+
+`A.bust(win, o)` is new: a whole figure, drawn the ordinary way and clipped
+to an opening, for the people at the windows on Where to Stay and in the
+aeroplane. It takes a rectangle or a circle. **Drawing a second, simplified
+upper-body kit would have been less code today and two kits drifting apart by
+the next round of feedback** — this way the people in the windows have the
+same heads, hair, faces and animations as everybody else.
+
+### The Wedding: the couple are back under the arch
+
+They were taken out at Dana's request in an earlier round, on the grounds
+that at 150px tall two figures could not carry being "the couple". They are
+back at Dana's request, and this time they can, because the guest has met
+them five times before they get here.
+
+**Three guests came out to make the room** — the ones at x=526, 632 and 713,
+directly under the arch. Fourteen are left. The couple stand at 586 and 684
+facing each other, on the same head line as everybody else
+(`baseY = 0.99h + 727`), sized 152 and 158 — the largest pair on the terrace.
+Worked the usual way, per pose and per side: `listen` reaches .283h near and
+.238h far, the veil .235h, so the bride occupies 550.3–629.0 and the groom
+639.3–721.6. Ten units of daylight between them, their raised hands
+twenty-one apart, and about sixty units of empty terrace either side of the
+pair. **That space is the composition** — if you add anybody back into it,
+you lose the focal point. They move on `ww-idle` and a slow nod, not the
+`ww-mingle` the party is on: everybody else is waiting for something to
+start, these two are the something.
+
+### The RSVP room: somebody posting the reply
+
+The guestbook table, the quill and the three candles have gone. A table and a
+book are a still life, and this is the one doorway that asks the guest to do
+something. In their place: a figure at a mailbox with a letter **half inside
+the slot**.
+
+The letter is genuinely half in, and that is a clip, not a trick of layering.
+The envelope is drawn as its own element (it cannot be clipped from inside
+`person()`) carrying the same `ww-post` class, origin and delay as the arm
+holding it, so the two move as one; the clip is two rectangles — everything
+short of the box, plus the slot band itself — so past the near cheek only a
+sliver of envelope survives.
+
+Every number in that scene depends on the others and they are written out in
+full in the comment. The one to know: `straight: true` turns off the random
+lean and shoulder tilt every other figure gets, because with them on the hand
+lands up to three units from where the envelope was calculated to be. The
+other: the first attempt put the hand exactly on the lip of the slot, which
+is where a hand actually goes, and left barely a corner of the envelope
+showing — it has to stand off a little for a letter to read as a letter.
+
+`ww-post` is mostly a slide with a degree and a half of turn in it. A pure
+rotation about the shoulder moved the hand *down*, because the arm is nearly
+horizontal at the slot.
+
+### Where to Stay: the street is occupied
+
+Six of the eighteen windows have somebody in them and two of the five
+doorways, in no pattern. **Not every window** — somebody at every opening is
+a doll's house, not a street.
+
+The **top storey of the second house is one wide window** rather than two
+narrow ones, because two heads will not go in 52 units side by side, and the
+bride and groom are in it. The second house on purpose: on a laptop the
+details panel covers the room from about x=900, so the fifth house is never
+seen and the fourth only half.
+
+### Travel Details: an aeroplane with the couple aboard
+
+The 100-unit silhouette that used to cross this sky on a 34-second loop has
+gone. Dana asked for people visible through the windows, and the two are not
+compatible: a shape that small has no windows, and one that crosses the frame
+would show its passengers for part of a minute at a time. `A.airliner()` is
+new — 556 long, fuselage 84 deep, six round windows about 38 across, which is
+the smallest a window can be and still hold a face. It holds its position and
+drifts on `ww-cruise`, and the contrail does the work of saying it is moving.
+
+**It sits at x=540, and that number is two crops at once.** A laptop sees the
+room from x≈80 to wherever the panel starts, around 1020. A phone is tight at
+the *other* end — the artwork is drawn wider than the screen and centred, so
+a 375-wide phone sees x=229 to x=1371. At the first position, x=430, the tail
+was cut ninety units short on every phone. **Check both ends when you place
+anything large in a room.** The contrail is deliberately longer than either
+crop: a vapour trail that ends inside the frame looks like a scratch.
+
+Bride in the third window, groom in the fourth, four other passengers, and
+**one seat with nobody at the window** — an aeroplane with a face in every
+opening reads as a diagram.
+
 ## Deliberate decisions worth knowing
 - **2.5D parallax, not Three.js** — the brief recommended this for reliability on phones.
 - **Procedural SVG instead of an illustrator's files** — one consistent hand, nothing to commission. To swap in real artwork later, replace a layer's `svg` with `<img>` at the same viewBox proportions.
@@ -720,6 +925,24 @@ drift. That drift was the root cause of three separate complaints.
   add an animated element with an explicit origin, it needs both.**
 - Nearby integer seeds (400, 411, 422 …) through the linear `rand()` produced
   near-identical colour choices → `person()` scrambles its seed first
+- **Artwork moving because the cursor moved.** Both parallaxes read the
+  pointer and rewrote every layer's transform on `pointermove`; the layers
+  are large and are rasterised rather than composited, so the mouse crossing
+  the screen made the page drop frames and, under memory pressure, drop
+  tiles — the flickering and colour-shifting Dana photographed. Removed
+  entirely, on the hub and in the rooms. **There is no `pointermove`
+  listener on the artwork; do not add one.**
+- `.is-near` revealed the centred doorway's title, so one of the seven was
+  always labelled and the other six were not → titles are hover/focus only
+  on a device that has hover, `.is-near` on one that does not
+- A cue positioned with `top` above an `.entrance` floats ~115px clear of the
+  arch, because the button is 460 units tall and the stonework starts at unit
+  128 → "Start here" is bottom-anchored at 76%
+- `groom()` drawn without `evening` inherited `person()`'s 45% chance of a
+  dress and a random pair of trousers → it sets `dress: false` and its own
+  `pants`
+- A veil narrower than 0.235h is drawn entirely behind the bride (the gown's
+  hem reaches 0.20h) and only its cap shows, which reads as a headband
 
 ## Not done / open
 
@@ -733,13 +956,15 @@ drift. That drift was the root cause of three separate complaints.
   redrawing — the content structure and the interactions stay.
 - **The email is a placeholder** — `hello@danaandnadeem.example`, set once in
   `content.js` → `couple.email`.
-- **Does the glitching still happen?** Round nine found and fixed a real cause
-  (see that entry: 25.7 megapixels of force-rasterised layers), but it was
-  never reproduced in the preview browser, which had no memory pressure to
-  begin with. **Nobody has confirmed on Dana's actual machine.** Ask. If it
-  still stutters, the next levers are fewer layers — sky+clouds and the two
-  ridges could merge, at a small cost in distant parallax — and fewer animated
-  nodes, of which there are 155 dirtying their layers at idle.
+- **The glitching: reproduced, measured and fixed.** Round nine's cause was
+  real but only half of it; round eleven found the other half — every layer
+  moved a few pixels on every `pointermove` — and it *was* reproducible, at
+  38fps with 23 long frames in two seconds against 50fps and none when
+  still. Both parallaxes are gone and the hub is six layers rather than
+  eight. Worth confirming on Dana's machine, but this one was measured
+  rather than guessed at. If anything still stutters, the remaining lever is
+  **fewer animated nodes** — 155 of them dirty their layers at idle on the
+  promenade, 87 in the Wedding room.
 - **Vercel.** The connector is authenticated (team "DNA"). Its API only takes
   inline file contents, so pasting a 200KB bundle is a bad idea, but
   `create_git_project` can link the GitHub repo in one call with no payload —

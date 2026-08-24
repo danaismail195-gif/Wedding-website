@@ -31,8 +31,6 @@
 
   var k = 1, worldW = 0, worldH = 0, camTop = 0;
   var pan = 0, targetPan = 0, maxPan = 0;
-  var ptr = { x: 0.5, y: 0.5 };
-  var ptrY = 0, ptrYTarget = 0;
   var camState = { tx: 0, ty: 0, z: 1 };
   var lastT = 0;
   var dragging = false, dragStartX = 0, dragStartPan = 0, dragMoved = 0;
@@ -42,7 +40,7 @@
      wrote nine transforms every frame for ever, whether or not the world
      had moved — which is most of what made the site feel like it was
      grinding. */
-  var camDirty = true, roomPtrDirty = false;
+  var camDirty = true;
   /* Was the last thing the guest touched a keyboard? Focus moves the camera
      for tab users; it must never do so after a mouse click, or the doorway
      appears to "centre itself" instead of opening. */
@@ -124,8 +122,13 @@
     progress(1);
 
     /* Land the guest a little way along the path so it reads as a world
-       that continues in both directions. */
-    targetPan = pan = Math.min(maxPan, worldW * 0.06);
+       that continues in both directions — but never so far that the first
+       doorway is cut in half by the left edge. It is the one the "Start
+       here" cue points at, and half a doorway is a poor thing to be told to
+       start at. */
+    var first = SPOTS[0];
+    var firstLeft = (first.x - 320 * first.s * 0.5) * k;
+    targetPan = pan = Math.max(0, Math.min(maxPan, worldW * 0.06, firstLeft - 46));
     applyCamera();
 
     setTimeout(function () { el.enterBtn.classList.add('is-ready'); }, 500);
@@ -201,7 +204,20 @@
         '<span class="num">' + room.num + '</span>' +
         '<span class="name">' + room.label + '</span>' +
         '<span class="sub">' + room.sublabel + '</span></span></span>' +
-        '<span class="entrance-cta" aria-hidden="true">Enter</span>';
+        '<span class="entrance-cta" aria-hidden="true">Enter</span>' +
+        /* The promenade does not say where it begins. A small line of type
+           over the first doorway, with an arrow pointing down into it, does
+           — and nowhere else, or it stops meaning "start". It is decoration
+           for a screen reader; the button's own label already says which
+           doorway this is and the order is in the number. */
+        (i === 0
+          ? '<span class="entrance-start" aria-hidden="true">' +
+              '<span class="word">Start here</span>' +
+              '<svg class="arrow" viewBox="0 0 16 30" fill="none" stroke="currentColor" ' +
+                'stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">' +
+                '<path d="M8 1 V25"/><path d="M2.5 19 L8 25.5 L13.5 19"/></svg>' +
+            '</span>'
+          : '');
       /* One press, one room. The only thing that cancels it is an actual
          drag of the world, and that needs real travel across the screen. */
       b.addEventListener('click', function (e) {
@@ -283,11 +299,30 @@
     applyCamera();
   }
 
+  /* The hub layers move on one axis only, and only when the guest has asked
+     the world to move — a drag, the wheel, an arrow key, the path map.
+     **They must never move because the cursor moved.** There used to be a
+     head-tilt parallax here: every layer took a vertical offset of up to
+     five pixels derived from the pointer's y, which meant a mouse crossing
+     the screen rewrote nine transforms a frame for as long as it kept
+     moving. Measured in a 1900x950 window that is nine layers of 3311x1364
+     — 41 megapixels of CSS area, four times that in device pixels on a
+     Retina screen — and they are not cheap textures the compositor can just
+     slide about: the camera above them carries its own `will-change` and a
+     scale, so a change to a child's transform is paid for in raster, not in
+     compositing. Measured on this machine, writing an unchanged transform
+     every frame cost nothing (50.3fps, no long frames); varying it by those
+     same few pixels cost 25 frames over 32ms in two seconds and dropped the
+     page to 37fps. On a machine with real memory pressure that is not jank,
+     it is dropped tiles — rectangles of missing artwork and colour, which is
+     exactly what Dana was seeing whenever the cursor moved.
+     Five pixels of tilt is not worth a page that flickers. Do not put it
+     back. If depth ever needs more life, it belongs in the artwork or in the
+     panning parallax, which is already here and free. */
   function applyCamera() {
     for (var i = 0; i < hubLayers.length; i++) {
       var L = hubLayers[i];
-      var ty = reduced ? 0 : -ptrY * L.depth * 9;
-      L.node.style.transform = 'translate3d(' + (-pan * L.depth).toFixed(2) + 'px,' + ty.toFixed(2) + 'px,0)';
+      L.node.style.transform = 'translate3d(' + (-pan * L.depth).toFixed(2) + 'px,0,0)';
     }
     el.camera.style.transform =
       'translate3d(' + camState.tx.toFixed(2) + 'px,' + camState.ty.toFixed(2) + 'px,0) scale(' + camState.z.toFixed(4) + ')';
@@ -311,16 +346,8 @@
       } else if (pan !== targetPan) {
         pan = targetPan; camDirty = true;
       }
-      /* the head-tilt parallax, eased, and only when it has really moved */
-      if (!reduced && !lightMode) {
-        var ny = damp(ptrY, ptrYTarget, 6, dt);
-        if (Math.abs(ny - ptrY) > 0.0015) { ptrY = ny; camDirty = true; }
-      }
       if (camDirty) { applyCamera(); markNearest(); camDirty = false; }
       releaseMoving(t);
-    } else if (view === 'room' && roomPtrDirty) {
-      roomPtrDirty = false;
-      applyRoomParallax();
     }
     requestAnimationFrame(loop);
   }
@@ -519,7 +546,6 @@
     scene.layers.forEach(function (L) {
       var d = document.createElement('div');
       d.className = 'room-layer';
-      d.dataset.depth = L.depth;
       d.innerHTML = L.svg;
       el.roomArt.appendChild(d);
     });
@@ -835,15 +861,22 @@
   function wireEvents() {
     el.enterBtn.addEventListener('click', enterSite);
 
-    /* Pointer position only — the world no longer walks itself when the
-       cursor drifts near an edge. That auto-pan was why a doorway slid out
-       from under the cursor the moment you tried to hover or click it. */
-    global.addEventListener('pointermove', function (e) {
-      ptr.x = e.clientX / global.innerWidth;
-      ptr.y = e.clientY / global.innerHeight;
-      ptrYTarget = ptr.y - 0.5;
-      if (view === 'room') roomPtrDirty = true;
-    }, { passive: true });
+    /* **Nothing on this site moves because the cursor moved.** There is no
+       pointermove listener here at all now, and that is the fix for the
+       flickering: not a throttle, not a smaller amplitude — no artwork
+       reads the pointer. The world walks itself only when the guest walks
+       it: a drag, the wheel, the arrow keys, the path map. The two things
+       that used to answer the mouse are both gone, and both for the same
+       reason:
+       - the **edge-pan**, removed a round ago, which slid a doorway out
+         from under the cursor the moment you tried to click it;
+       - the **parallax tilt**, removed now, which moved every layer by a
+         few pixels on every pointermove and made the compositor re-raster
+         several very large SVG layers for as long as the mouse kept going.
+       Measured after the change: three seconds of the cursor crossing the
+       whole screen gives 50fps and not one frame over 32ms, on the
+       promenade and inside a room, which is exactly what sitting still
+       gives. */
 
     /* wheel / trackpad — either axis walks you along the path */
     el.hub.addEventListener('wheel', function (e) {
@@ -936,19 +969,15 @@
     global.addEventListener('orientationchange', function () { setTimeout(layout, 300); });
   }
 
-  /* Gentle parallax inside a room. Driven from the frame loop rather than
-     straight off the pointer event, so a fast mouse cannot ask for more
-     redraws than the screen can show. */
-  function applyRoomParallax() {
-    if (reduced || lightMode) return;
-    var nx = ptr.x - 0.5, ny = ptr.y - 0.5;
-    var layers = el.roomArt.children;
-    for (var i = 0; i < layers.length; i++) {
-      var d = parseFloat(layers[i].dataset.depth) || 0.2;
-      layers[i].style.transform =
-        'translate3d(' + (-nx * d * 22).toFixed(1) + 'px,' + (-ny * d * 12).toFixed(1) + 'px,0)';
-    }
-  }
+  /* There used to be an applyRoomParallax() here, sliding the five layers
+     of a room by up to 22px horizontally and 12px vertically as the cursor
+     crossed them. It is gone for the same reason the hub's tilt is gone,
+     and it was measurably the worse of the two: the wedding room is five
+     layers of roughly a megapixel each carrying seventeen figures, and
+     moving them all on every pointermove took the room from 49fps and no
+     long frames to 38fps and 29 of them in two and a half seconds. The
+     depth in these scenes is drawn in — the ridges, the water, the terrace
+     — and it does not need the cursor's help. */
 
   /* ====================================================================
      MOTES OF LIGHT

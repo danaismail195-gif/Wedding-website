@@ -350,6 +350,26 @@
                '#4A2F5E', '#7A4A28', '#25406B'];
   var SHIRT = '#F2E9DA';
 
+  /* --- the couple ---------------------------------------------------------
+     Dana and Nadeem appear in six different places now — under the arch at
+     the wedding, on the after-party floor, in a window on the Where to Stay
+     street, through the window of the aeroplane, posting the reply at the
+     RSVP gate, and hand in hand inside the Wedding doorway. **They have to
+     be recognisably the same two people in all of them**, which is what this
+     table is for: one gown colour, one tuxedo colour, one white bow tie, one
+     veil. Nothing else in the site dresses itself from here.
+     If any of these change, they change once, and every scene follows.
+     The gown is ivory rather than pure white so it still reads as fabric
+     against a bright sky; the tuxedo is a very deep navy rather than black,
+     because flat black loses the lapels and the shoulder shading that make
+     a figure read as a body at 120px tall. */
+  var COUPLE = {
+    gown: '#FBF6EC',      // ivory, near white
+    suit: '#232A3A',      // deep navy — a tuxedo, not flat black
+    tie:  '#FFFFFF',      // the white bow tie, on both a drawn and a flat groom
+    veil: '#FFFFFF'
+  };
+
   /* A limb in two pieces: upper arm thicker than forearm, thigh thicker than
      calf. Drawing both at one width is exactly what makes a figure read as a
      stick — the taper is most of the difference between a diagram of a person
@@ -457,6 +477,19 @@
         ' q 0 -' + f(2 * s) + ' ' + f(2 * s) + ' -' + f(3 * s) + ' l ' + f(2 * s) + ' 0 q ' + f(2 * s) + ' ' + f(1 * s) + ' ' + f(2 * s) + ' ' + f(3 * s) +
         ' l 0 ' + f(6 * s) + ' Z" fill="#D8C9A8" opacity=".9"/>';
       return tr;
+    }
+    if (kind === 'letter') {
+      /* An envelope held at the corner, tilted the way a hand holds one that
+         is on its way into a slot. Drawn from the hand outwards so it can
+         never drift off the fingers. */
+      var lw = 11 * s, lh = 7.6 * s, la = tint === 'flat' ? 0 : -16;
+      return '<g transform="rotate(' + la + ' ' + f(hx) + ' ' + f(hy) + ')">' +
+        '<rect x="' + f(hx - lw * 0.24) + '" y="' + f(hy - lh * 0.5) + '" width="' + f(lw) + '" height="' + f(lh) +
+        '" rx="' + f(0.9 * s) + '" fill="#FFF6E4"/>' +
+        '<path d="M ' + f(hx - lw * 0.24) + ' ' + f(hy - lh * 0.42) + ' l ' + f(lw * 0.5) + ' ' + f(lh * 0.52) +
+        ' l ' + f(lw * 0.5) + ' -' + f(lh * 0.52) + '" fill="none" stroke="#C4643C" stroke-width="' + f(0.9 * s) + '"/>' +
+        '<circle cx="' + f(hx + lw * 0.26) + '" cy="' + f(hy + lh * 0.06) + '" r="' + f(1.5 * s) + '" fill="#C4643C"/>' +
+        '</g>';
     }
     if (kind === 'bouquet') {
       /* held low, the way people actually carry one: stems down through the
@@ -606,9 +639,14 @@
         limbW = h * 0.082,
         handR = limbW * 0.44;
 
-    /* a little wonkiness, so no two are quite the same */
-    var lean = (r() - 0.5) * 2.2;
-    var shTilt = (r() - 0.5) * h * 0.012;
+    /* A little wonkiness, so no two are quite the same — except where
+       something outside the figure has to line up with a part of it. The
+       guest posting the RSVP holds an envelope that is drawn separately, so
+       it can be clipped at the mouth of the slot; a random lean and a random
+       shoulder tilt would put the hand up to three units away from where
+       that envelope was calculated to be. `straight: true` turns both off. */
+    var lean = o.straight ? 0 : (r() - 0.5) * 2.2;
+    var shTilt = o.straight ? 0 : (r() - 0.5) * h * 0.012;
 
     function pts(list, ox, oy) {
       var out = [[ox, oy]];
@@ -632,6 +670,37 @@
 
     /* anything that falls past the jaw hangs behind the whole figure */
     if (!flat && !o.back) g += hairBehind(hairStyle, x + h * 0.010 * dir, headY, headR, dir, hair);
+
+    /* --- the veil, back half -------------------------------------------
+       A veil is a sheet of net pinned at the crown that falls *behind* the
+       shoulders, so its back half is drawn here, before any of the body,
+       and only a small cap of it goes over the hair further down. Drawn at
+       every figure, flat or not: on the after-party floor the bride is a
+       silhouette and the veil is the one white thing on her, which is
+       exactly what makes her readable as the bride at that size.
+       The cool outline is what keeps it visible on a bright sky, where a
+       translucent white sheet in front of an ivory gown otherwise
+       disappears; on a night scene the outline is invisible and the white
+       does all the work. */
+    if (o.veil) {
+      /* It has to be wider than the gown or it never appears: a standing
+         gown's hem reaches 0.20 of the figure's height either side of the
+         centre line, and the shoulders 0.132, so a veil at 0.15 was drawn
+         entirely behind the bride and only its cap was ever visible — which
+         read as a white band across her brow rather than as a veil. It
+         flares to 0.235 now, and its first control point clears the
+         shoulder, so the net shows on both sides from the ear down. */
+      var vhx = x + h * 0.010 * dir;
+      var vTopY = headY - headR * 1.68;
+      var vBotY = hipY + h * 0.19;
+      var vHalf = h * 0.235;
+      g += '<path d="M ' + f(vhx - headR * 1.10) + ' ' + f(headY - headR * 0.20) +
+        ' Q ' + f(vhx) + ' ' + f(vTopY) + ' ' + f(vhx + headR * 1.10) + ' ' + f(headY - headR * 0.20) +
+        ' C ' + f(vhx + h * 0.150) + ' ' + f(headY + h * 0.12) + ', ' + f(vhx + vHalf) + ' ' + f(hipY - h * 0.08) + ', ' + f(vhx + vHalf) + ' ' + f(vBotY) +
+        ' Q ' + f(vhx) + ' ' + f(vBotY + h * 0.040) + ' ' + f(vhx - vHalf) + ' ' + f(vBotY) +
+        ' C ' + f(vhx - vHalf) + ' ' + f(hipY - h * 0.08) + ', ' + f(vhx - h * 0.150) + ' ' + f(headY + h * 0.12) + ', ' + f(vhx - headR * 1.10) + ' ' + f(headY - headR * 0.20) +
+        ' Z" fill="' + COUPLE.veil + '" opacity=".46" stroke="rgba(122,151,168,.42)" stroke-width="' + f(h * 0.006) + '"/>';
+    }
 
     /* the cloth that covers the shoulder joint, so an arm never looks
        pinned on: a sleeve down the first two thirds of the upper arm */
@@ -707,10 +776,26 @@
       g += '<path d="M ' + f(x + shW * 0.40) + ' ' + f(vTop - h * 0.004) +
         ' L ' + f(x + shW * 0.02) + ' ' + f(vBot) +
         ' L ' + f(x + shW * 0.66) + ' ' + f(vTop + h * 0.052) + ' Z" fill="' + shade(cloth, 0.10) + '"/>';
-      g += '<path d="M ' + f(x - shW * 0.10) + ' ' + f(vTop + h * 0.004) +
-        ' L ' + f(x + shW * 0.10) + ' ' + f(vTop + h * 0.004) +
-        ' L ' + f(x + shW * 0.05) + ' ' + f(vBot - h * 0.006) +
-        ' L ' + f(x - shW * 0.05) + ' ' + f(vBot - h * 0.006) + ' Z" fill="' + shade(cloth, -0.42) + '"/>';
+      /* a long tie, unless this is black tie — the bow goes on below */
+      if (!o.bowTie) {
+        g += '<path d="M ' + f(x - shW * 0.10) + ' ' + f(vTop + h * 0.004) +
+          ' L ' + f(x + shW * 0.10) + ' ' + f(vTop + h * 0.004) +
+          ' L ' + f(x + shW * 0.05) + ' ' + f(vBot - h * 0.006) +
+          ' L ' + f(x - shW * 0.05) + ' ' + f(vBot - h * 0.006) + ' Z" fill="' + shade(cloth, -0.42) + '"/>';
+      }
+    }
+    /* --- the bow tie ----------------------------------------------------
+       Drawn outside the suit block on purpose, so it appears on a flat
+       silhouette too: the after-party groom is a dark shape with one white
+       bow tie on him, and that is the whole of how you know him. Sat at the
+       foot of the collar, where the neck meets the shoulders. */
+    if (o.bowTie && !o.back) {
+      var btY = shY - h * 0.020, btW = h * 0.042, btH = h * 0.026, btC = o.bowTie === true ? COUPLE.tie : o.bowTie;
+      g += '<path d="M ' + f(x) + ' ' + f(btY) +
+        ' L ' + f(x - btW) + ' ' + f(btY - btH) + ' L ' + f(x - btW) + ' ' + f(btY + btH) + ' Z" fill="' + btC + '"/>';
+      g += '<path d="M ' + f(x) + ' ' + f(btY) +
+        ' L ' + f(x + btW) + ' ' + f(btY - btH) + ' L ' + f(x + btW) + ' ' + f(btY + btH) + ' Z" fill="' + btC + '"/>';
+      g += '<circle cx="' + f(x) + '" cy="' + f(btY) + '" r="' + f(h * 0.013) + '" fill="' + shade(btC, -0.10) + '"/>';
     }
     if (!flat) {
       /* the hem of the shirt, which is where a body stops being a shape */
@@ -799,6 +884,25 @@
         g += '<circle cx="' + f(hx + headR * 0.70 * dir) + '" cy="' + f(headY + headR * 0.30) + '" r="' + f(headR * 0.20) + '" fill="#D9714E" opacity=".26"/>';
         g += '<circle cx="' + f(hx - headR * 0.60 * dir) + '" cy="' + f(headY + headR * 0.32) + '" r="' + f(headR * 0.17) + '" fill="#D9714E" opacity=".18"/>';
       }
+    }
+
+    /* the veil's front half: a cap over the crown, pinned just behind the
+       hairline. It lives in the head group so it turns with the head — a
+       veil that stayed put while its wearer nodded would read as a hat on a
+       stand. */
+    if (o.veil) {
+      /* A cap on the **crown**, not on the brow. The first version came down
+         to headR * 0.06 — level with the eyes — and read as a blindfold. It
+         stops at 0.34 of a head radius above centre now, which is the
+         hairline, with a brighter edge along the front of it where a real
+         one is gathered. */
+      g += '<path d="M ' + f(hx - headR * 0.99) + ' ' + f(headY - headR * 0.34) +
+        ' Q ' + f(hx) + ' ' + f(headY - headR * 1.74) + ' ' + f(hx + headR * 0.99) + ' ' + f(headY - headR * 0.34) +
+        ' Q ' + f(hx) + ' ' + f(headY - headR * 1.06) + ' ' + f(hx - headR * 0.99) + ' ' + f(headY - headR * 0.34) +
+        ' Z" fill="' + COUPLE.veil + '" opacity=".68"/>';
+      g += '<path d="M ' + f(hx - headR * 0.97) + ' ' + f(headY - headR * 0.36) +
+        ' Q ' + f(hx) + ' ' + f(headY - headR * 1.70) + ' ' + f(hx + headR * 0.97) + ' ' + f(headY - headR * 0.36) +
+        '" fill="none" stroke="' + COUPLE.veil + '" stroke-width="' + f(headR * 0.14) + '" opacity=".92"/>';
     }
 
     headG = g; g = gHead;
@@ -932,6 +1036,175 @@
     });
   }
 
+  /* --- Dana and Nadeem ---------------------------------------------------
+     Two thin wrappers over person(), and the only way either of them should
+     ever be drawn. Every scene that needs the couple calls these, so the
+     gown, the tuxedo, the bow tie and the veil are the same in all six
+     places they appear — which is the whole point of them appearing in six
+     places. Anything else about a given appearance (pose, size, where they
+     stand, whether they are a silhouette) is passed in as usual.
+     Pass `flat` for a silhouette and the bodies go dark while the veil and
+     the bow tie stay white; that is the after-party. */
+  function bride(o) {
+    o = o || {};
+    var p = {};
+    for (var k in o) p[k] = o[k];
+    if (p.cloth == null) p.cloth = COUPLE.gown;
+    if (p.gown == null) p.gown = true;
+    if (p.veil == null) p.veil = true;
+    if (p.hairStyle == null) p.hairStyle = 'bun';
+    if (p.hair == null) p.hair = '#4A3526';
+    if (p.skin == null) p.skin = '#E6B183';
+    /* a gown covers the legs whether she is standing or sitting, so the
+       shins are gown-coloured rather than bare */
+    if (p.pants == null) p.pants = COUPLE.gown;
+    return person(p);
+  }
+  function groom(o) {
+    o = o || {};
+    var p = {};
+    for (var k in o) p[k] = o[k];
+    if (p.cloth == null) p.cloth = COUPLE.suit;
+    if (p.suit == null) p.suit = true;
+    /* Two things person() decides by coin-toss unless told otherwise, and
+       both of them once put the groom in a skirt and a pair of brown
+       trousers: `dress` is a 45% chance for anybody, and the trousers only
+       follow the jacket when `evening` is set, which a groom drawn on his
+       own is not. */
+    if (p.dress == null) p.dress = false;
+    if (p.pants == null) p.pants = shade(p.cloth, -0.06);
+    if (p.bowTie == null) p.bowTie = COUPLE.tie;
+    if (p.hairStyle == null) p.hairStyle = 'crop';
+    if (p.hair == null) p.hair = '#2A1D17';
+    if (p.skin == null) p.skin = '#CE8F60';
+    return person(p);
+  }
+
+  /* --- somebody at a window ----------------------------------------------
+     A whole figure, drawn the usual way and then clipped to the opening, so
+     only the head and the shoulders come through. Drawing a second,
+     simplified upper-body kit would have been less code today and two kits
+     drifting apart by the next round of feedback; this way the people in the
+     windows have the same faces, hair, clothes and animations as the people
+     on the street.
+     `crown` is how far below the top of the opening the top of the head
+     should sit. The rest of the body falls away behind the sill.
+     The clip is applied to the group *containing* the figure, so the figure
+     still moves inside its window rather than the window moving with it. */
+  function bust(win, o) {
+    var id = uid('win'), h = o.h || 110;
+    var round = win.r != null;                 // an aeroplane window, not a house one
+    var cx = round ? win.cx : win.x + win.w / 2;
+    var topY = round ? win.cy - win.r : win.y;
+    var p = {};
+    for (var k in o) p[k] = o[k];
+    p.x = cx + (o.dx || 0);
+    p.baseY = topY + (o.crown != null ? o.crown : 9) + 0.99 * h;
+    p.shadow = false;
+    var shape = round
+      ? '<circle cx="' + f(win.cx) + '" cy="' + f(win.cy) + '" r="' + f(win.r) + '"/>'
+      : '<rect x="' + f(win.x) + '" y="' + f(win.y) + '" width="' + f(win.w) + '" height="' + f(win.h) + '"/>';
+    return '<defs><clipPath id="' + id + '">' + shape + '</clipPath></defs>' +
+      '<g clip-path="url(#' + id + ')">' + person(p) + '</g>';
+  }
+
+  /* --- a mailbox ----------------------------------------------------------
+     The same one that stands inside the RSVP doorway on the promenade — a
+     terracotta box with a slot, on a wooden post — so the room the guest
+     walks into is recognisably the place they were looking at. `s` is the
+     scale; the box is 54 x 42 at s = 1. */
+  function mailbox(x, baseY, s, opts) {
+    opts = opts || {};
+    var bw = 54 * s, bh = 42 * s, top = baseY - 116 * s;
+    var g = '<ellipse cx="' + f(x) + '" cy="' + f(baseY) + '" rx="' + f(20 * s) + '" ry="' + f(5 * s) + '" fill="rgba(59,42,34,.20)"/>';
+    g += '<rect x="' + f(x - 4.5 * s) + '" y="' + f(top) + '" width="' + f(9 * s) + '" height="' + f(116 * s) + '" fill="#7A6247"/>';
+    g += '<rect x="' + f(x - 6 * s) + '" y="' + f(top) + '" width="' + f(3 * s) + '" height="' + f(116 * s) + '" fill="#8E7455"/>';
+    g += '<rect x="' + f(x - bw / 2) + '" y="' + f(top - bh) + '" width="' + f(bw) + '" height="' + f(bh) +
+      '" rx="' + f(8 * s) + '" fill="' + (opts.body || P.terracotta) + '"/>';
+    /* the lid catches the light, the near cheek falls away into shade */
+    g += '<path d="M ' + f(x - bw / 2) + ' ' + f(top - bh + 8 * s) +
+      ' a ' + f(8 * s) + ' ' + f(8 * s) + ' 0 0 1 ' + f(bw) + ' 0' +
+      ' l 0 ' + f(4 * s) + ' l -' + f(bw) + ' 0 Z" fill="' + shade(opts.body || P.terracotta, 0.14) + '"/>';
+    g += '<path d="M ' + f(x + bw * 0.18) + ' ' + f(top - bh + 4 * s) + ' l ' + f(bw * 0.32) + ' ' + f(6 * s) +
+      ' l 0 ' + f(bh - 14 * s) + ' l -' + f(bw * 0.32) + ' 0 Z" fill="' + shade(opts.body || P.terracotta, -0.18) + '" opacity=".5"/>';
+    /* the slot */
+    g += '<rect x="' + f(x - bw * 0.40) + '" y="' + f(top - bh + 13 * s) + '" width="' + f(bw * 0.80) + '" height="' + f(5.4 * s) +
+      '" rx="' + f(2.6 * s) + '" fill="rgba(38,26,20,.62)"/>';
+    /* the little flag, up because there is something in there */
+    g += '<rect x="' + f(x + bw / 2 - 1.5 * s) + '" y="' + f(top - bh - 20 * s) + '" width="' + f(3 * s) + '" height="' + f(24 * s) + '" fill="#8E7455"/>';
+    g += '<path d="M ' + f(x + bw / 2 + 1.5 * s) + ' ' + f(top - bh - 19 * s) + ' l ' + f(15 * s) + ' ' + f(5 * s) +
+      ' l -' + f(15 * s) + ' ' + f(5 * s) + ' Z" fill="' + P.gold + '"/>';
+    return g;
+  }
+
+  /* --- an airliner, seen from the side ------------------------------------
+     Big enough that there are people in the windows, which is the whole
+     reason it exists: the small `airplane()` above is a silhouette crossing
+     a sky and nobody is aboard it. Drawn flat, in the same handful of tones
+     as the rest of the world, with a swept wing and an upright fin.
+
+     `windows` is how many round openings run down the side and `at` gives
+     their spacing; `seatFn(i, win)` is called for each one with the window's
+     centre and radius, and whatever it returns is drawn into that window —
+     which is how the bride and the groom end up in seats 2 and 3 without
+     this function knowing anything about them. Return '' for an empty seat.
+
+     A window has to be about 38 units across for a face to survive in it,
+     which sets the fuselage at 84 deep and the aeroplane at 520 long. That
+     is a third of the width of a room. It is meant to be: this is the
+     Travel doorway, and the aeroplane is the subject of it. */
+  function airliner(x, y, opts) {
+    opts = opts || {};
+    var body = opts.body || '#F3ECE0', trim = opts.trim || P.dusty, dark = opts.dark || '#4E6E80';
+    var n = opts.windows || 6, gap = opts.gap || 62, w0 = opts.first != null ? opts.first : -180;
+    var g = '';
+    /* the fin and the tailplane, behind the body */
+    g += '<path d="M ' + f(x - 190) + ' ' + f(y - 36) + ' L ' + f(x - 254) + ' ' + f(y - 146) +
+      ' Q ' + f(x - 248) + ' ' + f(y - 152) + ' ' + f(x - 200) + ' ' + f(y - 150) +
+      ' L ' + f(x - 132) + ' ' + f(y - 36) + ' Z" fill="' + trim + '"/>';
+    g += '<path d="M ' + f(x - 214) + ' ' + f(y - 4) + ' L ' + f(x - 292) + ' ' + f(y - 30) +
+      ' L ' + f(x - 252) + ' ' + f(y - 30) + ' L ' + f(x - 190) + ' ' + f(y - 12) + ' Z" fill="' + shade(trim, -0.14) + '"/>';
+    /* --- the fuselage, one path -----------------------------------------
+       A rounded tail, a straight body and a nose that tapers to a point.
+       The first version was a capsule with a separate nose cone laid over
+       the front of it in a slightly different tone, which left a seam
+       straight down the aeroplane at the join. One path, one fill. */
+    g += '<path d="M ' + f(x - 252) + ' ' + f(y) +
+      ' Q ' + f(x - 252) + ' ' + f(y - 42) + ' ' + f(x - 210) + ' ' + f(y - 42) +
+      ' L ' + f(x + 158) + ' ' + f(y - 42) +
+      ' Q ' + f(x + 234) + ' ' + f(y - 37) + ' ' + f(x + 264) + ' ' + f(y + 2) +
+      ' Q ' + f(x + 234) + ' ' + f(y + 39) + ' ' + f(x + 158) + ' ' + f(y + 42) +
+      ' L ' + f(x - 210) + ' ' + f(y + 42) +
+      ' Q ' + f(x - 252) + ' ' + f(y + 42) + ' ' + f(x - 252) + ' ' + f(y) + ' Z" fill="' + body + '"/>';
+    /* A single stripe along the waist, and nothing else. There was a band of
+       shade under it as well, meant to round the tube off; the two together
+       came out as one heavy grey bar down the whole belly and the aeroplane
+       looked like a bus. One thin line is enough to stop a white capsule
+       reading as a pill. */
+    g += '<rect x="' + f(x - 238) + '" y="' + f(y + 22) + '" width="452" height="7" rx="3.5" fill="' + trim + '" opacity=".7"/>';
+    /* the flight deck, raked back the way a cockpit is */
+    g += '<path d="M ' + f(x + 190) + ' ' + f(y - 20) + ' L ' + f(x + 232) + ' ' + f(y - 6) +
+      ' L ' + f(x + 226) + ' ' + f(y + 1) + ' L ' + f(x + 188) + ' ' + f(y - 6) + ' Z" fill="' + dark + '"/>';
+    /* the wing, sweeping down and back across the near side, and an engine
+       slung under it */
+    g += '<path d="M ' + f(x + 54) + ' ' + f(y + 20) + ' L ' + f(x - 34) + ' ' + f(y + 102) +
+      ' L ' + f(x - 86) + ' ' + f(y + 102) + ' L ' + f(x - 58) + ' ' + f(y + 24) + ' Z" fill="' + shade(trim, -0.16) + '"/>';
+    g += '<rect x="' + f(x - 60) + '" y="' + f(y + 56) + '" width="56" height="26" rx="13" fill="' + dark + '"/>';
+    g += '<rect x="' + f(x - 60) + '" y="' + f(y + 56) + '" width="11" height="26" rx="5.5" fill="' + shade(dark, -0.22) + '"/>';
+    /* the passenger windows, and whoever is looking out of them */
+    for (var i = 0; i < n; i++) {
+      var wx = x + w0 + i * gap, wy = y - 4, r = 19;
+      g += '<circle cx="' + f(wx) + '" cy="' + f(wy) + '" r="' + f(r) + '" fill="#2B3A46"/>';
+      if (opts.seatFn) g += opts.seatFn(i, { cx: wx, cy: wy, r: r - 1 });
+      /* the glass over the top of them */
+      g += '<circle cx="' + f(wx) + '" cy="' + f(wy) + '" r="' + f(r) + '" fill="#BBD5E0" opacity=".22"/>';
+      g += '<path d="M ' + f(wx - r * 0.72) + ' ' + f(wy - r * 0.34) + ' a ' + f(r) + ' ' + f(r) + ' 0 0 1 ' + f(r * 0.72) + ' -' + f(r * 0.6) +
+        '" fill="none" stroke="#FFFFFF" stroke-width="' + f(r * 0.2) + '" opacity=".45" stroke-linecap="round"/>';
+      g += '<circle cx="' + f(wx) + '" cy="' + f(wy) + '" r="' + f(r) + '" fill="none" stroke="' + shade(body, -0.16) + '" stroke-width="3"/>';
+    }
+    return g;
+  }
+
   global.WW = global.WW || {};
   global.WW.art = {
     P: P, uid: uid, f: f, rand: rand, svgWrap: svgWrap,
@@ -940,6 +1213,8 @@
     stringLights: stringLights, stoneWall: stoneWall, boat: boat, grassTufts: grassTufts,
     branch: branch, dancer: dancer,
     person: person, chatGroup: chatGroup, diner: diner, plate: plate,
-    prop: prop, shade: shade, limbPath: limbPath, airplane: airplane
+    prop: prop, shade: shade, limbPath: limbPath, airplane: airplane,
+    COUPLE: COUPLE, bride: bride, groom: groom, bust: bust, mailbox: mailbox,
+    airliner: airliner
   };
 })(window);
