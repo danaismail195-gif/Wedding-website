@@ -874,6 +874,80 @@ Bride in the third window, groom in the fourth, four other passengers, and
 **one seat with nobody at the window** — an aeroplane with a face in every
 opening reads as a diagram.
 
+## Round twelve: why the walk was slow
+
+Dana reported the site as "very slow" and asked for the cache to be cleared.
+The cache was not it — a cold cache makes a page slower, not faster — and
+the load was never the problem either: **2.2s and 85KB over the wire**, all
+of it scripts and one stylesheet, measured on the live site. What was slow
+was the walk itself, and it was measured rather than guessed at.
+
+### The layers were being rasterised full-width
+
+Measured live at 1280x800 on a Retina screen: the promenade idled at 50fps
+and panned at **33.5fps with a 120ms hitch**. Three experiments found it:
+
+| | |
+|---|---|
+| same seven layers, artwork removed | 49.9fps, 1 long frame |
+| artwork, clipped to the viewport | 46.9fps, 3 |
+| as shipped | 30.4fps, 44 |
+
+So compositing the surfaces is free and **rasterising the artwork is the
+whole cost** — and Chrome was rasterising the entire 2176px width of every
+layer even though only 1280px of any of them is ever on screen.
+
+**The fix is one static clip per layer.** A layer at depth *d* only ever
+translates by `pan * d`, so the strip of it that can ever be seen is
+`viewport + maxPan * d` wide; everything past that is artwork the guest
+could not reach by walking the promenade end to end. `layout()` now clips
+it away. With the ambient animations paused the way they are while the
+camera moves: **34.8fps / 28 long frames → 48.5fps / 4**, and panning is now
+flat at 50fps at every speed from 4 to 60 pixels a frame.
+
+Two things that cost an experiment each and are worth not rediscovering:
+- **The clip has to be static.** One recomputed each frame to follow the pan
+  is *worse than none* — 22fps — because changing it forces the re-raster it
+  was meant to avoid.
+- **A wrapper with `overflow: hidden` does not work.** Each layer inside a
+  static viewport-sized window measured 29.9fps, worse than plain. It has to
+  be a clip on the layer itself.
+
+The doorway plane is deliberately left unclipped: it is exactly world-width
+anyway, and it is the one layer with things drawn outside the arch.
+
+### The doorway transitions were the worst moment on the site
+
+Dolly in measured **28.8fps with a 260ms hitch**, dolly out **20.8fps with
+300ms** — a lurch at exactly the moment the guest has just clicked. Two
+causes, both now moved off the critical frame:
+
+- **The room was built on the frame it appeared.** Parsing ~90KB of SVG into
+  five layers and laying out the panel costs 23–36ms, and it was landing on
+  the same frame as the browser's first raster of a room it had never drawn.
+  `openRoom` now calls `renderRoom(id, true)` at the *start* of the walk
+  through the doorway — the room is `visibility: hidden` until `is-open`, so
+  a second and a half early shows nothing. The staggered arrival of the copy
+  had to be split out into `revealPanel()`, or it would have played and its
+  own 1.5s safety timeout fired before the guest ever saw the room.
+- **The hub came back from nothing at 3.4x.** It is `visibility: hidden`
+  while the guest is in a room, so its textures are gone; `closeRoom` made it
+  visible again at full zoom and started the zoom-out on the same frame. The
+  veil is fully opaque there and does not lift for another 120ms, so the
+  zoom-out now waits 34ms and lets that first raster land behind it.
+
+### On measuring this at all
+
+The preview browser's `requestAnimationFrame` died partway through this
+round, which makes every frame-rate number and every tween unrunnable.
+**`tween.js` snaps all pending tweens to their end on `visibilitychange`,
+and the preview document reports itself hidden** — so dispatching that event
+by hand drives the whole open/close/step state machine synchronously. That
+is how the transition changes were verified without frames: room built
+before the swap, stagger not started early, `busy` released, camera back to
+identity, room-to-room stepping intact. Worth remembering; it is the only
+way to test transitions when frames are not running.
+
 ## Deliberate decisions worth knowing
 - **2.5D parallax, not Three.js** — the brief recommended this for reliability on phones.
 - **Procedural SVG instead of an illustrator's files** — one consistent hand, nothing to commission. To swap in real artwork later, replace a layer's `svg` with `<img>` at the same viewBox proportions.
@@ -956,6 +1030,14 @@ drift. That drift was the root cause of three separate complaints.
   redrawing — the content structure and the interactions stay.
 - **The email is a placeholder** — `hello@danaandnadeem.example`, set once in
   `content.js` → `couple.email`.
+- **Speed.** Round twelve took panning from 33.5fps to ~50 and moved the
+  two big transition hitches off the frame the guest sees. The frame-rate
+  ceiling in the preview browser is 50fps, so "50fps / 0 long frames" means
+  "as smooth as this browser goes", not 60. **Nobody has measured on Dana's
+  machine.** If it is still not smooth there, the remaining lever is the
+  dolly itself: the zoom alone measured 44fps because scaling the world
+  re-rasterises every layer every frame, and the ways down are a smaller `Z`
+  or a shorter transition, both of which change how it feels.
 - **The glitching: reproduced, measured and fixed.** Round nine's cause was
   real but only half of it; round eleven found the other half — every layer
   moved a few pixels on every `pointermove` — and it *was* reproducible, at

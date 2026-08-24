@@ -4505,9 +4505,39 @@ svg { display: block; }
     el.world.style.width = worldW + 'px';
     el.world.style.height = worldH + 'px';
 
+    /* --- clip away the part of each layer that can never be seen --------
+       This is the single biggest thing keeping the walk smooth, and it was
+       measured on the live site rather than guessed at.
+       A layer at depth d only ever translates by `pan * d`, and pan runs
+       from 0 to maxPan. So the strip of it that can ever appear on screen is
+       `viewport + maxPan * d` wide — and everything past that is artwork the
+       guest could not see if they walked the promenade end to end. On a
+       1280x800 laptop the sky layer is 2176px wide and needs 1370 of them.
+       Chrome does not work that out for itself: it was rasterising the full
+       width of all seven layers, which is what made panning cost what it
+       cost. Measured live, with the ambient animations paused the way they
+       are while the camera moves:
+         no clip   34.8fps, 28 frames over 32ms in 2.5s, worst 79ms
+         clipped   48.5fps,  4 frames over 32ms,         worst 41ms
+       Two things about it that are not obvious and cost an experiment each:
+       - **The clip has to be static.** A clip-path recomputed each frame to
+         follow the pan is *worse than none at all* — 22fps — because
+         changing it forces the re-raster it was supposed to avoid. This one
+         is written once here and again only on resize.
+       - **A wrapper with `overflow: hidden` does not do it.** Putting each
+         layer inside a static viewport-sized window measured 29.9fps, worse
+         than plain. It has to be a clip on the layer itself.
+       It cannot hide anything: the strip removed is beyond the far end of
+       the layer's own travel. Zooming through a doorway is safe too — the
+       dolly only ever zooms *in*, so the visible region shrinks. */
     hubLayers.forEach(function (L) {
-      L.node.style.width = (L.vw * k) + 'px';
+      var w = L.vw * k;
+      L.node.style.width = w + 'px';
       L.node.style.height = worldH + 'px';
+      /* not the doorway plane: it is exactly world-width anyway, and it is
+         the one layer with things deliberately drawn outside the arch */
+      var over = L.isPlane ? 0 : Math.max(0, w - (vw + maxPan * L.depth) - 2);
+      L.node.style.clipPath = over > 1 ? 'inset(0 ' + Math.round(over) + 'px 0 0)' : 'none';
     });
 
     entrances.forEach(function (e) {
@@ -4632,6 +4662,19 @@ svg { display: block; }
     if (idx < 0) return;
     busy = true;
     prefetch(id);
+    /* --- build the room now, not when the veil finishes ------------------
+       This used to happen inside the veil's onComplete, which put three
+       expensive things on one frame: parsing about 90KB of SVG into five
+       layers, laying the panel out, and the browser's first raster of a
+       room it had never drawn. Measured, that frame was **260ms** going in
+       and 300ms coming out — a visible lurch at exactly the moment the
+       guest has just clicked something.
+       The room is `visibility: hidden` until `is-open`, so building it a
+       second and a half early shows nothing; it just moves the 23–36ms of
+       parsing onto the frame where the guest clicked, where a beat is
+       expected and the dolly is already starting, and leaves the swap frame
+       with nothing to do but flip two classes. */
+    renderRoom(id, true);
     if (W.audio) { W.audio.duck(true); W.audio.scene(id); }
 
     var fast = opts.fast;                       // arrived via the RSVP lantern
@@ -4670,7 +4713,7 @@ svg { display: block; }
       onUpdate: function (v) { el.veil.style.opacity = v; },
       onComplete: function () {
         el.hub.classList.add('is-hidden');
-        renderRoom(id);
+        revealPanel();
         view = 'room';
         currentRoom = id;
         el.room.classList.add('is-open');
@@ -4728,6 +4771,24 @@ svg { display: block; }
         applyCamera();
 
         var dur = reduced ? 0 : (lightMode ? 900 : 1250);
+        /* --- let the promenade come back before moving it -----------------
+           The hub has been `visibility: hidden` for as long as the guest was
+           in the room, so its textures are gone; the line above makes it
+           visible again at 3.4x, which means the very next frame has to
+           rasterise the whole world from nothing at the largest scale it is
+           ever drawn. Starting the zoom-out on that same frame measured
+           **20.8fps with a 300ms hitch** — the worst moment on the site, and
+           the first thing the guest sees on the way back out.
+           The veil is fully opaque here and does not begin to lift for
+           another 120ms, so there is room to spend two frames doing nothing.
+           That is all this is: let the first raster land behind the veil,
+           then start moving.
+           A timer rather than requestAnimationFrame, because rAF does not run
+           in a background tab: a guest who switched away mid-close would
+           leave the walk out sitting unstarted until they came back. It
+           recovers either way — tween.js snaps everything to its end on
+           `visibilitychange` — but a timeout simply finishes. */
+        var startOut = function () {
         tween({
           from: 1, to: 0, duration: dur, ease: 'power2InOut',
           onUpdate: function (v) {
@@ -4749,6 +4810,9 @@ svg { display: block; }
             if (e && keyboardNav) e.node.focus({ preventScroll: true });
           }
         });
+        };
+        if (reduced) startOut();
+        else setTimeout(startOut, 34);          // about two frames
         tween({
           from: 1, to: 0, duration: reduced ? 0 : 640, delay: 120, ease: 'power2Out',
           onUpdate: function (v) { el.veil.style.opacity = v; }
@@ -4760,7 +4824,7 @@ svg { display: block; }
   /* ====================================================================
      ROOM CONTENT
      ==================================================================== */
-  function renderRoom(id) {
+  function renderRoom(id, defer) {
     var room = findRoom(id);
     var scene = prefetch(id);
 
@@ -4835,11 +4899,21 @@ svg { display: block; }
     el.panelScroll.innerHTML = h;
     el.panelScroll.scrollTop = 0;
     resetSheet();
-    /* stagger the copy in, but guarantee it ends up visible either way */
+    wireRoomUI();
+    if (!defer) revealPanel();
+  }
+
+  /* The staggered arrival of the copy, kept separate from building it.
+     A room is now built at the *start* of the walk through its doorway
+     rather than at the end (see openRoom), which is a second and a half
+     earlier — long enough that the stagger would have played out and its own
+     1.5s safety timeout fired before the guest ever saw the room. So the
+     building happens early and the reveal happens on arrival. */
+  function revealPanel() {
+    el.panelScroll.scrollTop = 0;
     el.panelScroll.classList.add('is-entering');
     clearTimeout(revealTimer);
     revealTimer = setTimeout(function () { el.panelScroll.classList.remove('is-entering'); }, 1500);
-    wireRoomUI();
   }
 
   function wireRoomUI() {
@@ -4871,6 +4945,7 @@ svg { display: block; }
   function stepToRoom(id) {
     busy = true;
     prefetch(id);
+    renderRoom(id, true);                       // built under the outgoing veil
     if (W.audio) W.audio.scene(id);
     el.veil.style.setProperty('--vx', '50%');
     el.veil.style.setProperty('--vy', '50%');
@@ -4878,7 +4953,7 @@ svg { display: block; }
       from: 0, to: 1, duration: reduced ? 0 : 420, ease: 'power2In',
       onUpdate: function (v) { el.veil.style.opacity = v; },
       onComplete: function () {
-        renderRoom(id);
+        revealPanel();
         currentRoom = id;
         panTo(SPOTS[roomIndex(id)].x, true);
         safeHistory('replaceState', { room: id }, '#' + id);
