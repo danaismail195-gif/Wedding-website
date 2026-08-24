@@ -3,17 +3,14 @@
 > **New Claude Code session? Start here.**
 > 1. Read this file, then `BRIEF.md` for the original intent.
 > 2. The real sources are in `assets/` — **that is what you edit**.
-> 3. The live site is a separate self-contained bundle. Changing `assets/` does
->    nothing to it until you run `python3 build.py` and the rebuilt files in
->    `UPLOAD-THESE-FILES/` are uploaded to GitHub by hand. See
->    **Publishing** below — nobody on this machine can `git push`.
+> 3. **Publishing is now just `git push origin main`.** Credentials are in the
+>    keychain and the live site is built from the sources in the repo. The old
+>    hand-upload dance is over — see **Publishing** below.
 > 4. Test locally before touching anything else. See **Testing** below.
 >
-> Last worked on: **23 August 2026** (see *What changed in the second August
-> 2026 round*; its last entry, on the wedding crowd, is the newest work).
-> **The live site is now behind this folder again: the rebuilt files in
-> `UPLOAD-THESE-FILES/` have not been uploaded yet, and there are two of
-> them — the page and the music.**
+> Last worked on: **23–24 August 2026**. **Everything in this folder is live
+> and the repository is in sync** — `git rev-list --left-right --count
+> origin/main...main` returned `0  0` after the push on 24 August.
 
 ## What this is
 An illustrated wedding website the guest **walks through** rather than scrolls.
@@ -30,69 +27,63 @@ folder — read it for the original intent).
   appear in a Google search. Guests reach it only by the link. Delete both if
   that is not what you want.
 
-## ⚠️ Publishing: read this before you change anything
+## Publishing
 
-**The live site and the git repository are not the same thing, and the repo is
-behind.** This is the single most confusing thing about this project.
-
-| | What it holds |
-|---|---|
-| **Live `index.html`** on GitHub | The single-file build as of the *first* 21 Aug 2026 pass. **Now well out of date** — four feedback rounds have been built into `UPLOAD-THESE-FILES/` and none uploaded. The live site also has no music file at all, so uploading the HTML on its own would leave it silent. |
-| **Everything else** in the GitHub repo | Stale. Loose `app.js`, `content.js`, `main.css`, `scenes.js`, `tween.js`, `art.js`, `audio.js` sit at the repo root, left over from an old flattened upload. Nothing loads them — the live `index.html` is self-contained — so they are harmless, just misleading. There is no `assets/` folder on GitHub at all. |
-| **This local repo** | The truth. Real sources in `assets/`, full history, plus `HANDOVER.md` and `build.py` that GitHub has never seen. |
-
-**Consequence: editing `assets/js/content.js` does NOT change the live site.**
-The live copy is a separate inlined bundle.
+**This changed completely on 24 August 2026 and most of what you may have
+heard about it is now wrong.** For four months the live site was a single
+self-contained `index.html` uploaded by hand through the GitHub web form,
+because nobody on this machine could authenticate. That is over.
 
 ### To change anything the guest sees
 1. Edit the real sources in `assets/js/*` and `assets/css/main.css`
 2. `python3 build.py`
-3. Upload **every file in `UPLOAD-THESE-FILES/`** to the repo root via
-   github.com → **Add file ▸ Upload files** → drag them in → **Commit changes**
+3. `git commit` and `git push origin main`
 4. Wait a minute for Pages, then hard-reload (⌘⇧R). Browser cache is the usual
    reason a change "did not work".
 
-⚠️ **It is two files now, not one.** The music is a real recording, so it
-cannot be baked into the HTML the way the CSS and the scripts are — a few
-megabytes of base64 in front of the page would hold up the whole site. It
-travels beside the HTML instead. **If the live site is silent, the mp3 did not
-get uploaded** — that is the first thing to check, before touching any code.
+That is the whole process. **A push updates the live site**, because Pages now
+serves the repository itself: root `index.html` is the small source page and it
+loads a real `assets/` folder beside it. Relative paths work under the
+`/Wedding-website/` sub-path — verified live, scripts, stylesheet and mp3 all
+200.
 
-`build.py` writes `UPLOAD-THESE-FILES/` (the HTML plus the music, which is
-what you upload) and `the-journey.html`, and exits non-zero if a script, the
-stylesheet or the music failed to make it into the build. `the-journey.html` is generated — never hand-edit it.
+### What is where
+| | |
+|---|---|
+| **Live** | https://danaismail195-gif.github.io/Wedding-website/ ← **capital W**; the lowercase URL 404s |
+| **Second live URL** | `.../Wedding-website/the-journey.html` — the same page as one self-contained file. **People have this one bookmarked.** `build.py` keeps it in step; it once sat three days out of date and caused real confusion. |
+| **Repo** | github.com/danaismail195-gif/Wedding-website, Pages on `main` / root |
 
-### Why not just `git push`?
-Because nobody on this machine can authenticate to GitHub. As of 21 Aug 2026
-there is **no `gh` CLI, no SSH key, no stored credential, and GitHub Desktop is
-not installed** — a push dies with `could not read Username for
-'https://github.com'`. That is why the hand-upload route above exists.
+### Credentials
+A personal access token is in the macOS keychain (`credential.helper =
+osxkeychain`), stored on 24 August. `git push origin main` just works, from a
+session or from Terminal. If it ever asks for a username again the token has
+expired or been revoked: make a new classic token with the `repo` scope and
+push once from Terminal to re-store it.
 
-Everything else is already prepared for the day someone can push:
+### `build.py`
+Writes `UPLOAD-THESE-FILES/` (`index.html`, `the-journey.html`, the mp3) and
+`the-journey.html` at the root, and exits non-zero if a script, the stylesheet
+or the music failed to make it in. **`the-journey.html` is generated — never
+hand-edit it.**
 
-- `origin` is set to `https://github.com/danaismail195-gif/Wedding-website.git`
-- The two histories were unrelated (the repo was born from web uploads), so the
-  remote history has been merged in with `-s ours` — our tree wins, their
-  history is recorded. **`git push origin main` fast-forwards cleanly. No
-  `--force` is needed and none should ever be used.**
+`UPLOAD-THESE-FILES/` is now only a fallback: it exists so somebody without git
+can still drag three files into the web uploader. Nothing needs it in the
+normal flow. It is gitignored.
 
-⚠️ **Every hand-upload creates a new commit on `origin/main` and breaks that
-fast-forward again.** After any web upload, before pushing, redo:
+⚠️ **If anyone ever does a web upload again**, it lands as a commit on
+`origin/main` and breaks the fast-forward. Fix before pushing:
 
 ```
 git fetch origin
 git merge origin/main -s ours -m "Merge the manual upload"
-git push origin main          # needs credentials
+git push origin main
 ```
 
-To get credentials: install GitHub Desktop (it preserves folders and pushes in
-one click) or create a personal access token and push once from Terminal —
-macOS keychain remembers it afterwards.
-
-**That push is worth doing.** It replaces the flattened root with `index.html`
-plus a real `assets/` folder. Relative paths mean it works fine under the
-`/Wedding-website/` sub-path, the loose duplicates disappear, and the whole
-"rebuild and re-upload" dance goes away for good.
+⚠️ **The music cannot be inlined.** It is a real recording; a few megabytes of
+base64 in front of the page would hold up the whole site. It lives at
+`assets/audio/` and is tracked in git. **If the live site is ever silent, check
+the mp3 is being served before touching any code.**
 
 ## How the code is organised
 | File | What it does |
@@ -732,26 +723,27 @@ drift. That drift was the root cause of three separate complaints.
 
 ## Not done / open
 
-- **The feedback rounds are not live yet.** `python3 build.py` has been run and
-  `UPLOAD-THESE-FILES/` is current; both files in it still have to be dragged
-  into github.com → Add file ▸ Upload files. Until then the live site shows the
-  orange "Enter" chips, the plaque behind the names, and the old ambience.
-- **Twelve local commits have never reached GitHub** (count as of 21 Aug 2026;
-  `git log --oneline origin/main..main` is the live answer). No credentials on
-  this machine. See **Publishing**. Until someone pushes, this folder is the
-  only copy of the real sources and of the history — *it is not backed up
-  anywhere.* Worth saying out loud to Dana.
-- **The repo's loose root files are stale duplicates.** The push fixes them; a
-  hand-upload does not. Harmless meanwhile — nothing loads them.
-- **The RSVP form still goes nowhere.** `content.js` → `rsvpEndpoint`. One
-  Formspree URL turns it on. This is the highest-value five minutes left on the
-  project: right now a guest can fill it in, be thanked, and have their reply
-  saved only to their own browser where nobody will ever read it.
-- **Every date, venue and hotel is invented.** Montenegro is a stand-in.
+- **The RSVP form still goes nowhere.** `content.js` → `rsvpEndpoint: ''`. One
+  Formspree URL turns it on. **This is the highest-value five minutes left on
+  the project**: right now a guest can fill it in, be thanked, and have their
+  reply saved only to their own browser, where nobody will ever read it. The
+  site is live and the RSVP doorway is the loudest thing on the promenade.
+- **Every date, venue and hotel is invented.** Montenegro is a stand-in until
+  the real destination is confirmed. When it is, only the illustrations need
+  redrawing — the content structure and the interactions stay.
+- **The email is a placeholder** — `hello@danaandnadeem.example`, set once in
+  `content.js` → `couple.email`.
+- **Does the glitching still happen?** Round nine found and fixed a real cause
+  (see that entry: 25.7 megapixels of force-rasterised layers), but it was
+  never reproduced in the preview browser, which had no memory pressure to
+  begin with. **Nobody has confirmed on Dana's actual machine.** Ask. If it
+  still stutters, the next levers are fewer layers — sky+clouds and the two
+  ridges could merge, at a small cost in distant parallax — and fewer animated
+  nodes, of which there are 155 dirtying their layers at idle.
 - **Vercel.** The connector is authenticated (team "DNA"). Its API only takes
-  inline file contents, so pasting a 190KB bundle is a bad idea — but
-  `create_git_project` can link the existing GitHub repo in one call with no
-  payload, which is the clean way to a `vercel.app` URL or a custom domain.
-  Note it would deploy *the repo*, which is behind the live site until a push
-  happens.
-- **The real music.** See the note above about the two YouTube links.
+  inline file contents, so pasting a 200KB bundle is a bad idea, but
+  `create_git_project` can link the GitHub repo in one call with no payload —
+  the clean route to a `vercel.app` URL or a custom domain. Now that the repo
+  is the source of truth, deploying it would give the same site.
+- **The real music.** See the licence note above. Any new track needs a licence
+  that covers *a website*.
